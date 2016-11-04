@@ -24,9 +24,10 @@ func main() {
 		EnvVar: "PG_USER",
 	})
 	pass := app.String(cli.StringOpt{
-		Name:   "password",
-		Desc:   "Postgres password",
-		EnvVar: "PG_PASS",
+		Name:      "password",
+		Desc:      "Postgres password",
+		EnvVar:    "PG_PASS",
+		HideValue: true,
 	})
 	host := app.String(cli.StringOpt{
 		Name:   "host",
