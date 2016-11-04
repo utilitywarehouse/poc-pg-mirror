@@ -18,7 +18,7 @@ func main() {
 	app := cli.App("poc-pg-mirror", "postgres mirror demo")
 
 	user := app.String(cli.StringOpt{
-		Name:   "user",
+		Name:   "pguser",
 		Desc:   "Postgres user",
 		Value:  "postgres",
 		EnvVar: "PG_USER",
@@ -30,19 +30,19 @@ func main() {
 		HideValue: true,
 	})
 	host := app.String(cli.StringOpt{
-		Name:   "host",
+		Name:   "pghost",
 		Desc:   "Postgres host",
 		Value:  "new-build.postgres.dev.uw.systems",
 		EnvVar: "PG_HOST",
 	})
 	dbname := app.String(cli.StringOpt{
-		Name:   "db",
+		Name:   "pgdb",
 		Desc:   "Postgres database",
 		Value:  "new_build",
 		EnvVar: "PG_DB",
 	})
 	port := app.Int(cli.IntOpt{
-		Name:   "port",
+		Name:   "pgport",
 		Desc:   "Postgres port",
 		Value:  5432,
 		EnvVar: "PG_PORT",
@@ -69,7 +69,10 @@ func runServer(user, pass, host string, port int, dbname string) {
 
 	http.Handle("/", r)
 
-	http.ListenAndServe(":8080", nil)
+	log.Println("Listening on port 8080.  Try: curl http://localhost:8080/customers/0000001")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }
 
 type handlers struct {
