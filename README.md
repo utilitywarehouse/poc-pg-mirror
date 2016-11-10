@@ -8,6 +8,8 @@ Installation:
 ```
 go get github.com/utilitywarehouse/poc-pg-mirror
 ```
+(Note that initial installation is unusually slow for a Go application due to the huge amount of generated code included.)
+
 
 Usage:
 ```
@@ -19,3 +21,6 @@ Example call once running:
 curl localhost:8080/customers/0000001
 ```
 
+
+
+This code is not production ready, is untested, and should not be used for anything.  It serves only as an example and to illustrate the effort and complexity that might be required for creating such APIs for real in Go.
