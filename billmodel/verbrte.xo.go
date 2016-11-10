@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -21,149 +20,6 @@ type Verbrte struct {
 	Vrmultiple   sql.NullInt64   `json:"vrmultiple"`   // vrmultiple
 	EquinoxLrn   int64           `json:"equinox_lrn"`  // equinox_lrn
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Verbrte exists in the database.
-func (v *Verbrte) Exists() bool {
-	return v._exists
-}
-
-// Deleted provides information if the Verbrte has been deleted from the database.
-func (v *Verbrte) Deleted() bool {
-	return v._deleted
-}
-
-// Insert inserts the Verbrte to the database.
-func (v *Verbrte) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.verbrte (` +
-		`vrtableno, vrtabletype, vrterm, vrcommission, vrfromdate, vrtodate, vrmultiple, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, v.Vrtableno, v.Vrtabletype, v.Vrterm, v.Vrcommission, v.Vrfromdate, v.Vrtodate, v.Vrmultiple, v.EquinoxSec)
-	err = db.QueryRow(sqlstr, v.Vrtableno, v.Vrtabletype, v.Vrterm, v.Vrcommission, v.Vrfromdate, v.Vrtodate, v.Vrmultiple, v.EquinoxSec).Scan(&v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Update updates the Verbrte in the database.
-func (v *Verbrte) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.verbrte SET (` +
-		`vrtableno, vrtabletype, vrterm, vrcommission, vrfromdate, vrtodate, vrmultiple, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) WHERE equinox_lrn = $9`
-
-	// run query
-	XOLog(sqlstr, v.Vrtableno, v.Vrtabletype, v.Vrterm, v.Vrcommission, v.Vrfromdate, v.Vrtodate, v.Vrmultiple, v.EquinoxSec, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.Vrtableno, v.Vrtabletype, v.Vrterm, v.Vrcommission, v.Vrfromdate, v.Vrtodate, v.Vrmultiple, v.EquinoxSec, v.EquinoxLrn)
-	return err
-}
-
-// Save saves the Verbrte to the database.
-func (v *Verbrte) Save(db XODB) error {
-	if v.Exists() {
-		return v.Update(db)
-	}
-
-	return v.Insert(db)
-}
-
-// Upsert performs an upsert for Verbrte.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (v *Verbrte) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.verbrte (` +
-		`vrtableno, vrtabletype, vrterm, vrcommission, vrfromdate, vrtodate, vrmultiple, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`vrtableno, vrtabletype, vrterm, vrcommission, vrfromdate, vrtodate, vrmultiple, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.vrtableno, EXCLUDED.vrtabletype, EXCLUDED.vrterm, EXCLUDED.vrcommission, EXCLUDED.vrfromdate, EXCLUDED.vrtodate, EXCLUDED.vrmultiple, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, v.Vrtableno, v.Vrtabletype, v.Vrterm, v.Vrcommission, v.Vrfromdate, v.Vrtodate, v.Vrmultiple, v.EquinoxLrn, v.EquinoxSec)
-	_, err = db.Exec(sqlstr, v.Vrtableno, v.Vrtabletype, v.Vrterm, v.Vrcommission, v.Vrfromdate, v.Vrtodate, v.Vrmultiple, v.EquinoxLrn, v.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Delete deletes the Verbrte from the database.
-func (v *Verbrte) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.verbrte WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	v._deleted = true
-
-	return nil
 }
 
 // VerbrteByEquinoxLrn retrieves a row from 'equinox.verbrte' as a Verbrte.
@@ -180,9 +36,7 @@ func VerbrteByEquinoxLrn(db XODB, equinoxLrn int64) (*Verbrte, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	v := Verbrte{
-		_exists: true,
-	}
+	v := Verbrte{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&v.Vrtableno, &v.Vrtabletype, &v.Vrterm, &v.Vrcommission, &v.Vrfromdate, &v.Vrtodate, &v.Vrmultiple, &v.EquinoxLrn, &v.EquinoxSec)
 	if err != nil {

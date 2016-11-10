@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -19,149 +18,6 @@ type Hol2014 struct {
 	Hol14dateentered pq.NullTime    `json:"hol14dateentered"` // hol14dateentered
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Hol2014 exists in the database.
-func (h *Hol2014) Exists() bool {
-	return h._exists
-}
-
-// Deleted provides information if the Hol2014 has been deleted from the database.
-func (h *Hol2014) Deleted() bool {
-	return h._deleted
-}
-
-// Insert inserts the Hol2014 to the database.
-func (h *Hol2014) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if h._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.hol2014 (` +
-		`hol14month, hol14recruitedby, hol14partnerid, hol14custaccno, hol14dateentered, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, h.Hol14month, h.Hol14recruitedby, h.Hol14partnerid, h.Hol14custaccno, h.Hol14dateentered, h.EquinoxSec)
-	err = db.QueryRow(sqlstr, h.Hol14month, h.Hol14recruitedby, h.Hol14partnerid, h.Hol14custaccno, h.Hol14dateentered, h.EquinoxSec).Scan(&h.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	h._exists = true
-
-	return nil
-}
-
-// Update updates the Hol2014 in the database.
-func (h *Hol2014) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !h._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if h._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.hol2014 SET (` +
-		`hol14month, hol14recruitedby, hol14partnerid, hol14custaccno, hol14dateentered, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) WHERE equinox_lrn = $7`
-
-	// run query
-	XOLog(sqlstr, h.Hol14month, h.Hol14recruitedby, h.Hol14partnerid, h.Hol14custaccno, h.Hol14dateentered, h.EquinoxSec, h.EquinoxLrn)
-	_, err = db.Exec(sqlstr, h.Hol14month, h.Hol14recruitedby, h.Hol14partnerid, h.Hol14custaccno, h.Hol14dateentered, h.EquinoxSec, h.EquinoxLrn)
-	return err
-}
-
-// Save saves the Hol2014 to the database.
-func (h *Hol2014) Save(db XODB) error {
-	if h.Exists() {
-		return h.Update(db)
-	}
-
-	return h.Insert(db)
-}
-
-// Upsert performs an upsert for Hol2014.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (h *Hol2014) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if h._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.hol2014 (` +
-		`hol14month, hol14recruitedby, hol14partnerid, hol14custaccno, hol14dateentered, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`hol14month, hol14recruitedby, hol14partnerid, hol14custaccno, hol14dateentered, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.hol14month, EXCLUDED.hol14recruitedby, EXCLUDED.hol14partnerid, EXCLUDED.hol14custaccno, EXCLUDED.hol14dateentered, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, h.Hol14month, h.Hol14recruitedby, h.Hol14partnerid, h.Hol14custaccno, h.Hol14dateentered, h.EquinoxLrn, h.EquinoxSec)
-	_, err = db.Exec(sqlstr, h.Hol14month, h.Hol14recruitedby, h.Hol14partnerid, h.Hol14custaccno, h.Hol14dateentered, h.EquinoxLrn, h.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	h._exists = true
-
-	return nil
-}
-
-// Delete deletes the Hol2014 from the database.
-func (h *Hol2014) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !h._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if h._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.hol2014 WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, h.EquinoxLrn)
-	_, err = db.Exec(sqlstr, h.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	h._deleted = true
-
-	return nil
 }
 
 // Hol2014ByEquinoxLrn retrieves a row from 'equinox.hol2014' as a Hol2014.
@@ -178,9 +34,7 @@ func Hol2014ByEquinoxLrn(db XODB, equinoxLrn int64) (*Hol2014, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	h := Hol2014{
-		_exists: true,
-	}
+	h := Hol2014{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&h.Hol14month, &h.Hol14recruitedby, &h.Hol14partnerid, &h.Hol14custaccno, &h.Hol14dateentered, &h.EquinoxLrn, &h.EquinoxSec)
 	if err != nil {

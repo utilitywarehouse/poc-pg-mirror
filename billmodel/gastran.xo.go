@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -95,149 +94,6 @@ type Gastran struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gastran exists in the database.
-func (g *Gastran) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gastran has been deleted from the database.
-func (g *Gastran) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gastran to the database.
-func (g *Gastran) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gastrans (` +
-		`gtrandatecreated, gtranfiletype, gtransource, gtranfileproduce, gtrantype, gtranstatus, gtranref, gtransc, gtranregref, gtrancf, gtranlastinspd, gtranappointd, gtranrolecodeins, gtranmamid, gtranourstatus, gtransenttoxoser, gtranxoserveresp, gtranxoserverdat, gtranrecordcount, gtranremmsn, gtranremlc, gtranremlcword, gtranremlcnote, gtranremastatusc, gtranremmtypec, gtranremmtypew, gtranremmechc, gtranremmechw, gtranremoamidate, gtranremrolecode, gtranremmeascap, gtranremmdials, gtranremiorm, gtranremrf, gtranremreadd, gtranremreadttz, gtranremreading, gtranremtobill, gtranrembilltox, gtranrembilld, gtranrembillttz, gtranrembillread, gtraninsmake, gtraninsmodel, gtraninsyman, gtraninsmsn, gtraninslc, gtraninslcword, gtraninslcnote, gtraninsstatusc, gtraninsmettypec, gtraninsmetw, gtraninsmetmechc, gtraninsmetmechw, gtraninsoamidate, gtraninsrolecode, gtraninsmeascap, gtraninsmdials, gtraninsiorm, gtraninsrf, gtraninsreadd, gtraninsreadttz, gtraninsreading, gtraninstobill, gtraninsbilld, gtraninsbillttz, gtraninsbillread, gtranrolecoder, gtraninsbilltox, gjrsfile, gtransc3, gtransn1, gtransn2, gtransn3, gtransd1, gtransd2, gtransd3, gtransc4, gtransc5, gtransoutput, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gtrandatecreated, g.Gtranfiletype, g.Gtransource, g.Gtranfileproduce, g.Gtrantype, g.Gtranstatus, g.Gtranref, g.Gtransc, g.Gtranregref, g.Gtrancf, g.Gtranlastinspd, g.Gtranappointd, g.Gtranrolecodeins, g.Gtranmamid, g.Gtranourstatus, g.Gtransenttoxoser, g.Gtranxoserveresp, g.Gtranxoserverdat, g.Gtranrecordcount, g.Gtranremmsn, g.Gtranremlc, g.Gtranremlcword, g.Gtranremlcnote, g.Gtranremastatusc, g.Gtranremmtypec, g.Gtranremmtypew, g.Gtranremmechc, g.Gtranremmechw, g.Gtranremoamidate, g.Gtranremrolecode, g.Gtranremmeascap, g.Gtranremmdials, g.Gtranremiorm, g.Gtranremrf, g.Gtranremreadd, g.Gtranremreadttz, g.Gtranremreading, g.Gtranremtobill, g.Gtranrembilltox, g.Gtranrembilld, g.Gtranrembillttz, g.Gtranrembillread, g.Gtraninsmake, g.Gtraninsmodel, g.Gtraninsyman, g.Gtraninsmsn, g.Gtraninslc, g.Gtraninslcword, g.Gtraninslcnote, g.Gtraninsstatusc, g.Gtraninsmettypec, g.Gtraninsmetw, g.Gtraninsmetmechc, g.Gtraninsmetmechw, g.Gtraninsoamidate, g.Gtraninsrolecode, g.Gtraninsmeascap, g.Gtraninsmdials, g.Gtraninsiorm, g.Gtraninsrf, g.Gtraninsreadd, g.Gtraninsreadttz, g.Gtraninsreading, g.Gtraninstobill, g.Gtraninsbilld, g.Gtraninsbillttz, g.Gtraninsbillread, g.Gtranrolecoder, g.Gtraninsbilltox, g.Gjrsfile, g.Gtransc3, g.Gtransn1, g.Gtransn2, g.Gtransn3, g.Gtransd1, g.Gtransd2, g.Gtransd3, g.Gtransc4, g.Gtransc5, g.Gtransoutput, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gtrandatecreated, g.Gtranfiletype, g.Gtransource, g.Gtranfileproduce, g.Gtrantype, g.Gtranstatus, g.Gtranref, g.Gtransc, g.Gtranregref, g.Gtrancf, g.Gtranlastinspd, g.Gtranappointd, g.Gtranrolecodeins, g.Gtranmamid, g.Gtranourstatus, g.Gtransenttoxoser, g.Gtranxoserveresp, g.Gtranxoserverdat, g.Gtranrecordcount, g.Gtranremmsn, g.Gtranremlc, g.Gtranremlcword, g.Gtranremlcnote, g.Gtranremastatusc, g.Gtranremmtypec, g.Gtranremmtypew, g.Gtranremmechc, g.Gtranremmechw, g.Gtranremoamidate, g.Gtranremrolecode, g.Gtranremmeascap, g.Gtranremmdials, g.Gtranremiorm, g.Gtranremrf, g.Gtranremreadd, g.Gtranremreadttz, g.Gtranremreading, g.Gtranremtobill, g.Gtranrembilltox, g.Gtranrembilld, g.Gtranrembillttz, g.Gtranrembillread, g.Gtraninsmake, g.Gtraninsmodel, g.Gtraninsyman, g.Gtraninsmsn, g.Gtraninslc, g.Gtraninslcword, g.Gtraninslcnote, g.Gtraninsstatusc, g.Gtraninsmettypec, g.Gtraninsmetw, g.Gtraninsmetmechc, g.Gtraninsmetmechw, g.Gtraninsoamidate, g.Gtraninsrolecode, g.Gtraninsmeascap, g.Gtraninsmdials, g.Gtraninsiorm, g.Gtraninsrf, g.Gtraninsreadd, g.Gtraninsreadttz, g.Gtraninsreading, g.Gtraninstobill, g.Gtraninsbilld, g.Gtraninsbillttz, g.Gtraninsbillread, g.Gtranrolecoder, g.Gtraninsbilltox, g.Gjrsfile, g.Gtransc3, g.Gtransn1, g.Gtransn2, g.Gtransn3, g.Gtransd1, g.Gtransd2, g.Gtransd3, g.Gtransc4, g.Gtransc5, g.Gtransoutput, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gastran in the database.
-func (g *Gastran) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gastrans SET (` +
-		`gtrandatecreated, gtranfiletype, gtransource, gtranfileproduce, gtrantype, gtranstatus, gtranref, gtransc, gtranregref, gtrancf, gtranlastinspd, gtranappointd, gtranrolecodeins, gtranmamid, gtranourstatus, gtransenttoxoser, gtranxoserveresp, gtranxoserverdat, gtranrecordcount, gtranremmsn, gtranremlc, gtranremlcword, gtranremlcnote, gtranremastatusc, gtranremmtypec, gtranremmtypew, gtranremmechc, gtranremmechw, gtranremoamidate, gtranremrolecode, gtranremmeascap, gtranremmdials, gtranremiorm, gtranremrf, gtranremreadd, gtranremreadttz, gtranremreading, gtranremtobill, gtranrembilltox, gtranrembilld, gtranrembillttz, gtranrembillread, gtraninsmake, gtraninsmodel, gtraninsyman, gtraninsmsn, gtraninslc, gtraninslcword, gtraninslcnote, gtraninsstatusc, gtraninsmettypec, gtraninsmetw, gtraninsmetmechc, gtraninsmetmechw, gtraninsoamidate, gtraninsrolecode, gtraninsmeascap, gtraninsmdials, gtraninsiorm, gtraninsrf, gtraninsreadd, gtraninsreadttz, gtraninsreading, gtraninstobill, gtraninsbilld, gtraninsbillttz, gtraninsbillread, gtranrolecoder, gtraninsbilltox, gjrsfile, gtransc3, gtransn1, gtransn2, gtransn3, gtransd1, gtransd2, gtransd3, gtransc4, gtransc5, gtransoutput, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82` +
-		`) WHERE equinox_lrn = $83`
-
-	// run query
-	XOLog(sqlstr, g.Gtrandatecreated, g.Gtranfiletype, g.Gtransource, g.Gtranfileproduce, g.Gtrantype, g.Gtranstatus, g.Gtranref, g.Gtransc, g.Gtranregref, g.Gtrancf, g.Gtranlastinspd, g.Gtranappointd, g.Gtranrolecodeins, g.Gtranmamid, g.Gtranourstatus, g.Gtransenttoxoser, g.Gtranxoserveresp, g.Gtranxoserverdat, g.Gtranrecordcount, g.Gtranremmsn, g.Gtranremlc, g.Gtranremlcword, g.Gtranremlcnote, g.Gtranremastatusc, g.Gtranremmtypec, g.Gtranremmtypew, g.Gtranremmechc, g.Gtranremmechw, g.Gtranremoamidate, g.Gtranremrolecode, g.Gtranremmeascap, g.Gtranremmdials, g.Gtranremiorm, g.Gtranremrf, g.Gtranremreadd, g.Gtranremreadttz, g.Gtranremreading, g.Gtranremtobill, g.Gtranrembilltox, g.Gtranrembilld, g.Gtranrembillttz, g.Gtranrembillread, g.Gtraninsmake, g.Gtraninsmodel, g.Gtraninsyman, g.Gtraninsmsn, g.Gtraninslc, g.Gtraninslcword, g.Gtraninslcnote, g.Gtraninsstatusc, g.Gtraninsmettypec, g.Gtraninsmetw, g.Gtraninsmetmechc, g.Gtraninsmetmechw, g.Gtraninsoamidate, g.Gtraninsrolecode, g.Gtraninsmeascap, g.Gtraninsmdials, g.Gtraninsiorm, g.Gtraninsrf, g.Gtraninsreadd, g.Gtraninsreadttz, g.Gtraninsreading, g.Gtraninstobill, g.Gtraninsbilld, g.Gtraninsbillttz, g.Gtraninsbillread, g.Gtranrolecoder, g.Gtraninsbilltox, g.Gjrsfile, g.Gtransc3, g.Gtransn1, g.Gtransn2, g.Gtransn3, g.Gtransd1, g.Gtransd2, g.Gtransd3, g.Gtransc4, g.Gtransc5, g.Gtransoutput, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gtrandatecreated, g.Gtranfiletype, g.Gtransource, g.Gtranfileproduce, g.Gtrantype, g.Gtranstatus, g.Gtranref, g.Gtransc, g.Gtranregref, g.Gtrancf, g.Gtranlastinspd, g.Gtranappointd, g.Gtranrolecodeins, g.Gtranmamid, g.Gtranourstatus, g.Gtransenttoxoser, g.Gtranxoserveresp, g.Gtranxoserverdat, g.Gtranrecordcount, g.Gtranremmsn, g.Gtranremlc, g.Gtranremlcword, g.Gtranremlcnote, g.Gtranremastatusc, g.Gtranremmtypec, g.Gtranremmtypew, g.Gtranremmechc, g.Gtranremmechw, g.Gtranremoamidate, g.Gtranremrolecode, g.Gtranremmeascap, g.Gtranremmdials, g.Gtranremiorm, g.Gtranremrf, g.Gtranremreadd, g.Gtranremreadttz, g.Gtranremreading, g.Gtranremtobill, g.Gtranrembilltox, g.Gtranrembilld, g.Gtranrembillttz, g.Gtranrembillread, g.Gtraninsmake, g.Gtraninsmodel, g.Gtraninsyman, g.Gtraninsmsn, g.Gtraninslc, g.Gtraninslcword, g.Gtraninslcnote, g.Gtraninsstatusc, g.Gtraninsmettypec, g.Gtraninsmetw, g.Gtraninsmetmechc, g.Gtraninsmetmechw, g.Gtraninsoamidate, g.Gtraninsrolecode, g.Gtraninsmeascap, g.Gtraninsmdials, g.Gtraninsiorm, g.Gtraninsrf, g.Gtraninsreadd, g.Gtraninsreadttz, g.Gtraninsreading, g.Gtraninstobill, g.Gtraninsbilld, g.Gtraninsbillttz, g.Gtraninsbillread, g.Gtranrolecoder, g.Gtraninsbilltox, g.Gjrsfile, g.Gtransc3, g.Gtransn1, g.Gtransn2, g.Gtransn3, g.Gtransd1, g.Gtransd2, g.Gtransd3, g.Gtransc4, g.Gtransc5, g.Gtransoutput, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gastran to the database.
-func (g *Gastran) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gastran.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gastran) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gastrans (` +
-		`gtrandatecreated, gtranfiletype, gtransource, gtranfileproduce, gtrantype, gtranstatus, gtranref, gtransc, gtranregref, gtrancf, gtranlastinspd, gtranappointd, gtranrolecodeins, gtranmamid, gtranourstatus, gtransenttoxoser, gtranxoserveresp, gtranxoserverdat, gtranrecordcount, gtranremmsn, gtranremlc, gtranremlcword, gtranremlcnote, gtranremastatusc, gtranremmtypec, gtranremmtypew, gtranremmechc, gtranremmechw, gtranremoamidate, gtranremrolecode, gtranremmeascap, gtranremmdials, gtranremiorm, gtranremrf, gtranremreadd, gtranremreadttz, gtranremreading, gtranremtobill, gtranrembilltox, gtranrembilld, gtranrembillttz, gtranrembillread, gtraninsmake, gtraninsmodel, gtraninsyman, gtraninsmsn, gtraninslc, gtraninslcword, gtraninslcnote, gtraninsstatusc, gtraninsmettypec, gtraninsmetw, gtraninsmetmechc, gtraninsmetmechw, gtraninsoamidate, gtraninsrolecode, gtraninsmeascap, gtraninsmdials, gtraninsiorm, gtraninsrf, gtraninsreadd, gtraninsreadttz, gtraninsreading, gtraninstobill, gtraninsbilld, gtraninsbillttz, gtraninsbillread, gtranrolecoder, gtraninsbilltox, gjrsfile, gtransc3, gtransn1, gtransn2, gtransn3, gtransd1, gtransd2, gtransd3, gtransc4, gtransc5, gtransoutput, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gtrandatecreated, gtranfiletype, gtransource, gtranfileproduce, gtrantype, gtranstatus, gtranref, gtransc, gtranregref, gtrancf, gtranlastinspd, gtranappointd, gtranrolecodeins, gtranmamid, gtranourstatus, gtransenttoxoser, gtranxoserveresp, gtranxoserverdat, gtranrecordcount, gtranremmsn, gtranremlc, gtranremlcword, gtranremlcnote, gtranremastatusc, gtranremmtypec, gtranremmtypew, gtranremmechc, gtranremmechw, gtranremoamidate, gtranremrolecode, gtranremmeascap, gtranremmdials, gtranremiorm, gtranremrf, gtranremreadd, gtranremreadttz, gtranremreading, gtranremtobill, gtranrembilltox, gtranrembilld, gtranrembillttz, gtranrembillread, gtraninsmake, gtraninsmodel, gtraninsyman, gtraninsmsn, gtraninslc, gtraninslcword, gtraninslcnote, gtraninsstatusc, gtraninsmettypec, gtraninsmetw, gtraninsmetmechc, gtraninsmetmechw, gtraninsoamidate, gtraninsrolecode, gtraninsmeascap, gtraninsmdials, gtraninsiorm, gtraninsrf, gtraninsreadd, gtraninsreadttz, gtraninsreading, gtraninstobill, gtraninsbilld, gtraninsbillttz, gtraninsbillread, gtranrolecoder, gtraninsbilltox, gjrsfile, gtransc3, gtransn1, gtransn2, gtransn3, gtransd1, gtransd2, gtransd3, gtransc4, gtransc5, gtransoutput, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gtrandatecreated, EXCLUDED.gtranfiletype, EXCLUDED.gtransource, EXCLUDED.gtranfileproduce, EXCLUDED.gtrantype, EXCLUDED.gtranstatus, EXCLUDED.gtranref, EXCLUDED.gtransc, EXCLUDED.gtranregref, EXCLUDED.gtrancf, EXCLUDED.gtranlastinspd, EXCLUDED.gtranappointd, EXCLUDED.gtranrolecodeins, EXCLUDED.gtranmamid, EXCLUDED.gtranourstatus, EXCLUDED.gtransenttoxoser, EXCLUDED.gtranxoserveresp, EXCLUDED.gtranxoserverdat, EXCLUDED.gtranrecordcount, EXCLUDED.gtranremmsn, EXCLUDED.gtranremlc, EXCLUDED.gtranremlcword, EXCLUDED.gtranremlcnote, EXCLUDED.gtranremastatusc, EXCLUDED.gtranremmtypec, EXCLUDED.gtranremmtypew, EXCLUDED.gtranremmechc, EXCLUDED.gtranremmechw, EXCLUDED.gtranremoamidate, EXCLUDED.gtranremrolecode, EXCLUDED.gtranremmeascap, EXCLUDED.gtranremmdials, EXCLUDED.gtranremiorm, EXCLUDED.gtranremrf, EXCLUDED.gtranremreadd, EXCLUDED.gtranremreadttz, EXCLUDED.gtranremreading, EXCLUDED.gtranremtobill, EXCLUDED.gtranrembilltox, EXCLUDED.gtranrembilld, EXCLUDED.gtranrembillttz, EXCLUDED.gtranrembillread, EXCLUDED.gtraninsmake, EXCLUDED.gtraninsmodel, EXCLUDED.gtraninsyman, EXCLUDED.gtraninsmsn, EXCLUDED.gtraninslc, EXCLUDED.gtraninslcword, EXCLUDED.gtraninslcnote, EXCLUDED.gtraninsstatusc, EXCLUDED.gtraninsmettypec, EXCLUDED.gtraninsmetw, EXCLUDED.gtraninsmetmechc, EXCLUDED.gtraninsmetmechw, EXCLUDED.gtraninsoamidate, EXCLUDED.gtraninsrolecode, EXCLUDED.gtraninsmeascap, EXCLUDED.gtraninsmdials, EXCLUDED.gtraninsiorm, EXCLUDED.gtraninsrf, EXCLUDED.gtraninsreadd, EXCLUDED.gtraninsreadttz, EXCLUDED.gtraninsreading, EXCLUDED.gtraninstobill, EXCLUDED.gtraninsbilld, EXCLUDED.gtraninsbillttz, EXCLUDED.gtraninsbillread, EXCLUDED.gtranrolecoder, EXCLUDED.gtraninsbilltox, EXCLUDED.gjrsfile, EXCLUDED.gtransc3, EXCLUDED.gtransn1, EXCLUDED.gtransn2, EXCLUDED.gtransn3, EXCLUDED.gtransd1, EXCLUDED.gtransd2, EXCLUDED.gtransd3, EXCLUDED.gtransc4, EXCLUDED.gtransc5, EXCLUDED.gtransoutput, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gtrandatecreated, g.Gtranfiletype, g.Gtransource, g.Gtranfileproduce, g.Gtrantype, g.Gtranstatus, g.Gtranref, g.Gtransc, g.Gtranregref, g.Gtrancf, g.Gtranlastinspd, g.Gtranappointd, g.Gtranrolecodeins, g.Gtranmamid, g.Gtranourstatus, g.Gtransenttoxoser, g.Gtranxoserveresp, g.Gtranxoserverdat, g.Gtranrecordcount, g.Gtranremmsn, g.Gtranremlc, g.Gtranremlcword, g.Gtranremlcnote, g.Gtranremastatusc, g.Gtranremmtypec, g.Gtranremmtypew, g.Gtranremmechc, g.Gtranremmechw, g.Gtranremoamidate, g.Gtranremrolecode, g.Gtranremmeascap, g.Gtranremmdials, g.Gtranremiorm, g.Gtranremrf, g.Gtranremreadd, g.Gtranremreadttz, g.Gtranremreading, g.Gtranremtobill, g.Gtranrembilltox, g.Gtranrembilld, g.Gtranrembillttz, g.Gtranrembillread, g.Gtraninsmake, g.Gtraninsmodel, g.Gtraninsyman, g.Gtraninsmsn, g.Gtraninslc, g.Gtraninslcword, g.Gtraninslcnote, g.Gtraninsstatusc, g.Gtraninsmettypec, g.Gtraninsmetw, g.Gtraninsmetmechc, g.Gtraninsmetmechw, g.Gtraninsoamidate, g.Gtraninsrolecode, g.Gtraninsmeascap, g.Gtraninsmdials, g.Gtraninsiorm, g.Gtraninsrf, g.Gtraninsreadd, g.Gtraninsreadttz, g.Gtraninsreading, g.Gtraninstobill, g.Gtraninsbilld, g.Gtraninsbillttz, g.Gtraninsbillread, g.Gtranrolecoder, g.Gtraninsbilltox, g.Gjrsfile, g.Gtransc3, g.Gtransn1, g.Gtransn2, g.Gtransn3, g.Gtransd1, g.Gtransd2, g.Gtransd3, g.Gtransc4, g.Gtransc5, g.Gtransoutput, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gtrandatecreated, g.Gtranfiletype, g.Gtransource, g.Gtranfileproduce, g.Gtrantype, g.Gtranstatus, g.Gtranref, g.Gtransc, g.Gtranregref, g.Gtrancf, g.Gtranlastinspd, g.Gtranappointd, g.Gtranrolecodeins, g.Gtranmamid, g.Gtranourstatus, g.Gtransenttoxoser, g.Gtranxoserveresp, g.Gtranxoserverdat, g.Gtranrecordcount, g.Gtranremmsn, g.Gtranremlc, g.Gtranremlcword, g.Gtranremlcnote, g.Gtranremastatusc, g.Gtranremmtypec, g.Gtranremmtypew, g.Gtranremmechc, g.Gtranremmechw, g.Gtranremoamidate, g.Gtranremrolecode, g.Gtranremmeascap, g.Gtranremmdials, g.Gtranremiorm, g.Gtranremrf, g.Gtranremreadd, g.Gtranremreadttz, g.Gtranremreading, g.Gtranremtobill, g.Gtranrembilltox, g.Gtranrembilld, g.Gtranrembillttz, g.Gtranrembillread, g.Gtraninsmake, g.Gtraninsmodel, g.Gtraninsyman, g.Gtraninsmsn, g.Gtraninslc, g.Gtraninslcword, g.Gtraninslcnote, g.Gtraninsstatusc, g.Gtraninsmettypec, g.Gtraninsmetw, g.Gtraninsmetmechc, g.Gtraninsmetmechw, g.Gtraninsoamidate, g.Gtraninsrolecode, g.Gtraninsmeascap, g.Gtraninsmdials, g.Gtraninsiorm, g.Gtraninsrf, g.Gtraninsreadd, g.Gtraninsreadttz, g.Gtraninsreading, g.Gtraninstobill, g.Gtraninsbilld, g.Gtraninsbillttz, g.Gtraninsbillread, g.Gtranrolecoder, g.Gtraninsbilltox, g.Gjrsfile, g.Gtransc3, g.Gtransn1, g.Gtransn2, g.Gtransn3, g.Gtransd1, g.Gtransd2, g.Gtransd3, g.Gtransc4, g.Gtransc5, g.Gtransoutput, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gastran from the database.
-func (g *Gastran) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gastrans WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GastranByEquinoxLrn retrieves a row from 'equinox.gastrans' as a Gastran.
@@ -254,9 +110,7 @@ func GastranByEquinoxLrn(db XODB, equinoxLrn int64) (*Gastran, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gastran{
-		_exists: true,
-	}
+	g := Gastran{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gtrandatecreated, &g.Gtranfiletype, &g.Gtransource, &g.Gtranfileproduce, &g.Gtrantype, &g.Gtranstatus, &g.Gtranref, &g.Gtransc, &g.Gtranregref, &g.Gtrancf, &g.Gtranlastinspd, &g.Gtranappointd, &g.Gtranrolecodeins, &g.Gtranmamid, &g.Gtranourstatus, &g.Gtransenttoxoser, &g.Gtranxoserveresp, &g.Gtranxoserverdat, &g.Gtranrecordcount, &g.Gtranremmsn, &g.Gtranremlc, &g.Gtranremlcword, &g.Gtranremlcnote, &g.Gtranremastatusc, &g.Gtranremmtypec, &g.Gtranremmtypew, &g.Gtranremmechc, &g.Gtranremmechw, &g.Gtranremoamidate, &g.Gtranremrolecode, &g.Gtranremmeascap, &g.Gtranremmdials, &g.Gtranremiorm, &g.Gtranremrf, &g.Gtranremreadd, &g.Gtranremreadttz, &g.Gtranremreading, &g.Gtranremtobill, &g.Gtranrembilltox, &g.Gtranrembilld, &g.Gtranrembillttz, &g.Gtranrembillread, &g.Gtraninsmake, &g.Gtraninsmodel, &g.Gtraninsyman, &g.Gtraninsmsn, &g.Gtraninslc, &g.Gtraninslcword, &g.Gtraninslcnote, &g.Gtraninsstatusc, &g.Gtraninsmettypec, &g.Gtraninsmetw, &g.Gtraninsmetmechc, &g.Gtraninsmetmechw, &g.Gtraninsoamidate, &g.Gtraninsrolecode, &g.Gtraninsmeascap, &g.Gtraninsmdials, &g.Gtraninsiorm, &g.Gtraninsrf, &g.Gtraninsreadd, &g.Gtraninsreadttz, &g.Gtraninsreading, &g.Gtraninstobill, &g.Gtraninsbilld, &g.Gtraninsbillttz, &g.Gtraninsbillread, &g.Gtranrolecoder, &g.Gtraninsbilltox, &g.Gjrsfile, &g.Gtransc3, &g.Gtransn1, &g.Gtransn2, &g.Gtransn3, &g.Gtransd1, &g.Gtransd2, &g.Gtransd3, &g.Gtransc4, &g.Gtransc5, &g.Gtransoutput, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

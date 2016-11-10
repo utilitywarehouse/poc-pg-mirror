@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -72,149 +71,6 @@ type Ctcomp struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ctcomp exists in the database.
-func (c *Ctcomp) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Ctcomp has been deleted from the database.
-func (c *Ctcomp) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Ctcomp to the database.
-func (c *Ctcomp) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ctcomp (` +
-		`ctcompname, ctstandingelec, ctstandinggas, ctstandinge7, ctstandingdfg, ctunit1, ctunit2, ctunit1e7, ctunit2e7, ctunitraten, ctunit1gas, ctunit2gas, ctunit1dfg, ctunit2dfg, ctunitthreshgas, ctunitthreshelec, ctunitthreshe7, ctunitthreshdfg, ctddfixedelec, ctddfixedgas, ctddfixede7, ctddfixeddfg, ctddpercelec, ctddpercgas, ctddperce7, ctddpercdfg, ctddthreshelec, ctddthreshgas, ctddthreshe7, ctddthreshdfg, ctdffixed, ctdfperc, ctgasperc, ctdualperc, ctgasbilll, ctgasbills, ctgasbillh, ctelecbilll, ctelecbills, ctelecbillh, cte7billl, cte7bills, cte7billh, ctdualbilll, ctdualbills, ctdualbillh, ctdualbille7l, ctdualbille7s, ctdualbille7h, cteleperc, ctn1, ctn2, ctn3, ctd1, ctd2, ctc1, ctc2, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Ctcompname, c.Ctstandingelec, c.Ctstandinggas, c.Ctstandinge7, c.Ctstandingdfg, c.Ctunit1, c.Ctunit2, c.Ctunit1e7, c.Ctunit2e7, c.Ctunitraten, c.Ctunit1gas, c.Ctunit2gas, c.Ctunit1dfg, c.Ctunit2dfg, c.Ctunitthreshgas, c.Ctunitthreshelec, c.Ctunitthreshe7, c.Ctunitthreshdfg, c.Ctddfixedelec, c.Ctddfixedgas, c.Ctddfixede7, c.Ctddfixeddfg, c.Ctddpercelec, c.Ctddpercgas, c.Ctddperce7, c.Ctddpercdfg, c.Ctddthreshelec, c.Ctddthreshgas, c.Ctddthreshe7, c.Ctddthreshdfg, c.Ctdffixed, c.Ctdfperc, c.Ctgasperc, c.Ctdualperc, c.Ctgasbilll, c.Ctgasbills, c.Ctgasbillh, c.Ctelecbilll, c.Ctelecbills, c.Ctelecbillh, c.Cte7billl, c.Cte7bills, c.Cte7billh, c.Ctdualbilll, c.Ctdualbills, c.Ctdualbillh, c.Ctdualbille7l, c.Ctdualbille7s, c.Ctdualbille7h, c.Cteleperc, c.Ctn1, c.Ctn2, c.Ctn3, c.Ctd1, c.Ctd2, c.Ctc1, c.Ctc2, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Ctcompname, c.Ctstandingelec, c.Ctstandinggas, c.Ctstandinge7, c.Ctstandingdfg, c.Ctunit1, c.Ctunit2, c.Ctunit1e7, c.Ctunit2e7, c.Ctunitraten, c.Ctunit1gas, c.Ctunit2gas, c.Ctunit1dfg, c.Ctunit2dfg, c.Ctunitthreshgas, c.Ctunitthreshelec, c.Ctunitthreshe7, c.Ctunitthreshdfg, c.Ctddfixedelec, c.Ctddfixedgas, c.Ctddfixede7, c.Ctddfixeddfg, c.Ctddpercelec, c.Ctddpercgas, c.Ctddperce7, c.Ctddpercdfg, c.Ctddthreshelec, c.Ctddthreshgas, c.Ctddthreshe7, c.Ctddthreshdfg, c.Ctdffixed, c.Ctdfperc, c.Ctgasperc, c.Ctdualperc, c.Ctgasbilll, c.Ctgasbills, c.Ctgasbillh, c.Ctelecbilll, c.Ctelecbills, c.Ctelecbillh, c.Cte7billl, c.Cte7bills, c.Cte7billh, c.Ctdualbilll, c.Ctdualbills, c.Ctdualbillh, c.Ctdualbille7l, c.Ctdualbille7s, c.Ctdualbille7h, c.Cteleperc, c.Ctn1, c.Ctn2, c.Ctn3, c.Ctd1, c.Ctd2, c.Ctc1, c.Ctc2, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Ctcomp in the database.
-func (c *Ctcomp) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ctcomp SET (` +
-		`ctcompname, ctstandingelec, ctstandinggas, ctstandinge7, ctstandingdfg, ctunit1, ctunit2, ctunit1e7, ctunit2e7, ctunitraten, ctunit1gas, ctunit2gas, ctunit1dfg, ctunit2dfg, ctunitthreshgas, ctunitthreshelec, ctunitthreshe7, ctunitthreshdfg, ctddfixedelec, ctddfixedgas, ctddfixede7, ctddfixeddfg, ctddpercelec, ctddpercgas, ctddperce7, ctddpercdfg, ctddthreshelec, ctddthreshgas, ctddthreshe7, ctddthreshdfg, ctdffixed, ctdfperc, ctgasperc, ctdualperc, ctgasbilll, ctgasbills, ctgasbillh, ctelecbilll, ctelecbills, ctelecbillh, cte7billl, cte7bills, cte7billh, ctdualbilll, ctdualbills, ctdualbillh, ctdualbille7l, ctdualbille7s, ctdualbille7h, cteleperc, ctn1, ctn2, ctn3, ctd1, ctd2, ctc1, ctc2, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59` +
-		`) WHERE equinox_lrn = $60`
-
-	// run query
-	XOLog(sqlstr, c.Ctcompname, c.Ctstandingelec, c.Ctstandinggas, c.Ctstandinge7, c.Ctstandingdfg, c.Ctunit1, c.Ctunit2, c.Ctunit1e7, c.Ctunit2e7, c.Ctunitraten, c.Ctunit1gas, c.Ctunit2gas, c.Ctunit1dfg, c.Ctunit2dfg, c.Ctunitthreshgas, c.Ctunitthreshelec, c.Ctunitthreshe7, c.Ctunitthreshdfg, c.Ctddfixedelec, c.Ctddfixedgas, c.Ctddfixede7, c.Ctddfixeddfg, c.Ctddpercelec, c.Ctddpercgas, c.Ctddperce7, c.Ctddpercdfg, c.Ctddthreshelec, c.Ctddthreshgas, c.Ctddthreshe7, c.Ctddthreshdfg, c.Ctdffixed, c.Ctdfperc, c.Ctgasperc, c.Ctdualperc, c.Ctgasbilll, c.Ctgasbills, c.Ctgasbillh, c.Ctelecbilll, c.Ctelecbills, c.Ctelecbillh, c.Cte7billl, c.Cte7bills, c.Cte7billh, c.Ctdualbilll, c.Ctdualbills, c.Ctdualbillh, c.Ctdualbille7l, c.Ctdualbille7s, c.Ctdualbille7h, c.Cteleperc, c.Ctn1, c.Ctn2, c.Ctn3, c.Ctd1, c.Ctd2, c.Ctc1, c.Ctc2, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Ctcompname, c.Ctstandingelec, c.Ctstandinggas, c.Ctstandinge7, c.Ctstandingdfg, c.Ctunit1, c.Ctunit2, c.Ctunit1e7, c.Ctunit2e7, c.Ctunitraten, c.Ctunit1gas, c.Ctunit2gas, c.Ctunit1dfg, c.Ctunit2dfg, c.Ctunitthreshgas, c.Ctunitthreshelec, c.Ctunitthreshe7, c.Ctunitthreshdfg, c.Ctddfixedelec, c.Ctddfixedgas, c.Ctddfixede7, c.Ctddfixeddfg, c.Ctddpercelec, c.Ctddpercgas, c.Ctddperce7, c.Ctddpercdfg, c.Ctddthreshelec, c.Ctddthreshgas, c.Ctddthreshe7, c.Ctddthreshdfg, c.Ctdffixed, c.Ctdfperc, c.Ctgasperc, c.Ctdualperc, c.Ctgasbilll, c.Ctgasbills, c.Ctgasbillh, c.Ctelecbilll, c.Ctelecbills, c.Ctelecbillh, c.Cte7billl, c.Cte7bills, c.Cte7billh, c.Ctdualbilll, c.Ctdualbills, c.Ctdualbillh, c.Ctdualbille7l, c.Ctdualbille7s, c.Ctdualbille7h, c.Cteleperc, c.Ctn1, c.Ctn2, c.Ctn3, c.Ctd1, c.Ctd2, c.Ctc1, c.Ctc2, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ctcomp to the database.
-func (c *Ctcomp) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Ctcomp.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Ctcomp) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ctcomp (` +
-		`ctcompname, ctstandingelec, ctstandinggas, ctstandinge7, ctstandingdfg, ctunit1, ctunit2, ctunit1e7, ctunit2e7, ctunitraten, ctunit1gas, ctunit2gas, ctunit1dfg, ctunit2dfg, ctunitthreshgas, ctunitthreshelec, ctunitthreshe7, ctunitthreshdfg, ctddfixedelec, ctddfixedgas, ctddfixede7, ctddfixeddfg, ctddpercelec, ctddpercgas, ctddperce7, ctddpercdfg, ctddthreshelec, ctddthreshgas, ctddthreshe7, ctddthreshdfg, ctdffixed, ctdfperc, ctgasperc, ctdualperc, ctgasbilll, ctgasbills, ctgasbillh, ctelecbilll, ctelecbills, ctelecbillh, cte7billl, cte7bills, cte7billh, ctdualbilll, ctdualbills, ctdualbillh, ctdualbille7l, ctdualbille7s, ctdualbille7h, cteleperc, ctn1, ctn2, ctn3, ctd1, ctd2, ctc1, ctc2, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ctcompname, ctstandingelec, ctstandinggas, ctstandinge7, ctstandingdfg, ctunit1, ctunit2, ctunit1e7, ctunit2e7, ctunitraten, ctunit1gas, ctunit2gas, ctunit1dfg, ctunit2dfg, ctunitthreshgas, ctunitthreshelec, ctunitthreshe7, ctunitthreshdfg, ctddfixedelec, ctddfixedgas, ctddfixede7, ctddfixeddfg, ctddpercelec, ctddpercgas, ctddperce7, ctddpercdfg, ctddthreshelec, ctddthreshgas, ctddthreshe7, ctddthreshdfg, ctdffixed, ctdfperc, ctgasperc, ctdualperc, ctgasbilll, ctgasbills, ctgasbillh, ctelecbilll, ctelecbills, ctelecbillh, cte7billl, cte7bills, cte7billh, ctdualbilll, ctdualbills, ctdualbillh, ctdualbille7l, ctdualbille7s, ctdualbille7h, cteleperc, ctn1, ctn2, ctn3, ctd1, ctd2, ctc1, ctc2, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ctcompname, EXCLUDED.ctstandingelec, EXCLUDED.ctstandinggas, EXCLUDED.ctstandinge7, EXCLUDED.ctstandingdfg, EXCLUDED.ctunit1, EXCLUDED.ctunit2, EXCLUDED.ctunit1e7, EXCLUDED.ctunit2e7, EXCLUDED.ctunitraten, EXCLUDED.ctunit1gas, EXCLUDED.ctunit2gas, EXCLUDED.ctunit1dfg, EXCLUDED.ctunit2dfg, EXCLUDED.ctunitthreshgas, EXCLUDED.ctunitthreshelec, EXCLUDED.ctunitthreshe7, EXCLUDED.ctunitthreshdfg, EXCLUDED.ctddfixedelec, EXCLUDED.ctddfixedgas, EXCLUDED.ctddfixede7, EXCLUDED.ctddfixeddfg, EXCLUDED.ctddpercelec, EXCLUDED.ctddpercgas, EXCLUDED.ctddperce7, EXCLUDED.ctddpercdfg, EXCLUDED.ctddthreshelec, EXCLUDED.ctddthreshgas, EXCLUDED.ctddthreshe7, EXCLUDED.ctddthreshdfg, EXCLUDED.ctdffixed, EXCLUDED.ctdfperc, EXCLUDED.ctgasperc, EXCLUDED.ctdualperc, EXCLUDED.ctgasbilll, EXCLUDED.ctgasbills, EXCLUDED.ctgasbillh, EXCLUDED.ctelecbilll, EXCLUDED.ctelecbills, EXCLUDED.ctelecbillh, EXCLUDED.cte7billl, EXCLUDED.cte7bills, EXCLUDED.cte7billh, EXCLUDED.ctdualbilll, EXCLUDED.ctdualbills, EXCLUDED.ctdualbillh, EXCLUDED.ctdualbille7l, EXCLUDED.ctdualbille7s, EXCLUDED.ctdualbille7h, EXCLUDED.cteleperc, EXCLUDED.ctn1, EXCLUDED.ctn2, EXCLUDED.ctn3, EXCLUDED.ctd1, EXCLUDED.ctd2, EXCLUDED.ctc1, EXCLUDED.ctc2, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Ctcompname, c.Ctstandingelec, c.Ctstandinggas, c.Ctstandinge7, c.Ctstandingdfg, c.Ctunit1, c.Ctunit2, c.Ctunit1e7, c.Ctunit2e7, c.Ctunitraten, c.Ctunit1gas, c.Ctunit2gas, c.Ctunit1dfg, c.Ctunit2dfg, c.Ctunitthreshgas, c.Ctunitthreshelec, c.Ctunitthreshe7, c.Ctunitthreshdfg, c.Ctddfixedelec, c.Ctddfixedgas, c.Ctddfixede7, c.Ctddfixeddfg, c.Ctddpercelec, c.Ctddpercgas, c.Ctddperce7, c.Ctddpercdfg, c.Ctddthreshelec, c.Ctddthreshgas, c.Ctddthreshe7, c.Ctddthreshdfg, c.Ctdffixed, c.Ctdfperc, c.Ctgasperc, c.Ctdualperc, c.Ctgasbilll, c.Ctgasbills, c.Ctgasbillh, c.Ctelecbilll, c.Ctelecbills, c.Ctelecbillh, c.Cte7billl, c.Cte7bills, c.Cte7billh, c.Ctdualbilll, c.Ctdualbills, c.Ctdualbillh, c.Ctdualbille7l, c.Ctdualbille7s, c.Ctdualbille7h, c.Cteleperc, c.Ctn1, c.Ctn2, c.Ctn3, c.Ctd1, c.Ctd2, c.Ctc1, c.Ctc2, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Ctcompname, c.Ctstandingelec, c.Ctstandinggas, c.Ctstandinge7, c.Ctstandingdfg, c.Ctunit1, c.Ctunit2, c.Ctunit1e7, c.Ctunit2e7, c.Ctunitraten, c.Ctunit1gas, c.Ctunit2gas, c.Ctunit1dfg, c.Ctunit2dfg, c.Ctunitthreshgas, c.Ctunitthreshelec, c.Ctunitthreshe7, c.Ctunitthreshdfg, c.Ctddfixedelec, c.Ctddfixedgas, c.Ctddfixede7, c.Ctddfixeddfg, c.Ctddpercelec, c.Ctddpercgas, c.Ctddperce7, c.Ctddpercdfg, c.Ctddthreshelec, c.Ctddthreshgas, c.Ctddthreshe7, c.Ctddthreshdfg, c.Ctdffixed, c.Ctdfperc, c.Ctgasperc, c.Ctdualperc, c.Ctgasbilll, c.Ctgasbills, c.Ctgasbillh, c.Ctelecbilll, c.Ctelecbills, c.Ctelecbillh, c.Cte7billl, c.Cte7bills, c.Cte7billh, c.Ctdualbilll, c.Ctdualbills, c.Ctdualbillh, c.Ctdualbille7l, c.Ctdualbille7s, c.Ctdualbille7h, c.Cteleperc, c.Ctn1, c.Ctn2, c.Ctn3, c.Ctd1, c.Ctd2, c.Ctc1, c.Ctc2, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ctcomp from the database.
-func (c *Ctcomp) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ctcomp WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CtcompByEquinoxLrn retrieves a row from 'equinox.ctcomp' as a Ctcomp.
@@ -231,9 +87,7 @@ func CtcompByEquinoxLrn(db XODB, equinoxLrn int64) (*Ctcomp, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Ctcomp{
-		_exists: true,
-	}
+	c := Ctcomp{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Ctcompname, &c.Ctstandingelec, &c.Ctstandinggas, &c.Ctstandinge7, &c.Ctstandingdfg, &c.Ctunit1, &c.Ctunit2, &c.Ctunit1e7, &c.Ctunit2e7, &c.Ctunitraten, &c.Ctunit1gas, &c.Ctunit2gas, &c.Ctunit1dfg, &c.Ctunit2dfg, &c.Ctunitthreshgas, &c.Ctunitthreshelec, &c.Ctunitthreshe7, &c.Ctunitthreshdfg, &c.Ctddfixedelec, &c.Ctddfixedgas, &c.Ctddfixede7, &c.Ctddfixeddfg, &c.Ctddpercelec, &c.Ctddpercgas, &c.Ctddperce7, &c.Ctddpercdfg, &c.Ctddthreshelec, &c.Ctddthreshgas, &c.Ctddthreshe7, &c.Ctddthreshdfg, &c.Ctdffixed, &c.Ctdfperc, &c.Ctgasperc, &c.Ctdualperc, &c.Ctgasbilll, &c.Ctgasbills, &c.Ctgasbillh, &c.Ctelecbilll, &c.Ctelecbills, &c.Ctelecbillh, &c.Cte7billl, &c.Cte7bills, &c.Cte7billh, &c.Ctdualbilll, &c.Ctdualbills, &c.Ctdualbillh, &c.Ctdualbille7l, &c.Ctdualbille7s, &c.Ctdualbille7h, &c.Cteleperc, &c.Ctn1, &c.Ctn2, &c.Ctn3, &c.Ctd1, &c.Ctd2, &c.Ctc1, &c.Ctc2, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

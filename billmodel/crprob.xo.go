@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -40,149 +39,6 @@ type Crprob struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Crprob exists in the database.
-func (c *Crprob) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Crprob has been deleted from the database.
-func (c *Crprob) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Crprob to the database.
-func (c *Crprob) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.crprobs (` +
-		`crpid, crpdate, crpfrom, crpexecid, crpcustaccountno, crpamount, crpcomcodeid, crptype, crperrormonth, crpcompmonth, crpdetails, crpaesresponse, crpcompleted, crpcompleteddate, crpstatementtext, crpshortresponse, crpsparec2, crpsparec3, crpsparec4, crpsparec5, crpsparec6, crperroramt, crpsparenum2, crpsparenum3, crpsparenum4, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Crpid, c.Crpdate, c.Crpfrom, c.Crpexecid, c.Crpcustaccountno, c.Crpamount, c.Crpcomcodeid, c.Crptype, c.Crperrormonth, c.Crpcompmonth, c.Crpdetails, c.Crpaesresponse, c.Crpcompleted, c.Crpcompleteddate, c.Crpstatementtext, c.Crpshortresponse, c.Crpsparec2, c.Crpsparec3, c.Crpsparec4, c.Crpsparec5, c.Crpsparec6, c.Crperroramt, c.Crpsparenum2, c.Crpsparenum3, c.Crpsparenum4, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Crpid, c.Crpdate, c.Crpfrom, c.Crpexecid, c.Crpcustaccountno, c.Crpamount, c.Crpcomcodeid, c.Crptype, c.Crperrormonth, c.Crpcompmonth, c.Crpdetails, c.Crpaesresponse, c.Crpcompleted, c.Crpcompleteddate, c.Crpstatementtext, c.Crpshortresponse, c.Crpsparec2, c.Crpsparec3, c.Crpsparec4, c.Crpsparec5, c.Crpsparec6, c.Crperroramt, c.Crpsparenum2, c.Crpsparenum3, c.Crpsparenum4, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Crprob in the database.
-func (c *Crprob) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.crprobs SET (` +
-		`crpid, crpdate, crpfrom, crpexecid, crpcustaccountno, crpamount, crpcomcodeid, crptype, crperrormonth, crpcompmonth, crpdetails, crpaesresponse, crpcompleted, crpcompleteddate, crpstatementtext, crpshortresponse, crpsparec2, crpsparec3, crpsparec4, crpsparec5, crpsparec6, crperroramt, crpsparenum2, crpsparenum3, crpsparenum4, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27` +
-		`) WHERE equinox_lrn = $28`
-
-	// run query
-	XOLog(sqlstr, c.Crpid, c.Crpdate, c.Crpfrom, c.Crpexecid, c.Crpcustaccountno, c.Crpamount, c.Crpcomcodeid, c.Crptype, c.Crperrormonth, c.Crpcompmonth, c.Crpdetails, c.Crpaesresponse, c.Crpcompleted, c.Crpcompleteddate, c.Crpstatementtext, c.Crpshortresponse, c.Crpsparec2, c.Crpsparec3, c.Crpsparec4, c.Crpsparec5, c.Crpsparec6, c.Crperroramt, c.Crpsparenum2, c.Crpsparenum3, c.Crpsparenum4, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Crpid, c.Crpdate, c.Crpfrom, c.Crpexecid, c.Crpcustaccountno, c.Crpamount, c.Crpcomcodeid, c.Crptype, c.Crperrormonth, c.Crpcompmonth, c.Crpdetails, c.Crpaesresponse, c.Crpcompleted, c.Crpcompleteddate, c.Crpstatementtext, c.Crpshortresponse, c.Crpsparec2, c.Crpsparec3, c.Crpsparec4, c.Crpsparec5, c.Crpsparec6, c.Crperroramt, c.Crpsparenum2, c.Crpsparenum3, c.Crpsparenum4, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Crprob to the database.
-func (c *Crprob) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Crprob.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Crprob) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.crprobs (` +
-		`crpid, crpdate, crpfrom, crpexecid, crpcustaccountno, crpamount, crpcomcodeid, crptype, crperrormonth, crpcompmonth, crpdetails, crpaesresponse, crpcompleted, crpcompleteddate, crpstatementtext, crpshortresponse, crpsparec2, crpsparec3, crpsparec4, crpsparec5, crpsparec6, crperroramt, crpsparenum2, crpsparenum3, crpsparenum4, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`crpid, crpdate, crpfrom, crpexecid, crpcustaccountno, crpamount, crpcomcodeid, crptype, crperrormonth, crpcompmonth, crpdetails, crpaesresponse, crpcompleted, crpcompleteddate, crpstatementtext, crpshortresponse, crpsparec2, crpsparec3, crpsparec4, crpsparec5, crpsparec6, crperroramt, crpsparenum2, crpsparenum3, crpsparenum4, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.crpid, EXCLUDED.crpdate, EXCLUDED.crpfrom, EXCLUDED.crpexecid, EXCLUDED.crpcustaccountno, EXCLUDED.crpamount, EXCLUDED.crpcomcodeid, EXCLUDED.crptype, EXCLUDED.crperrormonth, EXCLUDED.crpcompmonth, EXCLUDED.crpdetails, EXCLUDED.crpaesresponse, EXCLUDED.crpcompleted, EXCLUDED.crpcompleteddate, EXCLUDED.crpstatementtext, EXCLUDED.crpshortresponse, EXCLUDED.crpsparec2, EXCLUDED.crpsparec3, EXCLUDED.crpsparec4, EXCLUDED.crpsparec5, EXCLUDED.crpsparec6, EXCLUDED.crperroramt, EXCLUDED.crpsparenum2, EXCLUDED.crpsparenum3, EXCLUDED.crpsparenum4, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Crpid, c.Crpdate, c.Crpfrom, c.Crpexecid, c.Crpcustaccountno, c.Crpamount, c.Crpcomcodeid, c.Crptype, c.Crperrormonth, c.Crpcompmonth, c.Crpdetails, c.Crpaesresponse, c.Crpcompleted, c.Crpcompleteddate, c.Crpstatementtext, c.Crpshortresponse, c.Crpsparec2, c.Crpsparec3, c.Crpsparec4, c.Crpsparec5, c.Crpsparec6, c.Crperroramt, c.Crpsparenum2, c.Crpsparenum3, c.Crpsparenum4, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Crpid, c.Crpdate, c.Crpfrom, c.Crpexecid, c.Crpcustaccountno, c.Crpamount, c.Crpcomcodeid, c.Crptype, c.Crperrormonth, c.Crpcompmonth, c.Crpdetails, c.Crpaesresponse, c.Crpcompleted, c.Crpcompleteddate, c.Crpstatementtext, c.Crpshortresponse, c.Crpsparec2, c.Crpsparec3, c.Crpsparec4, c.Crpsparec5, c.Crpsparec6, c.Crperroramt, c.Crpsparenum2, c.Crpsparenum3, c.Crpsparenum4, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Crprob from the database.
-func (c *Crprob) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.crprobs WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CrprobByEquinoxLrn retrieves a row from 'equinox.crprobs' as a Crprob.
@@ -199,9 +55,7 @@ func CrprobByEquinoxLrn(db XODB, equinoxLrn int64) (*Crprob, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Crprob{
-		_exists: true,
-	}
+	c := Crprob{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Crpid, &c.Crpdate, &c.Crpfrom, &c.Crpexecid, &c.Crpcustaccountno, &c.Crpamount, &c.Crpcomcodeid, &c.Crptype, &c.Crperrormonth, &c.Crpcompmonth, &c.Crpdetails, &c.Crpaesresponse, &c.Crpcompleted, &c.Crpcompleteddate, &c.Crpstatementtext, &c.Crpshortresponse, &c.Crpsparec2, &c.Crpsparec3, &c.Crpsparec4, &c.Crpsparec5, &c.Crpsparec6, &c.Crperroramt, &c.Crpsparenum2, &c.Crpsparenum3, &c.Crpsparenum4, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

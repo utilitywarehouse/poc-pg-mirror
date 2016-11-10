@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -24,149 +23,6 @@ type Ccfield struct {
 	EquinoxPrn     sql.NullInt64   `json:"equinox_prn"`    // equinox_prn
 	EquinoxLrn     int64           `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ccfield exists in the database.
-func (c *Ccfield) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Ccfield has been deleted from the database.
-func (c *Ccfield) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Ccfield to the database.
-func (c *Ccfield) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ccfields (` +
-		`ccfieldname, ccfdescription, ccfcontents, ccsparec1, ccsparec2, ccsparec3, ccsparen1, ccsparen2, ccspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Ccfieldname, c.Ccfdescription, c.Ccfcontents, c.Ccsparec1, c.Ccsparec2, c.Ccsparec3, c.Ccsparen1, c.Ccsparen2, c.Ccspared1, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Ccfieldname, c.Ccfdescription, c.Ccfcontents, c.Ccsparec1, c.Ccsparec2, c.Ccsparec3, c.Ccsparen1, c.Ccsparen2, c.Ccspared1, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Ccfield in the database.
-func (c *Ccfield) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ccfields SET (` +
-		`ccfieldname, ccfdescription, ccfcontents, ccsparec1, ccsparec2, ccsparec3, ccsparen1, ccsparen2, ccspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) WHERE equinox_lrn = $12`
-
-	// run query
-	XOLog(sqlstr, c.Ccfieldname, c.Ccfdescription, c.Ccfcontents, c.Ccsparec1, c.Ccsparec2, c.Ccsparec3, c.Ccsparen1, c.Ccsparen2, c.Ccspared1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Ccfieldname, c.Ccfdescription, c.Ccfcontents, c.Ccsparec1, c.Ccsparec2, c.Ccsparec3, c.Ccsparen1, c.Ccsparen2, c.Ccspared1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ccfield to the database.
-func (c *Ccfield) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Ccfield.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Ccfield) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ccfields (` +
-		`ccfieldname, ccfdescription, ccfcontents, ccsparec1, ccsparec2, ccsparec3, ccsparen1, ccsparen2, ccspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ccfieldname, ccfdescription, ccfcontents, ccsparec1, ccsparec2, ccsparec3, ccsparen1, ccsparen2, ccspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ccfieldname, EXCLUDED.ccfdescription, EXCLUDED.ccfcontents, EXCLUDED.ccsparec1, EXCLUDED.ccsparec2, EXCLUDED.ccsparec3, EXCLUDED.ccsparen1, EXCLUDED.ccsparen2, EXCLUDED.ccspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Ccfieldname, c.Ccfdescription, c.Ccfcontents, c.Ccsparec1, c.Ccsparec2, c.Ccsparec3, c.Ccsparen1, c.Ccsparen2, c.Ccspared1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Ccfieldname, c.Ccfdescription, c.Ccfcontents, c.Ccsparec1, c.Ccsparec2, c.Ccsparec3, c.Ccsparen1, c.Ccsparen2, c.Ccspared1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ccfield from the database.
-func (c *Ccfield) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ccfields WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CcfieldByEquinoxLrn retrieves a row from 'equinox.ccfields' as a Ccfield.
@@ -183,9 +39,7 @@ func CcfieldByEquinoxLrn(db XODB, equinoxLrn int64) (*Ccfield, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Ccfield{
-		_exists: true,
-	}
+	c := Ccfield{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Ccfieldname, &c.Ccfdescription, &c.Ccfcontents, &c.Ccsparec1, &c.Ccsparec2, &c.Ccsparec3, &c.Ccsparen1, &c.Ccsparen2, &c.Ccspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

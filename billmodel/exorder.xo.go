@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -78,149 +77,6 @@ type Exorder struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exorder exists in the database.
-func (e *Exorder) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exorder has been deleted from the database.
-func (e *Exorder) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exorder to the database.
-func (e *Exorder) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exorders (` +
-		`exordnumber, exorddate, exordtype, exordnett, exordvat, exordpandp, exorddisc, exordtotal, exordcctype, exordccnumber, exordccexpdate, exordccstartdate, exordccissue, exordchequeno, exordtransaccode, exordreffield, exordexportflag, exordauthorised, exordauthamount, exordauthdate, exordauthtext, exorddelname, exorddeladd1, exorddeladd2, exorddeladd3, exorddeladd4, exorddeladd5, exorddelpostcode, exorddeltelno, exordcommisvalue, exordcommispayab, exordprinted, exordcomplete, exordbycustomer, exorddespdate, exordcustno, exordmemo, exordletteraddr, exordinvaddr, exorddespmethod, exordcancelled, exordchanged, exordcccancelled, exordchqrefunded, exordcredit, exordcreditvat, exordinvoiceexec, exordsalesvatmix, exordcommispaid, exordfoc, exordweborder, exorderssparec1, exorderssparen1, exordersspared1, exordersinvoice, exordbanked, exordrefund, exordtime, exordpsp, exordref, exordshopref, exordcontract, exordrefundamt, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Exordnumber, e.Exorddate, e.Exordtype, e.Exordnett, e.Exordvat, e.Exordpandp, e.Exorddisc, e.Exordtotal, e.Exordcctype, e.Exordccnumber, e.Exordccexpdate, e.Exordccstartdate, e.Exordccissue, e.Exordchequeno, e.Exordtransaccode, e.Exordreffield, e.Exordexportflag, e.Exordauthorised, e.Exordauthamount, e.Exordauthdate, e.Exordauthtext, e.Exorddelname, e.Exorddeladd1, e.Exorddeladd2, e.Exorddeladd3, e.Exorddeladd4, e.Exorddeladd5, e.Exorddelpostcode, e.Exorddeltelno, e.Exordcommisvalue, e.Exordcommispayab, e.Exordprinted, e.Exordcomplete, e.Exordbycustomer, e.Exorddespdate, e.Exordcustno, e.Exordmemo, e.Exordletteraddr, e.Exordinvaddr, e.Exorddespmethod, e.Exordcancelled, e.Exordchanged, e.Exordcccancelled, e.Exordchqrefunded, e.Exordcredit, e.Exordcreditvat, e.Exordinvoiceexec, e.Exordsalesvatmix, e.Exordcommispaid, e.Exordfoc, e.Exordweborder, e.Exorderssparec1, e.Exorderssparen1, e.Exordersspared1, e.Exordersinvoice, e.Exordbanked, e.Exordrefund, e.Exordtime, e.Exordpsp, e.Exordref, e.Exordshopref, e.Exordcontract, e.Exordrefundamt, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Exordnumber, e.Exorddate, e.Exordtype, e.Exordnett, e.Exordvat, e.Exordpandp, e.Exorddisc, e.Exordtotal, e.Exordcctype, e.Exordccnumber, e.Exordccexpdate, e.Exordccstartdate, e.Exordccissue, e.Exordchequeno, e.Exordtransaccode, e.Exordreffield, e.Exordexportflag, e.Exordauthorised, e.Exordauthamount, e.Exordauthdate, e.Exordauthtext, e.Exorddelname, e.Exorddeladd1, e.Exorddeladd2, e.Exorddeladd3, e.Exorddeladd4, e.Exorddeladd5, e.Exorddelpostcode, e.Exorddeltelno, e.Exordcommisvalue, e.Exordcommispayab, e.Exordprinted, e.Exordcomplete, e.Exordbycustomer, e.Exorddespdate, e.Exordcustno, e.Exordmemo, e.Exordletteraddr, e.Exordinvaddr, e.Exorddespmethod, e.Exordcancelled, e.Exordchanged, e.Exordcccancelled, e.Exordchqrefunded, e.Exordcredit, e.Exordcreditvat, e.Exordinvoiceexec, e.Exordsalesvatmix, e.Exordcommispaid, e.Exordfoc, e.Exordweborder, e.Exorderssparec1, e.Exorderssparen1, e.Exordersspared1, e.Exordersinvoice, e.Exordbanked, e.Exordrefund, e.Exordtime, e.Exordpsp, e.Exordref, e.Exordshopref, e.Exordcontract, e.Exordrefundamt, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exorder in the database.
-func (e *Exorder) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exorders SET (` +
-		`exordnumber, exorddate, exordtype, exordnett, exordvat, exordpandp, exorddisc, exordtotal, exordcctype, exordccnumber, exordccexpdate, exordccstartdate, exordccissue, exordchequeno, exordtransaccode, exordreffield, exordexportflag, exordauthorised, exordauthamount, exordauthdate, exordauthtext, exorddelname, exorddeladd1, exorddeladd2, exorddeladd3, exorddeladd4, exorddeladd5, exorddelpostcode, exorddeltelno, exordcommisvalue, exordcommispayab, exordprinted, exordcomplete, exordbycustomer, exorddespdate, exordcustno, exordmemo, exordletteraddr, exordinvaddr, exorddespmethod, exordcancelled, exordchanged, exordcccancelled, exordchqrefunded, exordcredit, exordcreditvat, exordinvoiceexec, exordsalesvatmix, exordcommispaid, exordfoc, exordweborder, exorderssparec1, exorderssparen1, exordersspared1, exordersinvoice, exordbanked, exordrefund, exordtime, exordpsp, exordref, exordshopref, exordcontract, exordrefundamt, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65` +
-		`) WHERE equinox_lrn = $66`
-
-	// run query
-	XOLog(sqlstr, e.Exordnumber, e.Exorddate, e.Exordtype, e.Exordnett, e.Exordvat, e.Exordpandp, e.Exorddisc, e.Exordtotal, e.Exordcctype, e.Exordccnumber, e.Exordccexpdate, e.Exordccstartdate, e.Exordccissue, e.Exordchequeno, e.Exordtransaccode, e.Exordreffield, e.Exordexportflag, e.Exordauthorised, e.Exordauthamount, e.Exordauthdate, e.Exordauthtext, e.Exorddelname, e.Exorddeladd1, e.Exorddeladd2, e.Exorddeladd3, e.Exorddeladd4, e.Exorddeladd5, e.Exorddelpostcode, e.Exorddeltelno, e.Exordcommisvalue, e.Exordcommispayab, e.Exordprinted, e.Exordcomplete, e.Exordbycustomer, e.Exorddespdate, e.Exordcustno, e.Exordmemo, e.Exordletteraddr, e.Exordinvaddr, e.Exorddespmethod, e.Exordcancelled, e.Exordchanged, e.Exordcccancelled, e.Exordchqrefunded, e.Exordcredit, e.Exordcreditvat, e.Exordinvoiceexec, e.Exordsalesvatmix, e.Exordcommispaid, e.Exordfoc, e.Exordweborder, e.Exorderssparec1, e.Exorderssparen1, e.Exordersspared1, e.Exordersinvoice, e.Exordbanked, e.Exordrefund, e.Exordtime, e.Exordpsp, e.Exordref, e.Exordshopref, e.Exordcontract, e.Exordrefundamt, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Exordnumber, e.Exorddate, e.Exordtype, e.Exordnett, e.Exordvat, e.Exordpandp, e.Exorddisc, e.Exordtotal, e.Exordcctype, e.Exordccnumber, e.Exordccexpdate, e.Exordccstartdate, e.Exordccissue, e.Exordchequeno, e.Exordtransaccode, e.Exordreffield, e.Exordexportflag, e.Exordauthorised, e.Exordauthamount, e.Exordauthdate, e.Exordauthtext, e.Exorddelname, e.Exorddeladd1, e.Exorddeladd2, e.Exorddeladd3, e.Exorddeladd4, e.Exorddeladd5, e.Exorddelpostcode, e.Exorddeltelno, e.Exordcommisvalue, e.Exordcommispayab, e.Exordprinted, e.Exordcomplete, e.Exordbycustomer, e.Exorddespdate, e.Exordcustno, e.Exordmemo, e.Exordletteraddr, e.Exordinvaddr, e.Exorddespmethod, e.Exordcancelled, e.Exordchanged, e.Exordcccancelled, e.Exordchqrefunded, e.Exordcredit, e.Exordcreditvat, e.Exordinvoiceexec, e.Exordsalesvatmix, e.Exordcommispaid, e.Exordfoc, e.Exordweborder, e.Exorderssparec1, e.Exorderssparen1, e.Exordersspared1, e.Exordersinvoice, e.Exordbanked, e.Exordrefund, e.Exordtime, e.Exordpsp, e.Exordref, e.Exordshopref, e.Exordcontract, e.Exordrefundamt, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exorder to the database.
-func (e *Exorder) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exorder.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exorder) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exorders (` +
-		`exordnumber, exorddate, exordtype, exordnett, exordvat, exordpandp, exorddisc, exordtotal, exordcctype, exordccnumber, exordccexpdate, exordccstartdate, exordccissue, exordchequeno, exordtransaccode, exordreffield, exordexportflag, exordauthorised, exordauthamount, exordauthdate, exordauthtext, exorddelname, exorddeladd1, exorddeladd2, exorddeladd3, exorddeladd4, exorddeladd5, exorddelpostcode, exorddeltelno, exordcommisvalue, exordcommispayab, exordprinted, exordcomplete, exordbycustomer, exorddespdate, exordcustno, exordmemo, exordletteraddr, exordinvaddr, exorddespmethod, exordcancelled, exordchanged, exordcccancelled, exordchqrefunded, exordcredit, exordcreditvat, exordinvoiceexec, exordsalesvatmix, exordcommispaid, exordfoc, exordweborder, exorderssparec1, exorderssparen1, exordersspared1, exordersinvoice, exordbanked, exordrefund, exordtime, exordpsp, exordref, exordshopref, exordcontract, exordrefundamt, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`exordnumber, exorddate, exordtype, exordnett, exordvat, exordpandp, exorddisc, exordtotal, exordcctype, exordccnumber, exordccexpdate, exordccstartdate, exordccissue, exordchequeno, exordtransaccode, exordreffield, exordexportflag, exordauthorised, exordauthamount, exordauthdate, exordauthtext, exorddelname, exorddeladd1, exorddeladd2, exorddeladd3, exorddeladd4, exorddeladd5, exorddelpostcode, exorddeltelno, exordcommisvalue, exordcommispayab, exordprinted, exordcomplete, exordbycustomer, exorddespdate, exordcustno, exordmemo, exordletteraddr, exordinvaddr, exorddespmethod, exordcancelled, exordchanged, exordcccancelled, exordchqrefunded, exordcredit, exordcreditvat, exordinvoiceexec, exordsalesvatmix, exordcommispaid, exordfoc, exordweborder, exorderssparec1, exorderssparen1, exordersspared1, exordersinvoice, exordbanked, exordrefund, exordtime, exordpsp, exordref, exordshopref, exordcontract, exordrefundamt, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.exordnumber, EXCLUDED.exorddate, EXCLUDED.exordtype, EXCLUDED.exordnett, EXCLUDED.exordvat, EXCLUDED.exordpandp, EXCLUDED.exorddisc, EXCLUDED.exordtotal, EXCLUDED.exordcctype, EXCLUDED.exordccnumber, EXCLUDED.exordccexpdate, EXCLUDED.exordccstartdate, EXCLUDED.exordccissue, EXCLUDED.exordchequeno, EXCLUDED.exordtransaccode, EXCLUDED.exordreffield, EXCLUDED.exordexportflag, EXCLUDED.exordauthorised, EXCLUDED.exordauthamount, EXCLUDED.exordauthdate, EXCLUDED.exordauthtext, EXCLUDED.exorddelname, EXCLUDED.exorddeladd1, EXCLUDED.exorddeladd2, EXCLUDED.exorddeladd3, EXCLUDED.exorddeladd4, EXCLUDED.exorddeladd5, EXCLUDED.exorddelpostcode, EXCLUDED.exorddeltelno, EXCLUDED.exordcommisvalue, EXCLUDED.exordcommispayab, EXCLUDED.exordprinted, EXCLUDED.exordcomplete, EXCLUDED.exordbycustomer, EXCLUDED.exorddespdate, EXCLUDED.exordcustno, EXCLUDED.exordmemo, EXCLUDED.exordletteraddr, EXCLUDED.exordinvaddr, EXCLUDED.exorddespmethod, EXCLUDED.exordcancelled, EXCLUDED.exordchanged, EXCLUDED.exordcccancelled, EXCLUDED.exordchqrefunded, EXCLUDED.exordcredit, EXCLUDED.exordcreditvat, EXCLUDED.exordinvoiceexec, EXCLUDED.exordsalesvatmix, EXCLUDED.exordcommispaid, EXCLUDED.exordfoc, EXCLUDED.exordweborder, EXCLUDED.exorderssparec1, EXCLUDED.exorderssparen1, EXCLUDED.exordersspared1, EXCLUDED.exordersinvoice, EXCLUDED.exordbanked, EXCLUDED.exordrefund, EXCLUDED.exordtime, EXCLUDED.exordpsp, EXCLUDED.exordref, EXCLUDED.exordshopref, EXCLUDED.exordcontract, EXCLUDED.exordrefundamt, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Exordnumber, e.Exorddate, e.Exordtype, e.Exordnett, e.Exordvat, e.Exordpandp, e.Exorddisc, e.Exordtotal, e.Exordcctype, e.Exordccnumber, e.Exordccexpdate, e.Exordccstartdate, e.Exordccissue, e.Exordchequeno, e.Exordtransaccode, e.Exordreffield, e.Exordexportflag, e.Exordauthorised, e.Exordauthamount, e.Exordauthdate, e.Exordauthtext, e.Exorddelname, e.Exorddeladd1, e.Exorddeladd2, e.Exorddeladd3, e.Exorddeladd4, e.Exorddeladd5, e.Exorddelpostcode, e.Exorddeltelno, e.Exordcommisvalue, e.Exordcommispayab, e.Exordprinted, e.Exordcomplete, e.Exordbycustomer, e.Exorddespdate, e.Exordcustno, e.Exordmemo, e.Exordletteraddr, e.Exordinvaddr, e.Exorddespmethod, e.Exordcancelled, e.Exordchanged, e.Exordcccancelled, e.Exordchqrefunded, e.Exordcredit, e.Exordcreditvat, e.Exordinvoiceexec, e.Exordsalesvatmix, e.Exordcommispaid, e.Exordfoc, e.Exordweborder, e.Exorderssparec1, e.Exorderssparen1, e.Exordersspared1, e.Exordersinvoice, e.Exordbanked, e.Exordrefund, e.Exordtime, e.Exordpsp, e.Exordref, e.Exordshopref, e.Exordcontract, e.Exordrefundamt, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Exordnumber, e.Exorddate, e.Exordtype, e.Exordnett, e.Exordvat, e.Exordpandp, e.Exorddisc, e.Exordtotal, e.Exordcctype, e.Exordccnumber, e.Exordccexpdate, e.Exordccstartdate, e.Exordccissue, e.Exordchequeno, e.Exordtransaccode, e.Exordreffield, e.Exordexportflag, e.Exordauthorised, e.Exordauthamount, e.Exordauthdate, e.Exordauthtext, e.Exorddelname, e.Exorddeladd1, e.Exorddeladd2, e.Exorddeladd3, e.Exorddeladd4, e.Exorddeladd5, e.Exorddelpostcode, e.Exorddeltelno, e.Exordcommisvalue, e.Exordcommispayab, e.Exordprinted, e.Exordcomplete, e.Exordbycustomer, e.Exorddespdate, e.Exordcustno, e.Exordmemo, e.Exordletteraddr, e.Exordinvaddr, e.Exorddespmethod, e.Exordcancelled, e.Exordchanged, e.Exordcccancelled, e.Exordchqrefunded, e.Exordcredit, e.Exordcreditvat, e.Exordinvoiceexec, e.Exordsalesvatmix, e.Exordcommispaid, e.Exordfoc, e.Exordweborder, e.Exorderssparec1, e.Exorderssparen1, e.Exordersspared1, e.Exordersinvoice, e.Exordbanked, e.Exordrefund, e.Exordtime, e.Exordpsp, e.Exordref, e.Exordshopref, e.Exordcontract, e.Exordrefundamt, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exorder from the database.
-func (e *Exorder) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exorders WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExorderByEquinoxLrn retrieves a row from 'equinox.exorders' as a Exorder.
@@ -237,9 +93,7 @@ func ExorderByEquinoxLrn(db XODB, equinoxLrn int64) (*Exorder, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exorder{
-		_exists: true,
-	}
+	e := Exorder{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Exordnumber, &e.Exorddate, &e.Exordtype, &e.Exordnett, &e.Exordvat, &e.Exordpandp, &e.Exorddisc, &e.Exordtotal, &e.Exordcctype, &e.Exordccnumber, &e.Exordccexpdate, &e.Exordccstartdate, &e.Exordccissue, &e.Exordchequeno, &e.Exordtransaccode, &e.Exordreffield, &e.Exordexportflag, &e.Exordauthorised, &e.Exordauthamount, &e.Exordauthdate, &e.Exordauthtext, &e.Exorddelname, &e.Exorddeladd1, &e.Exorddeladd2, &e.Exorddeladd3, &e.Exorddeladd4, &e.Exorddeladd5, &e.Exorddelpostcode, &e.Exorddeltelno, &e.Exordcommisvalue, &e.Exordcommispayab, &e.Exordprinted, &e.Exordcomplete, &e.Exordbycustomer, &e.Exorddespdate, &e.Exordcustno, &e.Exordmemo, &e.Exordletteraddr, &e.Exordinvaddr, &e.Exorddespmethod, &e.Exordcancelled, &e.Exordchanged, &e.Exordcccancelled, &e.Exordchqrefunded, &e.Exordcredit, &e.Exordcreditvat, &e.Exordinvoiceexec, &e.Exordsalesvatmix, &e.Exordcommispaid, &e.Exordfoc, &e.Exordweborder, &e.Exorderssparec1, &e.Exorderssparen1, &e.Exordersspared1, &e.Exordersinvoice, &e.Exordbanked, &e.Exordrefund, &e.Exordtime, &e.Exordpsp, &e.Exordref, &e.Exordshopref, &e.Exordcontract, &e.Exordrefundamt, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

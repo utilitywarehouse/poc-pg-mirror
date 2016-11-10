@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Mobprepa struct {
 	Mppshopperref   sql.NullString  `json:"mppshopperref"`   // mppshopperref
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Mobprepa exists in the database.
-func (m *Mobprepa) Exists() bool {
-	return m._exists
-}
-
-// Deleted provides information if the Mobprepa has been deleted from the database.
-func (m *Mobprepa) Deleted() bool {
-	return m._deleted
-}
-
-// Insert inserts the Mobprepa to the database.
-func (m *Mobprepa) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if m._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.mobprepa (` +
-		`mppcliuniquesys, mppcli, mppsim, mppaccountno, mppminbalance, mppmaxbalance, mppdebitno, mppdebitstart, mppdebitexpiry, mppdebitissue, mppdebitcv2, mpptopuppin, mpplivedate, mppenddate, mpptexttopup, mppccunique, mppshopperref, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, m.Mppcliuniquesys, m.Mppcli, m.Mppsim, m.Mppaccountno, m.Mppminbalance, m.Mppmaxbalance, m.Mppdebitno, m.Mppdebitstart, m.Mppdebitexpiry, m.Mppdebitissue, m.Mppdebitcv2, m.Mpptopuppin, m.Mpplivedate, m.Mppenddate, m.Mpptexttopup, m.Mppccunique, m.Mppshopperref, m.EquinoxSec)
-	err = db.QueryRow(sqlstr, m.Mppcliuniquesys, m.Mppcli, m.Mppsim, m.Mppaccountno, m.Mppminbalance, m.Mppmaxbalance, m.Mppdebitno, m.Mppdebitstart, m.Mppdebitexpiry, m.Mppdebitissue, m.Mppdebitcv2, m.Mpptopuppin, m.Mpplivedate, m.Mppenddate, m.Mpptexttopup, m.Mppccunique, m.Mppshopperref, m.EquinoxSec).Scan(&m.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	m._exists = true
-
-	return nil
-}
-
-// Update updates the Mobprepa in the database.
-func (m *Mobprepa) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !m._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if m._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.mobprepa SET (` +
-		`mppcliuniquesys, mppcli, mppsim, mppaccountno, mppminbalance, mppmaxbalance, mppdebitno, mppdebitstart, mppdebitexpiry, mppdebitissue, mppdebitcv2, mpptopuppin, mpplivedate, mppenddate, mpptexttopup, mppccunique, mppshopperref, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, m.Mppcliuniquesys, m.Mppcli, m.Mppsim, m.Mppaccountno, m.Mppminbalance, m.Mppmaxbalance, m.Mppdebitno, m.Mppdebitstart, m.Mppdebitexpiry, m.Mppdebitissue, m.Mppdebitcv2, m.Mpptopuppin, m.Mpplivedate, m.Mppenddate, m.Mpptexttopup, m.Mppccunique, m.Mppshopperref, m.EquinoxSec, m.EquinoxLrn)
-	_, err = db.Exec(sqlstr, m.Mppcliuniquesys, m.Mppcli, m.Mppsim, m.Mppaccountno, m.Mppminbalance, m.Mppmaxbalance, m.Mppdebitno, m.Mppdebitstart, m.Mppdebitexpiry, m.Mppdebitissue, m.Mppdebitcv2, m.Mpptopuppin, m.Mpplivedate, m.Mppenddate, m.Mpptexttopup, m.Mppccunique, m.Mppshopperref, m.EquinoxSec, m.EquinoxLrn)
-	return err
-}
-
-// Save saves the Mobprepa to the database.
-func (m *Mobprepa) Save(db XODB) error {
-	if m.Exists() {
-		return m.Update(db)
-	}
-
-	return m.Insert(db)
-}
-
-// Upsert performs an upsert for Mobprepa.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (m *Mobprepa) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if m._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.mobprepa (` +
-		`mppcliuniquesys, mppcli, mppsim, mppaccountno, mppminbalance, mppmaxbalance, mppdebitno, mppdebitstart, mppdebitexpiry, mppdebitissue, mppdebitcv2, mpptopuppin, mpplivedate, mppenddate, mpptexttopup, mppccunique, mppshopperref, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`mppcliuniquesys, mppcli, mppsim, mppaccountno, mppminbalance, mppmaxbalance, mppdebitno, mppdebitstart, mppdebitexpiry, mppdebitissue, mppdebitcv2, mpptopuppin, mpplivedate, mppenddate, mpptexttopup, mppccunique, mppshopperref, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.mppcliuniquesys, EXCLUDED.mppcli, EXCLUDED.mppsim, EXCLUDED.mppaccountno, EXCLUDED.mppminbalance, EXCLUDED.mppmaxbalance, EXCLUDED.mppdebitno, EXCLUDED.mppdebitstart, EXCLUDED.mppdebitexpiry, EXCLUDED.mppdebitissue, EXCLUDED.mppdebitcv2, EXCLUDED.mpptopuppin, EXCLUDED.mpplivedate, EXCLUDED.mppenddate, EXCLUDED.mpptexttopup, EXCLUDED.mppccunique, EXCLUDED.mppshopperref, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, m.Mppcliuniquesys, m.Mppcli, m.Mppsim, m.Mppaccountno, m.Mppminbalance, m.Mppmaxbalance, m.Mppdebitno, m.Mppdebitstart, m.Mppdebitexpiry, m.Mppdebitissue, m.Mppdebitcv2, m.Mpptopuppin, m.Mpplivedate, m.Mppenddate, m.Mpptexttopup, m.Mppccunique, m.Mppshopperref, m.EquinoxLrn, m.EquinoxSec)
-	_, err = db.Exec(sqlstr, m.Mppcliuniquesys, m.Mppcli, m.Mppsim, m.Mppaccountno, m.Mppminbalance, m.Mppmaxbalance, m.Mppdebitno, m.Mppdebitstart, m.Mppdebitexpiry, m.Mppdebitissue, m.Mppdebitcv2, m.Mpptopuppin, m.Mpplivedate, m.Mppenddate, m.Mpptexttopup, m.Mppccunique, m.Mppshopperref, m.EquinoxLrn, m.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	m._exists = true
-
-	return nil
-}
-
-// Delete deletes the Mobprepa from the database.
-func (m *Mobprepa) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !m._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if m._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.mobprepa WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, m.EquinoxLrn)
-	_, err = db.Exec(sqlstr, m.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	m._deleted = true
-
-	return nil
 }
 
 // MobprepaByEquinoxLrn retrieves a row from 'equinox.mobprepa' as a Mobprepa.
@@ -190,9 +46,7 @@ func MobprepaByEquinoxLrn(db XODB, equinoxLrn int64) (*Mobprepa, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	m := Mobprepa{
-		_exists: true,
-	}
+	m := Mobprepa{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&m.Mppcliuniquesys, &m.Mppcli, &m.Mppsim, &m.Mppaccountno, &m.Mppminbalance, &m.Mppmaxbalance, &m.Mppdebitno, &m.Mppdebitstart, &m.Mppdebitexpiry, &m.Mppdebitissue, &m.Mppdebitcv2, &m.Mpptopuppin, &m.Mpplivedate, &m.Mppenddate, &m.Mpptexttopup, &m.Mppccunique, &m.Mppshopperref, &m.EquinoxLrn, &m.EquinoxSec)
 	if err != nil {

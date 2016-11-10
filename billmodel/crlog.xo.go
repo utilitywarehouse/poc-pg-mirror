@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -24,149 +23,6 @@ type Crlog struct {
 	EquinoxPrn   sql.NullInt64  `json:"equinox_prn"`  // equinox_prn
 	EquinoxLrn   int64          `json:"equinox_lrn"`  // equinox_lrn
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Crlog exists in the database.
-func (c *Crlog) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Crlog has been deleted from the database.
-func (c *Crlog) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Crlog to the database.
-func (c *Crlog) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.crlog (` +
-		`crldate, crltime, crlparamfile, crltitle, crlentry, crlorder, crlaction, crlstep, crlcompleted, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Crldate, c.Crltime, c.Crlparamfile, c.Crltitle, c.Crlentry, c.Crlorder, c.Crlaction, c.Crlstep, c.Crlcompleted, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Crldate, c.Crltime, c.Crlparamfile, c.Crltitle, c.Crlentry, c.Crlorder, c.Crlaction, c.Crlstep, c.Crlcompleted, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Crlog in the database.
-func (c *Crlog) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.crlog SET (` +
-		`crldate, crltime, crlparamfile, crltitle, crlentry, crlorder, crlaction, crlstep, crlcompleted, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) WHERE equinox_lrn = $12`
-
-	// run query
-	XOLog(sqlstr, c.Crldate, c.Crltime, c.Crlparamfile, c.Crltitle, c.Crlentry, c.Crlorder, c.Crlaction, c.Crlstep, c.Crlcompleted, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Crldate, c.Crltime, c.Crlparamfile, c.Crltitle, c.Crlentry, c.Crlorder, c.Crlaction, c.Crlstep, c.Crlcompleted, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Crlog to the database.
-func (c *Crlog) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Crlog.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Crlog) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.crlog (` +
-		`crldate, crltime, crlparamfile, crltitle, crlentry, crlorder, crlaction, crlstep, crlcompleted, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`crldate, crltime, crlparamfile, crltitle, crlentry, crlorder, crlaction, crlstep, crlcompleted, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.crldate, EXCLUDED.crltime, EXCLUDED.crlparamfile, EXCLUDED.crltitle, EXCLUDED.crlentry, EXCLUDED.crlorder, EXCLUDED.crlaction, EXCLUDED.crlstep, EXCLUDED.crlcompleted, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Crldate, c.Crltime, c.Crlparamfile, c.Crltitle, c.Crlentry, c.Crlorder, c.Crlaction, c.Crlstep, c.Crlcompleted, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Crldate, c.Crltime, c.Crlparamfile, c.Crltitle, c.Crlentry, c.Crlorder, c.Crlaction, c.Crlstep, c.Crlcompleted, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Crlog from the database.
-func (c *Crlog) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.crlog WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CrlogByEquinoxLrn retrieves a row from 'equinox.crlog' as a Crlog.
@@ -183,9 +39,7 @@ func CrlogByEquinoxLrn(db XODB, equinoxLrn int64) (*Crlog, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Crlog{
-		_exists: true,
-	}
+	c := Crlog{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Crldate, &c.Crltime, &c.Crlparamfile, &c.Crltitle, &c.Crlentry, &c.Crlorder, &c.Crlaction, &c.Crlstep, &c.Crlcompleted, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

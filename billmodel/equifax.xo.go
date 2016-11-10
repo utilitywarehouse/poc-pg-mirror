@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -32,149 +31,6 @@ type Equifax struct {
 	Equisparel1      sql.NullInt64  `json:"equisparel1"`      // equisparel1
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Equifax exists in the database.
-func (e *Equifax) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Equifax has been deleted from the database.
-func (e *Equifax) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Equifax to the database.
-func (e *Equifax) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.equifax (` +
-		`equiexecid, equiappnumber, equisurname, equipostcode, equienteredby, equilasteditby, equilastediton, equidateentered, equiscore, equiregataddress, equipassorfail, equiappprocessed, equisource, equisparec1, equisparen1, equispared1, equisparem1, equisparel1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Equiexecid, e.Equiappnumber, e.Equisurname, e.Equipostcode, e.Equienteredby, e.Equilasteditby, e.Equilastediton, e.Equidateentered, e.Equiscore, e.Equiregataddress, e.Equipassorfail, e.Equiappprocessed, e.Equisource, e.Equisparec1, e.Equisparen1, e.Equispared1, e.Equisparem1, e.Equisparel1, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Equiexecid, e.Equiappnumber, e.Equisurname, e.Equipostcode, e.Equienteredby, e.Equilasteditby, e.Equilastediton, e.Equidateentered, e.Equiscore, e.Equiregataddress, e.Equipassorfail, e.Equiappprocessed, e.Equisource, e.Equisparec1, e.Equisparen1, e.Equispared1, e.Equisparem1, e.Equisparel1, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Equifax in the database.
-func (e *Equifax) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.equifax SET (` +
-		`equiexecid, equiappnumber, equisurname, equipostcode, equienteredby, equilasteditby, equilastediton, equidateentered, equiscore, equiregataddress, equipassorfail, equiappprocessed, equisource, equisparec1, equisparen1, equispared1, equisparem1, equisparel1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) WHERE equinox_lrn = $20`
-
-	// run query
-	XOLog(sqlstr, e.Equiexecid, e.Equiappnumber, e.Equisurname, e.Equipostcode, e.Equienteredby, e.Equilasteditby, e.Equilastediton, e.Equidateentered, e.Equiscore, e.Equiregataddress, e.Equipassorfail, e.Equiappprocessed, e.Equisource, e.Equisparec1, e.Equisparen1, e.Equispared1, e.Equisparem1, e.Equisparel1, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Equiexecid, e.Equiappnumber, e.Equisurname, e.Equipostcode, e.Equienteredby, e.Equilasteditby, e.Equilastediton, e.Equidateentered, e.Equiscore, e.Equiregataddress, e.Equipassorfail, e.Equiappprocessed, e.Equisource, e.Equisparec1, e.Equisparen1, e.Equispared1, e.Equisparem1, e.Equisparel1, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Equifax to the database.
-func (e *Equifax) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Equifax.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Equifax) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.equifax (` +
-		`equiexecid, equiappnumber, equisurname, equipostcode, equienteredby, equilasteditby, equilastediton, equidateentered, equiscore, equiregataddress, equipassorfail, equiappprocessed, equisource, equisparec1, equisparen1, equispared1, equisparem1, equisparel1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`equiexecid, equiappnumber, equisurname, equipostcode, equienteredby, equilasteditby, equilastediton, equidateentered, equiscore, equiregataddress, equipassorfail, equiappprocessed, equisource, equisparec1, equisparen1, equispared1, equisparem1, equisparel1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.equiexecid, EXCLUDED.equiappnumber, EXCLUDED.equisurname, EXCLUDED.equipostcode, EXCLUDED.equienteredby, EXCLUDED.equilasteditby, EXCLUDED.equilastediton, EXCLUDED.equidateentered, EXCLUDED.equiscore, EXCLUDED.equiregataddress, EXCLUDED.equipassorfail, EXCLUDED.equiappprocessed, EXCLUDED.equisource, EXCLUDED.equisparec1, EXCLUDED.equisparen1, EXCLUDED.equispared1, EXCLUDED.equisparem1, EXCLUDED.equisparel1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Equiexecid, e.Equiappnumber, e.Equisurname, e.Equipostcode, e.Equienteredby, e.Equilasteditby, e.Equilastediton, e.Equidateentered, e.Equiscore, e.Equiregataddress, e.Equipassorfail, e.Equiappprocessed, e.Equisource, e.Equisparec1, e.Equisparen1, e.Equispared1, e.Equisparem1, e.Equisparel1, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Equiexecid, e.Equiappnumber, e.Equisurname, e.Equipostcode, e.Equienteredby, e.Equilasteditby, e.Equilastediton, e.Equidateentered, e.Equiscore, e.Equiregataddress, e.Equipassorfail, e.Equiappprocessed, e.Equisource, e.Equisparec1, e.Equisparen1, e.Equispared1, e.Equisparem1, e.Equisparel1, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Equifax from the database.
-func (e *Equifax) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.equifax WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EquifaxByEquinoxLrn retrieves a row from 'equinox.equifax' as a Equifax.
@@ -191,9 +47,7 @@ func EquifaxByEquinoxLrn(db XODB, equinoxLrn int64) (*Equifax, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Equifax{
-		_exists: true,
-	}
+	e := Equifax{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Equiexecid, &e.Equiappnumber, &e.Equisurname, &e.Equipostcode, &e.Equienteredby, &e.Equilasteditby, &e.Equilastediton, &e.Equidateentered, &e.Equiscore, &e.Equiregataddress, &e.Equipassorfail, &e.Equiappprocessed, &e.Equisource, &e.Equisparec1, &e.Equisparen1, &e.Equispared1, &e.Equisparem1, &e.Equisparel1, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

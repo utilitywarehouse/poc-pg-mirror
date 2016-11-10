@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -24,149 +23,6 @@ type Staffbox struct {
 	EquinoxPrn     sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn     int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Staffbox exists in the database.
-func (s *Staffbox) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Staffbox has been deleted from the database.
-func (s *Staffbox) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Staffbox to the database.
-func (s *Staffbox) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.staffbox (` +
-		`staff_box_name, staff_box_mgr, staff_box_added, staff_box_date, staff_box_status, staff_box_sparen, staff_box_spared, staff_box_sparel, staff_box_sparec, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.StaffBoxName, s.StaffBoxMgr, s.StaffBoxAdded, s.StaffBoxDate, s.StaffBoxStatus, s.StaffBoxSparen, s.StaffBoxSpared, s.StaffBoxSparel, s.StaffBoxSparec, s.EquinoxPrn, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.StaffBoxName, s.StaffBoxMgr, s.StaffBoxAdded, s.StaffBoxDate, s.StaffBoxStatus, s.StaffBoxSparen, s.StaffBoxSpared, s.StaffBoxSparel, s.StaffBoxSparec, s.EquinoxPrn, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Staffbox in the database.
-func (s *Staffbox) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.staffbox SET (` +
-		`staff_box_name, staff_box_mgr, staff_box_added, staff_box_date, staff_box_status, staff_box_sparen, staff_box_spared, staff_box_sparel, staff_box_sparec, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) WHERE equinox_lrn = $12`
-
-	// run query
-	XOLog(sqlstr, s.StaffBoxName, s.StaffBoxMgr, s.StaffBoxAdded, s.StaffBoxDate, s.StaffBoxStatus, s.StaffBoxSparen, s.StaffBoxSpared, s.StaffBoxSparel, s.StaffBoxSparec, s.EquinoxPrn, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.StaffBoxName, s.StaffBoxMgr, s.StaffBoxAdded, s.StaffBoxDate, s.StaffBoxStatus, s.StaffBoxSparen, s.StaffBoxSpared, s.StaffBoxSparel, s.StaffBoxSparec, s.EquinoxPrn, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Staffbox to the database.
-func (s *Staffbox) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Staffbox.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Staffbox) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.staffbox (` +
-		`staff_box_name, staff_box_mgr, staff_box_added, staff_box_date, staff_box_status, staff_box_sparen, staff_box_spared, staff_box_sparel, staff_box_sparec, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`staff_box_name, staff_box_mgr, staff_box_added, staff_box_date, staff_box_status, staff_box_sparen, staff_box_spared, staff_box_sparel, staff_box_sparec, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.staff_box_name, EXCLUDED.staff_box_mgr, EXCLUDED.staff_box_added, EXCLUDED.staff_box_date, EXCLUDED.staff_box_status, EXCLUDED.staff_box_sparen, EXCLUDED.staff_box_spared, EXCLUDED.staff_box_sparel, EXCLUDED.staff_box_sparec, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.StaffBoxName, s.StaffBoxMgr, s.StaffBoxAdded, s.StaffBoxDate, s.StaffBoxStatus, s.StaffBoxSparen, s.StaffBoxSpared, s.StaffBoxSparel, s.StaffBoxSparec, s.EquinoxPrn, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.StaffBoxName, s.StaffBoxMgr, s.StaffBoxAdded, s.StaffBoxDate, s.StaffBoxStatus, s.StaffBoxSparen, s.StaffBoxSpared, s.StaffBoxSparel, s.StaffBoxSparec, s.EquinoxPrn, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Staffbox from the database.
-func (s *Staffbox) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.staffbox WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // StaffboxByEquinoxLrn retrieves a row from 'equinox.staffbox' as a Staffbox.
@@ -183,9 +39,7 @@ func StaffboxByEquinoxLrn(db XODB, equinoxLrn int64) (*Staffbox, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Staffbox{
-		_exists: true,
-	}
+	s := Staffbox{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.StaffBoxName, &s.StaffBoxMgr, &s.StaffBoxAdded, &s.StaffBoxDate, &s.StaffBoxStatus, &s.StaffBoxSparen, &s.StaffBoxSpared, &s.StaffBoxSparel, &s.StaffBoxSparec, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

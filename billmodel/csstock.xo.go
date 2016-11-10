@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -61,149 +60,6 @@ type Csstock struct {
 	Csdispatchnote   pq.NullTime     `json:"csdispatchnote"`   // csdispatchnote
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Csstock exists in the database.
-func (c *Csstock) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Csstock has been deleted from the database.
-func (c *Csstock) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Csstock to the database.
-func (c *Csstock) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.csstock (` +
-		`csreference, cscompleted, csiemi, csiemireplace, csfirstdate, csreason, cslocation, csclinumber, csaccountno, cspackageno, csrefundamount, csrefundreason, csrefundstatus, csivrd, csfaultreason, csfaultcode, csrpc, csfaultletter, csfaultphonesent, csfaultphonefrom, csfaultphonerec, csclaimamount, csclaimtype, csclaimcode, csclaimcrimeref, csclaimstatus, csclaimdetails, csclaimreceived, csclaimform, csclaimpaymentr, csclaimletter1, csclaimletter2, csenteredby, csmodel, cssellprice, csfaultstatus, csclaimpending, cssimreplace, csletterid, csjobtype, csdamagephonerec, csoverriderpc, cssim, csneworss, csnewsimrequired, csnewmodel, csdispatchnote, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Csreference, c.Cscompleted, c.Csiemi, c.Csiemireplace, c.Csfirstdate, c.Csreason, c.Cslocation, c.Csclinumber, c.Csaccountno, c.Cspackageno, c.Csrefundamount, c.Csrefundreason, c.Csrefundstatus, c.Csivrd, c.Csfaultreason, c.Csfaultcode, c.Csrpc, c.Csfaultletter, c.Csfaultphonesent, c.Csfaultphonefrom, c.Csfaultphonerec, c.Csclaimamount, c.Csclaimtype, c.Csclaimcode, c.Csclaimcrimeref, c.Csclaimstatus, c.Csclaimdetails, c.Csclaimreceived, c.Csclaimform, c.Csclaimpaymentr, c.Csclaimletter1, c.Csclaimletter2, c.Csenteredby, c.Csmodel, c.Cssellprice, c.Csfaultstatus, c.Csclaimpending, c.Cssimreplace, c.Csletterid, c.Csjobtype, c.Csdamagephonerec, c.Csoverriderpc, c.Cssim, c.Csneworss, c.Csnewsimrequired, c.Csnewmodel, c.Csdispatchnote, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Csreference, c.Cscompleted, c.Csiemi, c.Csiemireplace, c.Csfirstdate, c.Csreason, c.Cslocation, c.Csclinumber, c.Csaccountno, c.Cspackageno, c.Csrefundamount, c.Csrefundreason, c.Csrefundstatus, c.Csivrd, c.Csfaultreason, c.Csfaultcode, c.Csrpc, c.Csfaultletter, c.Csfaultphonesent, c.Csfaultphonefrom, c.Csfaultphonerec, c.Csclaimamount, c.Csclaimtype, c.Csclaimcode, c.Csclaimcrimeref, c.Csclaimstatus, c.Csclaimdetails, c.Csclaimreceived, c.Csclaimform, c.Csclaimpaymentr, c.Csclaimletter1, c.Csclaimletter2, c.Csenteredby, c.Csmodel, c.Cssellprice, c.Csfaultstatus, c.Csclaimpending, c.Cssimreplace, c.Csletterid, c.Csjobtype, c.Csdamagephonerec, c.Csoverriderpc, c.Cssim, c.Csneworss, c.Csnewsimrequired, c.Csnewmodel, c.Csdispatchnote, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Csstock in the database.
-func (c *Csstock) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.csstock SET (` +
-		`csreference, cscompleted, csiemi, csiemireplace, csfirstdate, csreason, cslocation, csclinumber, csaccountno, cspackageno, csrefundamount, csrefundreason, csrefundstatus, csivrd, csfaultreason, csfaultcode, csrpc, csfaultletter, csfaultphonesent, csfaultphonefrom, csfaultphonerec, csclaimamount, csclaimtype, csclaimcode, csclaimcrimeref, csclaimstatus, csclaimdetails, csclaimreceived, csclaimform, csclaimpaymentr, csclaimletter1, csclaimletter2, csenteredby, csmodel, cssellprice, csfaultstatus, csclaimpending, cssimreplace, csletterid, csjobtype, csdamagephonerec, csoverriderpc, cssim, csneworss, csnewsimrequired, csnewmodel, csdispatchnote, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48` +
-		`) WHERE equinox_lrn = $49`
-
-	// run query
-	XOLog(sqlstr, c.Csreference, c.Cscompleted, c.Csiemi, c.Csiemireplace, c.Csfirstdate, c.Csreason, c.Cslocation, c.Csclinumber, c.Csaccountno, c.Cspackageno, c.Csrefundamount, c.Csrefundreason, c.Csrefundstatus, c.Csivrd, c.Csfaultreason, c.Csfaultcode, c.Csrpc, c.Csfaultletter, c.Csfaultphonesent, c.Csfaultphonefrom, c.Csfaultphonerec, c.Csclaimamount, c.Csclaimtype, c.Csclaimcode, c.Csclaimcrimeref, c.Csclaimstatus, c.Csclaimdetails, c.Csclaimreceived, c.Csclaimform, c.Csclaimpaymentr, c.Csclaimletter1, c.Csclaimletter2, c.Csenteredby, c.Csmodel, c.Cssellprice, c.Csfaultstatus, c.Csclaimpending, c.Cssimreplace, c.Csletterid, c.Csjobtype, c.Csdamagephonerec, c.Csoverriderpc, c.Cssim, c.Csneworss, c.Csnewsimrequired, c.Csnewmodel, c.Csdispatchnote, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Csreference, c.Cscompleted, c.Csiemi, c.Csiemireplace, c.Csfirstdate, c.Csreason, c.Cslocation, c.Csclinumber, c.Csaccountno, c.Cspackageno, c.Csrefundamount, c.Csrefundreason, c.Csrefundstatus, c.Csivrd, c.Csfaultreason, c.Csfaultcode, c.Csrpc, c.Csfaultletter, c.Csfaultphonesent, c.Csfaultphonefrom, c.Csfaultphonerec, c.Csclaimamount, c.Csclaimtype, c.Csclaimcode, c.Csclaimcrimeref, c.Csclaimstatus, c.Csclaimdetails, c.Csclaimreceived, c.Csclaimform, c.Csclaimpaymentr, c.Csclaimletter1, c.Csclaimletter2, c.Csenteredby, c.Csmodel, c.Cssellprice, c.Csfaultstatus, c.Csclaimpending, c.Cssimreplace, c.Csletterid, c.Csjobtype, c.Csdamagephonerec, c.Csoverriderpc, c.Cssim, c.Csneworss, c.Csnewsimrequired, c.Csnewmodel, c.Csdispatchnote, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Csstock to the database.
-func (c *Csstock) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Csstock.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Csstock) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.csstock (` +
-		`csreference, cscompleted, csiemi, csiemireplace, csfirstdate, csreason, cslocation, csclinumber, csaccountno, cspackageno, csrefundamount, csrefundreason, csrefundstatus, csivrd, csfaultreason, csfaultcode, csrpc, csfaultletter, csfaultphonesent, csfaultphonefrom, csfaultphonerec, csclaimamount, csclaimtype, csclaimcode, csclaimcrimeref, csclaimstatus, csclaimdetails, csclaimreceived, csclaimform, csclaimpaymentr, csclaimletter1, csclaimletter2, csenteredby, csmodel, cssellprice, csfaultstatus, csclaimpending, cssimreplace, csletterid, csjobtype, csdamagephonerec, csoverriderpc, cssim, csneworss, csnewsimrequired, csnewmodel, csdispatchnote, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`csreference, cscompleted, csiemi, csiemireplace, csfirstdate, csreason, cslocation, csclinumber, csaccountno, cspackageno, csrefundamount, csrefundreason, csrefundstatus, csivrd, csfaultreason, csfaultcode, csrpc, csfaultletter, csfaultphonesent, csfaultphonefrom, csfaultphonerec, csclaimamount, csclaimtype, csclaimcode, csclaimcrimeref, csclaimstatus, csclaimdetails, csclaimreceived, csclaimform, csclaimpaymentr, csclaimletter1, csclaimletter2, csenteredby, csmodel, cssellprice, csfaultstatus, csclaimpending, cssimreplace, csletterid, csjobtype, csdamagephonerec, csoverriderpc, cssim, csneworss, csnewsimrequired, csnewmodel, csdispatchnote, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.csreference, EXCLUDED.cscompleted, EXCLUDED.csiemi, EXCLUDED.csiemireplace, EXCLUDED.csfirstdate, EXCLUDED.csreason, EXCLUDED.cslocation, EXCLUDED.csclinumber, EXCLUDED.csaccountno, EXCLUDED.cspackageno, EXCLUDED.csrefundamount, EXCLUDED.csrefundreason, EXCLUDED.csrefundstatus, EXCLUDED.csivrd, EXCLUDED.csfaultreason, EXCLUDED.csfaultcode, EXCLUDED.csrpc, EXCLUDED.csfaultletter, EXCLUDED.csfaultphonesent, EXCLUDED.csfaultphonefrom, EXCLUDED.csfaultphonerec, EXCLUDED.csclaimamount, EXCLUDED.csclaimtype, EXCLUDED.csclaimcode, EXCLUDED.csclaimcrimeref, EXCLUDED.csclaimstatus, EXCLUDED.csclaimdetails, EXCLUDED.csclaimreceived, EXCLUDED.csclaimform, EXCLUDED.csclaimpaymentr, EXCLUDED.csclaimletter1, EXCLUDED.csclaimletter2, EXCLUDED.csenteredby, EXCLUDED.csmodel, EXCLUDED.cssellprice, EXCLUDED.csfaultstatus, EXCLUDED.csclaimpending, EXCLUDED.cssimreplace, EXCLUDED.csletterid, EXCLUDED.csjobtype, EXCLUDED.csdamagephonerec, EXCLUDED.csoverriderpc, EXCLUDED.cssim, EXCLUDED.csneworss, EXCLUDED.csnewsimrequired, EXCLUDED.csnewmodel, EXCLUDED.csdispatchnote, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Csreference, c.Cscompleted, c.Csiemi, c.Csiemireplace, c.Csfirstdate, c.Csreason, c.Cslocation, c.Csclinumber, c.Csaccountno, c.Cspackageno, c.Csrefundamount, c.Csrefundreason, c.Csrefundstatus, c.Csivrd, c.Csfaultreason, c.Csfaultcode, c.Csrpc, c.Csfaultletter, c.Csfaultphonesent, c.Csfaultphonefrom, c.Csfaultphonerec, c.Csclaimamount, c.Csclaimtype, c.Csclaimcode, c.Csclaimcrimeref, c.Csclaimstatus, c.Csclaimdetails, c.Csclaimreceived, c.Csclaimform, c.Csclaimpaymentr, c.Csclaimletter1, c.Csclaimletter2, c.Csenteredby, c.Csmodel, c.Cssellprice, c.Csfaultstatus, c.Csclaimpending, c.Cssimreplace, c.Csletterid, c.Csjobtype, c.Csdamagephonerec, c.Csoverriderpc, c.Cssim, c.Csneworss, c.Csnewsimrequired, c.Csnewmodel, c.Csdispatchnote, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Csreference, c.Cscompleted, c.Csiemi, c.Csiemireplace, c.Csfirstdate, c.Csreason, c.Cslocation, c.Csclinumber, c.Csaccountno, c.Cspackageno, c.Csrefundamount, c.Csrefundreason, c.Csrefundstatus, c.Csivrd, c.Csfaultreason, c.Csfaultcode, c.Csrpc, c.Csfaultletter, c.Csfaultphonesent, c.Csfaultphonefrom, c.Csfaultphonerec, c.Csclaimamount, c.Csclaimtype, c.Csclaimcode, c.Csclaimcrimeref, c.Csclaimstatus, c.Csclaimdetails, c.Csclaimreceived, c.Csclaimform, c.Csclaimpaymentr, c.Csclaimletter1, c.Csclaimletter2, c.Csenteredby, c.Csmodel, c.Cssellprice, c.Csfaultstatus, c.Csclaimpending, c.Cssimreplace, c.Csletterid, c.Csjobtype, c.Csdamagephonerec, c.Csoverriderpc, c.Cssim, c.Csneworss, c.Csnewsimrequired, c.Csnewmodel, c.Csdispatchnote, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Csstock from the database.
-func (c *Csstock) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.csstock WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CsstockByEquinoxLrn retrieves a row from 'equinox.csstock' as a Csstock.
@@ -220,9 +76,7 @@ func CsstockByEquinoxLrn(db XODB, equinoxLrn int64) (*Csstock, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Csstock{
-		_exists: true,
-	}
+	c := Csstock{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Csreference, &c.Cscompleted, &c.Csiemi, &c.Csiemireplace, &c.Csfirstdate, &c.Csreason, &c.Cslocation, &c.Csclinumber, &c.Csaccountno, &c.Cspackageno, &c.Csrefundamount, &c.Csrefundreason, &c.Csrefundstatus, &c.Csivrd, &c.Csfaultreason, &c.Csfaultcode, &c.Csrpc, &c.Csfaultletter, &c.Csfaultphonesent, &c.Csfaultphonefrom, &c.Csfaultphonerec, &c.Csclaimamount, &c.Csclaimtype, &c.Csclaimcode, &c.Csclaimcrimeref, &c.Csclaimstatus, &c.Csclaimdetails, &c.Csclaimreceived, &c.Csclaimform, &c.Csclaimpaymentr, &c.Csclaimletter1, &c.Csclaimletter2, &c.Csenteredby, &c.Csmodel, &c.Cssellprice, &c.Csfaultstatus, &c.Csclaimpending, &c.Cssimreplace, &c.Csletterid, &c.Csjobtype, &c.Csdamagephonerec, &c.Csoverriderpc, &c.Cssim, &c.Csneworss, &c.Csnewsimrequired, &c.Csnewmodel, &c.Csdispatchnote, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

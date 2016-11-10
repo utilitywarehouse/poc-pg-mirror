@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -28,149 +27,6 @@ type Tabstock struct {
 	Tbtabletgradeper sql.NullString `json:"tbtabletgradeper"` // tbtabletgradeper
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Tabstock exists in the database.
-func (t *Tabstock) Exists() bool {
-	return t._exists
-}
-
-// Deleted provides information if the Tabstock has been deleted from the database.
-func (t *Tabstock) Deleted() bool {
-	return t._deleted
-}
-
-// Insert inserts the Tabstock to the database.
-func (t *Tabstock) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tabstock (` +
-		`tbmakeandmodel, tbserialnumber, tbmacaddress, tbcontractterm, tbdateintostock, tbdatesentout, tbwarrantystart, tbtrainerid, tbeventid, tbdeliverymethod, tbtabletgrade, tbmachash, tbpartnerid, tbtabletgradeper, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, t.Tbmakeandmodel, t.Tbserialnumber, t.Tbmacaddress, t.Tbcontractterm, t.Tbdateintostock, t.Tbdatesentout, t.Tbwarrantystart, t.Tbtrainerid, t.Tbeventid, t.Tbdeliverymethod, t.Tbtabletgrade, t.Tbmachash, t.Tbpartnerid, t.Tbtabletgradeper, t.EquinoxSec)
-	err = db.QueryRow(sqlstr, t.Tbmakeandmodel, t.Tbserialnumber, t.Tbmacaddress, t.Tbcontractterm, t.Tbdateintostock, t.Tbdatesentout, t.Tbwarrantystart, t.Tbtrainerid, t.Tbeventid, t.Tbdeliverymethod, t.Tbtabletgrade, t.Tbmachash, t.Tbpartnerid, t.Tbtabletgradeper, t.EquinoxSec).Scan(&t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Update updates the Tabstock in the database.
-func (t *Tabstock) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.tabstock SET (` +
-		`tbmakeandmodel, tbserialnumber, tbmacaddress, tbcontractterm, tbdateintostock, tbdatesentout, tbwarrantystart, tbtrainerid, tbeventid, tbdeliverymethod, tbtabletgrade, tbmachash, tbpartnerid, tbtabletgradeper, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) WHERE equinox_lrn = $16`
-
-	// run query
-	XOLog(sqlstr, t.Tbmakeandmodel, t.Tbserialnumber, t.Tbmacaddress, t.Tbcontractterm, t.Tbdateintostock, t.Tbdatesentout, t.Tbwarrantystart, t.Tbtrainerid, t.Tbeventid, t.Tbdeliverymethod, t.Tbtabletgrade, t.Tbmachash, t.Tbpartnerid, t.Tbtabletgradeper, t.EquinoxSec, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.Tbmakeandmodel, t.Tbserialnumber, t.Tbmacaddress, t.Tbcontractterm, t.Tbdateintostock, t.Tbdatesentout, t.Tbwarrantystart, t.Tbtrainerid, t.Tbeventid, t.Tbdeliverymethod, t.Tbtabletgrade, t.Tbmachash, t.Tbpartnerid, t.Tbtabletgradeper, t.EquinoxSec, t.EquinoxLrn)
-	return err
-}
-
-// Save saves the Tabstock to the database.
-func (t *Tabstock) Save(db XODB) error {
-	if t.Exists() {
-		return t.Update(db)
-	}
-
-	return t.Insert(db)
-}
-
-// Upsert performs an upsert for Tabstock.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (t *Tabstock) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tabstock (` +
-		`tbmakeandmodel, tbserialnumber, tbmacaddress, tbcontractterm, tbdateintostock, tbdatesentout, tbwarrantystart, tbtrainerid, tbeventid, tbdeliverymethod, tbtabletgrade, tbmachash, tbpartnerid, tbtabletgradeper, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`tbmakeandmodel, tbserialnumber, tbmacaddress, tbcontractterm, tbdateintostock, tbdatesentout, tbwarrantystart, tbtrainerid, tbeventid, tbdeliverymethod, tbtabletgrade, tbmachash, tbpartnerid, tbtabletgradeper, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.tbmakeandmodel, EXCLUDED.tbserialnumber, EXCLUDED.tbmacaddress, EXCLUDED.tbcontractterm, EXCLUDED.tbdateintostock, EXCLUDED.tbdatesentout, EXCLUDED.tbwarrantystart, EXCLUDED.tbtrainerid, EXCLUDED.tbeventid, EXCLUDED.tbdeliverymethod, EXCLUDED.tbtabletgrade, EXCLUDED.tbmachash, EXCLUDED.tbpartnerid, EXCLUDED.tbtabletgradeper, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, t.Tbmakeandmodel, t.Tbserialnumber, t.Tbmacaddress, t.Tbcontractterm, t.Tbdateintostock, t.Tbdatesentout, t.Tbwarrantystart, t.Tbtrainerid, t.Tbeventid, t.Tbdeliverymethod, t.Tbtabletgrade, t.Tbmachash, t.Tbpartnerid, t.Tbtabletgradeper, t.EquinoxLrn, t.EquinoxSec)
-	_, err = db.Exec(sqlstr, t.Tbmakeandmodel, t.Tbserialnumber, t.Tbmacaddress, t.Tbcontractterm, t.Tbdateintostock, t.Tbdatesentout, t.Tbwarrantystart, t.Tbtrainerid, t.Tbeventid, t.Tbdeliverymethod, t.Tbtabletgrade, t.Tbmachash, t.Tbpartnerid, t.Tbtabletgradeper, t.EquinoxLrn, t.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Delete deletes the Tabstock from the database.
-func (t *Tabstock) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.tabstock WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	t._deleted = true
-
-	return nil
 }
 
 // TabstockByEquinoxLrn retrieves a row from 'equinox.tabstock' as a Tabstock.
@@ -187,9 +43,7 @@ func TabstockByEquinoxLrn(db XODB, equinoxLrn int64) (*Tabstock, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	t := Tabstock{
-		_exists: true,
-	}
+	t := Tabstock{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&t.Tbmakeandmodel, &t.Tbserialnumber, &t.Tbmacaddress, &t.Tbcontractterm, &t.Tbdateintostock, &t.Tbdatesentout, &t.Tbwarrantystart, &t.Tbtrainerid, &t.Tbeventid, &t.Tbdeliverymethod, &t.Tbtabletgrade, &t.Tbmachash, &t.Tbpartnerid, &t.Tbtabletgradeper, &t.EquinoxLrn, &t.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -21,149 +20,6 @@ type Exstaff struct {
 	EquinoxPrn     sql.NullInt64   `json:"equinox_prn"`    // equinox_prn
 	EquinoxLrn     int64           `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exstaff exists in the database.
-func (e *Exstaff) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exstaff has been deleted from the database.
-func (e *Exstaff) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exstaff to the database.
-func (e *Exstaff) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exstaff (` +
-		`exstafid, exstaffname, exstaffreplace, exstaffsparec1, exstaffsparen1, exstaffspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Exstafid, e.Exstaffname, e.Exstaffreplace, e.Exstaffsparec1, e.Exstaffsparen1, e.Exstaffspared1, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Exstafid, e.Exstaffname, e.Exstaffreplace, e.Exstaffsparec1, e.Exstaffsparen1, e.Exstaffspared1, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exstaff in the database.
-func (e *Exstaff) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exstaff SET (` +
-		`exstafid, exstaffname, exstaffreplace, exstaffsparec1, exstaffsparen1, exstaffspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) WHERE equinox_lrn = $9`
-
-	// run query
-	XOLog(sqlstr, e.Exstafid, e.Exstaffname, e.Exstaffreplace, e.Exstaffsparec1, e.Exstaffsparen1, e.Exstaffspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Exstafid, e.Exstaffname, e.Exstaffreplace, e.Exstaffsparec1, e.Exstaffsparen1, e.Exstaffspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exstaff to the database.
-func (e *Exstaff) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exstaff.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exstaff) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exstaff (` +
-		`exstafid, exstaffname, exstaffreplace, exstaffsparec1, exstaffsparen1, exstaffspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`exstafid, exstaffname, exstaffreplace, exstaffsparec1, exstaffsparen1, exstaffspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.exstafid, EXCLUDED.exstaffname, EXCLUDED.exstaffreplace, EXCLUDED.exstaffsparec1, EXCLUDED.exstaffsparen1, EXCLUDED.exstaffspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Exstafid, e.Exstaffname, e.Exstaffreplace, e.Exstaffsparec1, e.Exstaffsparen1, e.Exstaffspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Exstafid, e.Exstaffname, e.Exstaffreplace, e.Exstaffsparec1, e.Exstaffsparen1, e.Exstaffspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exstaff from the database.
-func (e *Exstaff) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exstaff WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExstaffByEquinoxLrn retrieves a row from 'equinox.exstaff' as a Exstaff.
@@ -180,9 +36,7 @@ func ExstaffByEquinoxLrn(db XODB, equinoxLrn int64) (*Exstaff, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exstaff{
-		_exists: true,
-	}
+	e := Exstaff{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Exstafid, &e.Exstaffname, &e.Exstaffreplace, &e.Exstaffsparec1, &e.Exstaffsparen1, &e.Exstaffspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

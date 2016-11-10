@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -58,149 +57,6 @@ type Prospero struct {
 	Proscard2statmis sql.NullInt64   `json:"proscard2statmis"` // proscard2statmis
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Prospero exists in the database.
-func (p *Prospero) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Prospero has been deleted from the database.
-func (p *Prospero) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Prospero to the database.
-func (p *Prospero) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.prospero (` +
-		`prosaccnumber, proscustaccount, prosaccactive, prosnameoncard, prosdob, prosissued, prosnameoncard2, prosdob2, prosissued2, prosnectarcard, prosmainsupermkt, prosminbalance, prostopupvalue, prosfixedmonthly, prosdebitno, prosdebitstart, prosdebitexpiry, prosdebitissue, prosdebitcv2, prosdebitcardtyp, prosinitialload, proslatestbalanc, prossavingmtd, prossavingytd, prosmobilenumber, prosopeningbal, prosclosingbal, proscardtype, proscardstatus, proscardstatus2, proslastsains, proslimit, proslocation, prosexecid, prosappformno, prosdontpay, prosbpaid, prosbpaid2, prospromo, prosexissued, prosexissued2, prosshopperref, proscard1statmis, proscard2statmis, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Prosaccnumber, p.Proscustaccount, p.Prosaccactive, p.Prosnameoncard, p.Prosdob, p.Prosissued, p.Prosnameoncard2, p.Prosdob2, p.Prosissued2, p.Prosnectarcard, p.Prosmainsupermkt, p.Prosminbalance, p.Prostopupvalue, p.Prosfixedmonthly, p.Prosdebitno, p.Prosdebitstart, p.Prosdebitexpiry, p.Prosdebitissue, p.Prosdebitcv2, p.Prosdebitcardtyp, p.Prosinitialload, p.Proslatestbalanc, p.Prossavingmtd, p.Prossavingytd, p.Prosmobilenumber, p.Prosopeningbal, p.Prosclosingbal, p.Proscardtype, p.Proscardstatus, p.Proscardstatus2, p.Proslastsains, p.Proslimit, p.Proslocation, p.Prosexecid, p.Prosappformno, p.Prosdontpay, p.Prosbpaid, p.Prosbpaid2, p.Prospromo, p.Prosexissued, p.Prosexissued2, p.Prosshopperref, p.Proscard1statmis, p.Proscard2statmis, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Prosaccnumber, p.Proscustaccount, p.Prosaccactive, p.Prosnameoncard, p.Prosdob, p.Prosissued, p.Prosnameoncard2, p.Prosdob2, p.Prosissued2, p.Prosnectarcard, p.Prosmainsupermkt, p.Prosminbalance, p.Prostopupvalue, p.Prosfixedmonthly, p.Prosdebitno, p.Prosdebitstart, p.Prosdebitexpiry, p.Prosdebitissue, p.Prosdebitcv2, p.Prosdebitcardtyp, p.Prosinitialload, p.Proslatestbalanc, p.Prossavingmtd, p.Prossavingytd, p.Prosmobilenumber, p.Prosopeningbal, p.Prosclosingbal, p.Proscardtype, p.Proscardstatus, p.Proscardstatus2, p.Proslastsains, p.Proslimit, p.Proslocation, p.Prosexecid, p.Prosappformno, p.Prosdontpay, p.Prosbpaid, p.Prosbpaid2, p.Prospromo, p.Prosexissued, p.Prosexissued2, p.Prosshopperref, p.Proscard1statmis, p.Proscard2statmis, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Prospero in the database.
-func (p *Prospero) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.prospero SET (` +
-		`prosaccnumber, proscustaccount, prosaccactive, prosnameoncard, prosdob, prosissued, prosnameoncard2, prosdob2, prosissued2, prosnectarcard, prosmainsupermkt, prosminbalance, prostopupvalue, prosfixedmonthly, prosdebitno, prosdebitstart, prosdebitexpiry, prosdebitissue, prosdebitcv2, prosdebitcardtyp, prosinitialload, proslatestbalanc, prossavingmtd, prossavingytd, prosmobilenumber, prosopeningbal, prosclosingbal, proscardtype, proscardstatus, proscardstatus2, proslastsains, proslimit, proslocation, prosexecid, prosappformno, prosdontpay, prosbpaid, prosbpaid2, prospromo, prosexissued, prosexissued2, prosshopperref, proscard1statmis, proscard2statmis, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45` +
-		`) WHERE equinox_lrn = $46`
-
-	// run query
-	XOLog(sqlstr, p.Prosaccnumber, p.Proscustaccount, p.Prosaccactive, p.Prosnameoncard, p.Prosdob, p.Prosissued, p.Prosnameoncard2, p.Prosdob2, p.Prosissued2, p.Prosnectarcard, p.Prosmainsupermkt, p.Prosminbalance, p.Prostopupvalue, p.Prosfixedmonthly, p.Prosdebitno, p.Prosdebitstart, p.Prosdebitexpiry, p.Prosdebitissue, p.Prosdebitcv2, p.Prosdebitcardtyp, p.Prosinitialload, p.Proslatestbalanc, p.Prossavingmtd, p.Prossavingytd, p.Prosmobilenumber, p.Prosopeningbal, p.Prosclosingbal, p.Proscardtype, p.Proscardstatus, p.Proscardstatus2, p.Proslastsains, p.Proslimit, p.Proslocation, p.Prosexecid, p.Prosappformno, p.Prosdontpay, p.Prosbpaid, p.Prosbpaid2, p.Prospromo, p.Prosexissued, p.Prosexissued2, p.Prosshopperref, p.Proscard1statmis, p.Proscard2statmis, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Prosaccnumber, p.Proscustaccount, p.Prosaccactive, p.Prosnameoncard, p.Prosdob, p.Prosissued, p.Prosnameoncard2, p.Prosdob2, p.Prosissued2, p.Prosnectarcard, p.Prosmainsupermkt, p.Prosminbalance, p.Prostopupvalue, p.Prosfixedmonthly, p.Prosdebitno, p.Prosdebitstart, p.Prosdebitexpiry, p.Prosdebitissue, p.Prosdebitcv2, p.Prosdebitcardtyp, p.Prosinitialload, p.Proslatestbalanc, p.Prossavingmtd, p.Prossavingytd, p.Prosmobilenumber, p.Prosopeningbal, p.Prosclosingbal, p.Proscardtype, p.Proscardstatus, p.Proscardstatus2, p.Proslastsains, p.Proslimit, p.Proslocation, p.Prosexecid, p.Prosappformno, p.Prosdontpay, p.Prosbpaid, p.Prosbpaid2, p.Prospromo, p.Prosexissued, p.Prosexissued2, p.Prosshopperref, p.Proscard1statmis, p.Proscard2statmis, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Prospero to the database.
-func (p *Prospero) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Prospero.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Prospero) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.prospero (` +
-		`prosaccnumber, proscustaccount, prosaccactive, prosnameoncard, prosdob, prosissued, prosnameoncard2, prosdob2, prosissued2, prosnectarcard, prosmainsupermkt, prosminbalance, prostopupvalue, prosfixedmonthly, prosdebitno, prosdebitstart, prosdebitexpiry, prosdebitissue, prosdebitcv2, prosdebitcardtyp, prosinitialload, proslatestbalanc, prossavingmtd, prossavingytd, prosmobilenumber, prosopeningbal, prosclosingbal, proscardtype, proscardstatus, proscardstatus2, proslastsains, proslimit, proslocation, prosexecid, prosappformno, prosdontpay, prosbpaid, prosbpaid2, prospromo, prosexissued, prosexissued2, prosshopperref, proscard1statmis, proscard2statmis, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`prosaccnumber, proscustaccount, prosaccactive, prosnameoncard, prosdob, prosissued, prosnameoncard2, prosdob2, prosissued2, prosnectarcard, prosmainsupermkt, prosminbalance, prostopupvalue, prosfixedmonthly, prosdebitno, prosdebitstart, prosdebitexpiry, prosdebitissue, prosdebitcv2, prosdebitcardtyp, prosinitialload, proslatestbalanc, prossavingmtd, prossavingytd, prosmobilenumber, prosopeningbal, prosclosingbal, proscardtype, proscardstatus, proscardstatus2, proslastsains, proslimit, proslocation, prosexecid, prosappformno, prosdontpay, prosbpaid, prosbpaid2, prospromo, prosexissued, prosexissued2, prosshopperref, proscard1statmis, proscard2statmis, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.prosaccnumber, EXCLUDED.proscustaccount, EXCLUDED.prosaccactive, EXCLUDED.prosnameoncard, EXCLUDED.prosdob, EXCLUDED.prosissued, EXCLUDED.prosnameoncard2, EXCLUDED.prosdob2, EXCLUDED.prosissued2, EXCLUDED.prosnectarcard, EXCLUDED.prosmainsupermkt, EXCLUDED.prosminbalance, EXCLUDED.prostopupvalue, EXCLUDED.prosfixedmonthly, EXCLUDED.prosdebitno, EXCLUDED.prosdebitstart, EXCLUDED.prosdebitexpiry, EXCLUDED.prosdebitissue, EXCLUDED.prosdebitcv2, EXCLUDED.prosdebitcardtyp, EXCLUDED.prosinitialload, EXCLUDED.proslatestbalanc, EXCLUDED.prossavingmtd, EXCLUDED.prossavingytd, EXCLUDED.prosmobilenumber, EXCLUDED.prosopeningbal, EXCLUDED.prosclosingbal, EXCLUDED.proscardtype, EXCLUDED.proscardstatus, EXCLUDED.proscardstatus2, EXCLUDED.proslastsains, EXCLUDED.proslimit, EXCLUDED.proslocation, EXCLUDED.prosexecid, EXCLUDED.prosappformno, EXCLUDED.prosdontpay, EXCLUDED.prosbpaid, EXCLUDED.prosbpaid2, EXCLUDED.prospromo, EXCLUDED.prosexissued, EXCLUDED.prosexissued2, EXCLUDED.prosshopperref, EXCLUDED.proscard1statmis, EXCLUDED.proscard2statmis, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Prosaccnumber, p.Proscustaccount, p.Prosaccactive, p.Prosnameoncard, p.Prosdob, p.Prosissued, p.Prosnameoncard2, p.Prosdob2, p.Prosissued2, p.Prosnectarcard, p.Prosmainsupermkt, p.Prosminbalance, p.Prostopupvalue, p.Prosfixedmonthly, p.Prosdebitno, p.Prosdebitstart, p.Prosdebitexpiry, p.Prosdebitissue, p.Prosdebitcv2, p.Prosdebitcardtyp, p.Prosinitialload, p.Proslatestbalanc, p.Prossavingmtd, p.Prossavingytd, p.Prosmobilenumber, p.Prosopeningbal, p.Prosclosingbal, p.Proscardtype, p.Proscardstatus, p.Proscardstatus2, p.Proslastsains, p.Proslimit, p.Proslocation, p.Prosexecid, p.Prosappformno, p.Prosdontpay, p.Prosbpaid, p.Prosbpaid2, p.Prospromo, p.Prosexissued, p.Prosexissued2, p.Prosshopperref, p.Proscard1statmis, p.Proscard2statmis, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Prosaccnumber, p.Proscustaccount, p.Prosaccactive, p.Prosnameoncard, p.Prosdob, p.Prosissued, p.Prosnameoncard2, p.Prosdob2, p.Prosissued2, p.Prosnectarcard, p.Prosmainsupermkt, p.Prosminbalance, p.Prostopupvalue, p.Prosfixedmonthly, p.Prosdebitno, p.Prosdebitstart, p.Prosdebitexpiry, p.Prosdebitissue, p.Prosdebitcv2, p.Prosdebitcardtyp, p.Prosinitialload, p.Proslatestbalanc, p.Prossavingmtd, p.Prossavingytd, p.Prosmobilenumber, p.Prosopeningbal, p.Prosclosingbal, p.Proscardtype, p.Proscardstatus, p.Proscardstatus2, p.Proslastsains, p.Proslimit, p.Proslocation, p.Prosexecid, p.Prosappformno, p.Prosdontpay, p.Prosbpaid, p.Prosbpaid2, p.Prospromo, p.Prosexissued, p.Prosexissued2, p.Prosshopperref, p.Proscard1statmis, p.Proscard2statmis, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Prospero from the database.
-func (p *Prospero) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.prospero WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // ProsperoByEquinoxLrn retrieves a row from 'equinox.prospero' as a Prospero.
@@ -217,9 +73,7 @@ func ProsperoByEquinoxLrn(db XODB, equinoxLrn int64) (*Prospero, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Prospero{
-		_exists: true,
-	}
+	p := Prospero{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Prosaccnumber, &p.Proscustaccount, &p.Prosaccactive, &p.Prosnameoncard, &p.Prosdob, &p.Prosissued, &p.Prosnameoncard2, &p.Prosdob2, &p.Prosissued2, &p.Prosnectarcard, &p.Prosmainsupermkt, &p.Prosminbalance, &p.Prostopupvalue, &p.Prosfixedmonthly, &p.Prosdebitno, &p.Prosdebitstart, &p.Prosdebitexpiry, &p.Prosdebitissue, &p.Prosdebitcv2, &p.Prosdebitcardtyp, &p.Prosinitialload, &p.Proslatestbalanc, &p.Prossavingmtd, &p.Prossavingytd, &p.Prosmobilenumber, &p.Prosopeningbal, &p.Prosclosingbal, &p.Proscardtype, &p.Proscardstatus, &p.Proscardstatus2, &p.Proslastsains, &p.Proslimit, &p.Proslocation, &p.Prosexecid, &p.Prosappformno, &p.Prosdontpay, &p.Prosbpaid, &p.Prosbpaid2, &p.Prospromo, &p.Prosexissued, &p.Prosexissued2, &p.Prosshopperref, &p.Proscard1statmis, &p.Proscard2statmis, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

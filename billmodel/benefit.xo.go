@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -32,149 +31,6 @@ type Benefit struct {
 	BenChargedate pq.NullTime     `json:"ben_chargedate"` // ben_chargedate
 	EquinoxLrn    int64           `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Benefit exists in the database.
-func (b *Benefit) Exists() bool {
-	return b._exists
-}
-
-// Deleted provides information if the Benefit has been deleted from the database.
-func (b *Benefit) Deleted() bool {
-	return b._deleted
-}
-
-// Insert inserts the Benefit to the database.
-func (b *Benefit) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.benefits (` +
-		`ben_accountno, ben_startdate, ben_type, ben_addinfo1, ben_addinfo2, ben_addinfo3, ben_changed, ben_nextchngd, ben_nextchnga1, ben_nexttype, ben_nextchngs, ben_status, ben_suspended, ben_nextchnga2, ben_sparen1, ben_spared1, ben_sparel1, ben_chargedate, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, b.BenAccountno, b.BenStartdate, b.BenType, b.BenAddinfo1, b.BenAddinfo2, b.BenAddinfo3, b.BenChanged, b.BenNextchngd, b.BenNextchnga1, b.BenNexttype, b.BenNextchngs, b.BenStatus, b.BenSuspended, b.BenNextchnga2, b.BenSparen1, b.BenSpared1, b.BenSparel1, b.BenChargedate, b.EquinoxSec)
-	err = db.QueryRow(sqlstr, b.BenAccountno, b.BenStartdate, b.BenType, b.BenAddinfo1, b.BenAddinfo2, b.BenAddinfo3, b.BenChanged, b.BenNextchngd, b.BenNextchnga1, b.BenNexttype, b.BenNextchngs, b.BenStatus, b.BenSuspended, b.BenNextchnga2, b.BenSparen1, b.BenSpared1, b.BenSparel1, b.BenChargedate, b.EquinoxSec).Scan(&b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Update updates the Benefit in the database.
-func (b *Benefit) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.benefits SET (` +
-		`ben_accountno, ben_startdate, ben_type, ben_addinfo1, ben_addinfo2, ben_addinfo3, ben_changed, ben_nextchngd, ben_nextchnga1, ben_nexttype, ben_nextchngs, ben_status, ben_suspended, ben_nextchnga2, ben_sparen1, ben_spared1, ben_sparel1, ben_chargedate, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) WHERE equinox_lrn = $20`
-
-	// run query
-	XOLog(sqlstr, b.BenAccountno, b.BenStartdate, b.BenType, b.BenAddinfo1, b.BenAddinfo2, b.BenAddinfo3, b.BenChanged, b.BenNextchngd, b.BenNextchnga1, b.BenNexttype, b.BenNextchngs, b.BenStatus, b.BenSuspended, b.BenNextchnga2, b.BenSparen1, b.BenSpared1, b.BenSparel1, b.BenChargedate, b.EquinoxSec, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.BenAccountno, b.BenStartdate, b.BenType, b.BenAddinfo1, b.BenAddinfo2, b.BenAddinfo3, b.BenChanged, b.BenNextchngd, b.BenNextchnga1, b.BenNexttype, b.BenNextchngs, b.BenStatus, b.BenSuspended, b.BenNextchnga2, b.BenSparen1, b.BenSpared1, b.BenSparel1, b.BenChargedate, b.EquinoxSec, b.EquinoxLrn)
-	return err
-}
-
-// Save saves the Benefit to the database.
-func (b *Benefit) Save(db XODB) error {
-	if b.Exists() {
-		return b.Update(db)
-	}
-
-	return b.Insert(db)
-}
-
-// Upsert performs an upsert for Benefit.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (b *Benefit) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.benefits (` +
-		`ben_accountno, ben_startdate, ben_type, ben_addinfo1, ben_addinfo2, ben_addinfo3, ben_changed, ben_nextchngd, ben_nextchnga1, ben_nexttype, ben_nextchngs, ben_status, ben_suspended, ben_nextchnga2, ben_sparen1, ben_spared1, ben_sparel1, ben_chargedate, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ben_accountno, ben_startdate, ben_type, ben_addinfo1, ben_addinfo2, ben_addinfo3, ben_changed, ben_nextchngd, ben_nextchnga1, ben_nexttype, ben_nextchngs, ben_status, ben_suspended, ben_nextchnga2, ben_sparen1, ben_spared1, ben_sparel1, ben_chargedate, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ben_accountno, EXCLUDED.ben_startdate, EXCLUDED.ben_type, EXCLUDED.ben_addinfo1, EXCLUDED.ben_addinfo2, EXCLUDED.ben_addinfo3, EXCLUDED.ben_changed, EXCLUDED.ben_nextchngd, EXCLUDED.ben_nextchnga1, EXCLUDED.ben_nexttype, EXCLUDED.ben_nextchngs, EXCLUDED.ben_status, EXCLUDED.ben_suspended, EXCLUDED.ben_nextchnga2, EXCLUDED.ben_sparen1, EXCLUDED.ben_spared1, EXCLUDED.ben_sparel1, EXCLUDED.ben_chargedate, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, b.BenAccountno, b.BenStartdate, b.BenType, b.BenAddinfo1, b.BenAddinfo2, b.BenAddinfo3, b.BenChanged, b.BenNextchngd, b.BenNextchnga1, b.BenNexttype, b.BenNextchngs, b.BenStatus, b.BenSuspended, b.BenNextchnga2, b.BenSparen1, b.BenSpared1, b.BenSparel1, b.BenChargedate, b.EquinoxLrn, b.EquinoxSec)
-	_, err = db.Exec(sqlstr, b.BenAccountno, b.BenStartdate, b.BenType, b.BenAddinfo1, b.BenAddinfo2, b.BenAddinfo3, b.BenChanged, b.BenNextchngd, b.BenNextchnga1, b.BenNexttype, b.BenNextchngs, b.BenStatus, b.BenSuspended, b.BenNextchnga2, b.BenSparen1, b.BenSpared1, b.BenSparel1, b.BenChargedate, b.EquinoxLrn, b.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Delete deletes the Benefit from the database.
-func (b *Benefit) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.benefits WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	b._deleted = true
-
-	return nil
 }
 
 // BenefitByEquinoxLrn retrieves a row from 'equinox.benefits' as a Benefit.
@@ -191,9 +47,7 @@ func BenefitByEquinoxLrn(db XODB, equinoxLrn int64) (*Benefit, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	b := Benefit{
-		_exists: true,
-	}
+	b := Benefit{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&b.BenAccountno, &b.BenStartdate, &b.BenType, &b.BenAddinfo1, &b.BenAddinfo2, &b.BenAddinfo3, &b.BenChanged, &b.BenNextchngd, &b.BenNextchnga1, &b.BenNexttype, &b.BenNextchngs, &b.BenStatus, &b.BenSuspended, &b.BenNextchnga2, &b.BenSparen1, &b.BenSpared1, &b.BenSparel1, &b.BenChargedate, &b.EquinoxLrn, &b.EquinoxSec)
 	if err != nil {

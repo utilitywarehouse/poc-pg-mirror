@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -32,149 +31,6 @@ type Igt struct {
 	Igtcnfmethod    sql.NullInt64   `json:"igtcnfmethod"`    // igtcnfmethod
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Igt exists in the database.
-func (i *Igt) Exists() bool {
-	return i._exists
-}
-
-// Deleted provides information if the Igt has been deleted from the database.
-func (i *Igt) Deleted() bool {
-	return i._deleted
-}
-
-// Insert inserts the Igt to the database.
-func (i *Igt) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if i._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.igt (` +
-		`igtfullname, igtidno, igtvalidfrom, igtvalidto, igtrangestart, igtrangeend, igtemail, igttelno, igtadd1, igtadd2, igtadd3, igtadd4, igtcounty, igtpostcode, igtshortname, igtsurcharge, igtsurchargeamt, igtcnfmethod, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, i.Igtfullname, i.Igtidno, i.Igtvalidfrom, i.Igtvalidto, i.Igtrangestart, i.Igtrangeend, i.Igtemail, i.Igttelno, i.Igtadd1, i.Igtadd2, i.Igtadd3, i.Igtadd4, i.Igtcounty, i.Igtpostcode, i.Igtshortname, i.Igtsurcharge, i.Igtsurchargeamt, i.Igtcnfmethod, i.EquinoxSec)
-	err = db.QueryRow(sqlstr, i.Igtfullname, i.Igtidno, i.Igtvalidfrom, i.Igtvalidto, i.Igtrangestart, i.Igtrangeend, i.Igtemail, i.Igttelno, i.Igtadd1, i.Igtadd2, i.Igtadd3, i.Igtadd4, i.Igtcounty, i.Igtpostcode, i.Igtshortname, i.Igtsurcharge, i.Igtsurchargeamt, i.Igtcnfmethod, i.EquinoxSec).Scan(&i.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	i._exists = true
-
-	return nil
-}
-
-// Update updates the Igt in the database.
-func (i *Igt) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !i._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if i._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.igt SET (` +
-		`igtfullname, igtidno, igtvalidfrom, igtvalidto, igtrangestart, igtrangeend, igtemail, igttelno, igtadd1, igtadd2, igtadd3, igtadd4, igtcounty, igtpostcode, igtshortname, igtsurcharge, igtsurchargeamt, igtcnfmethod, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) WHERE equinox_lrn = $20`
-
-	// run query
-	XOLog(sqlstr, i.Igtfullname, i.Igtidno, i.Igtvalidfrom, i.Igtvalidto, i.Igtrangestart, i.Igtrangeend, i.Igtemail, i.Igttelno, i.Igtadd1, i.Igtadd2, i.Igtadd3, i.Igtadd4, i.Igtcounty, i.Igtpostcode, i.Igtshortname, i.Igtsurcharge, i.Igtsurchargeamt, i.Igtcnfmethod, i.EquinoxSec, i.EquinoxLrn)
-	_, err = db.Exec(sqlstr, i.Igtfullname, i.Igtidno, i.Igtvalidfrom, i.Igtvalidto, i.Igtrangestart, i.Igtrangeend, i.Igtemail, i.Igttelno, i.Igtadd1, i.Igtadd2, i.Igtadd3, i.Igtadd4, i.Igtcounty, i.Igtpostcode, i.Igtshortname, i.Igtsurcharge, i.Igtsurchargeamt, i.Igtcnfmethod, i.EquinoxSec, i.EquinoxLrn)
-	return err
-}
-
-// Save saves the Igt to the database.
-func (i *Igt) Save(db XODB) error {
-	if i.Exists() {
-		return i.Update(db)
-	}
-
-	return i.Insert(db)
-}
-
-// Upsert performs an upsert for Igt.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (i *Igt) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if i._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.igt (` +
-		`igtfullname, igtidno, igtvalidfrom, igtvalidto, igtrangestart, igtrangeend, igtemail, igttelno, igtadd1, igtadd2, igtadd3, igtadd4, igtcounty, igtpostcode, igtshortname, igtsurcharge, igtsurchargeamt, igtcnfmethod, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`igtfullname, igtidno, igtvalidfrom, igtvalidto, igtrangestart, igtrangeend, igtemail, igttelno, igtadd1, igtadd2, igtadd3, igtadd4, igtcounty, igtpostcode, igtshortname, igtsurcharge, igtsurchargeamt, igtcnfmethod, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.igtfullname, EXCLUDED.igtidno, EXCLUDED.igtvalidfrom, EXCLUDED.igtvalidto, EXCLUDED.igtrangestart, EXCLUDED.igtrangeend, EXCLUDED.igtemail, EXCLUDED.igttelno, EXCLUDED.igtadd1, EXCLUDED.igtadd2, EXCLUDED.igtadd3, EXCLUDED.igtadd4, EXCLUDED.igtcounty, EXCLUDED.igtpostcode, EXCLUDED.igtshortname, EXCLUDED.igtsurcharge, EXCLUDED.igtsurchargeamt, EXCLUDED.igtcnfmethod, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, i.Igtfullname, i.Igtidno, i.Igtvalidfrom, i.Igtvalidto, i.Igtrangestart, i.Igtrangeend, i.Igtemail, i.Igttelno, i.Igtadd1, i.Igtadd2, i.Igtadd3, i.Igtadd4, i.Igtcounty, i.Igtpostcode, i.Igtshortname, i.Igtsurcharge, i.Igtsurchargeamt, i.Igtcnfmethod, i.EquinoxLrn, i.EquinoxSec)
-	_, err = db.Exec(sqlstr, i.Igtfullname, i.Igtidno, i.Igtvalidfrom, i.Igtvalidto, i.Igtrangestart, i.Igtrangeend, i.Igtemail, i.Igttelno, i.Igtadd1, i.Igtadd2, i.Igtadd3, i.Igtadd4, i.Igtcounty, i.Igtpostcode, i.Igtshortname, i.Igtsurcharge, i.Igtsurchargeamt, i.Igtcnfmethod, i.EquinoxLrn, i.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	i._exists = true
-
-	return nil
-}
-
-// Delete deletes the Igt from the database.
-func (i *Igt) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !i._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if i._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.igt WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, i.EquinoxLrn)
-	_, err = db.Exec(sqlstr, i.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	i._deleted = true
-
-	return nil
 }
 
 // IgtByEquinoxLrn retrieves a row from 'equinox.igt' as a Igt.
@@ -191,9 +47,7 @@ func IgtByEquinoxLrn(db XODB, equinoxLrn int64) (*Igt, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	i := Igt{
-		_exists: true,
-	}
+	i := Igt{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&i.Igtfullname, &i.Igtidno, &i.Igtvalidfrom, &i.Igtvalidto, &i.Igtrangestart, &i.Igtrangeend, &i.Igtemail, &i.Igttelno, &i.Igtadd1, &i.Igtadd2, &i.Igtadd3, &i.Igtadd4, &i.Igtcounty, &i.Igtpostcode, &i.Igtshortname, &i.Igtsurcharge, &i.Igtsurchargeamt, &i.Igtcnfmethod, &i.EquinoxLrn, &i.EquinoxSec)
 	if err != nil {

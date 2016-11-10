@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -28,149 +27,6 @@ type Property struct {
 	Propertydate1    pq.NullTime     `json:"propertydate1"`    // propertydate1
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Property exists in the database.
-func (p *Property) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Property has been deleted from the database.
-func (p *Property) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Property to the database.
-func (p *Property) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.property (` +
-		`propertyid, propertyname, propertytable, propertyvalname, propertyblankok, propertydatatype, propertyvalues, propertydescript, propertynotes, propertychar1, propertychar2, propertynum1, propertynum2, propertydate1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Propertyid, p.Propertyname, p.Propertytable, p.Propertyvalname, p.Propertyblankok, p.Propertydatatype, p.Propertyvalues, p.Propertydescript, p.Propertynotes, p.Propertychar1, p.Propertychar2, p.Propertynum1, p.Propertynum2, p.Propertydate1, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Propertyid, p.Propertyname, p.Propertytable, p.Propertyvalname, p.Propertyblankok, p.Propertydatatype, p.Propertyvalues, p.Propertydescript, p.Propertynotes, p.Propertychar1, p.Propertychar2, p.Propertynum1, p.Propertynum2, p.Propertydate1, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Property in the database.
-func (p *Property) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.property SET (` +
-		`propertyid, propertyname, propertytable, propertyvalname, propertyblankok, propertydatatype, propertyvalues, propertydescript, propertynotes, propertychar1, propertychar2, propertynum1, propertynum2, propertydate1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) WHERE equinox_lrn = $16`
-
-	// run query
-	XOLog(sqlstr, p.Propertyid, p.Propertyname, p.Propertytable, p.Propertyvalname, p.Propertyblankok, p.Propertydatatype, p.Propertyvalues, p.Propertydescript, p.Propertynotes, p.Propertychar1, p.Propertychar2, p.Propertynum1, p.Propertynum2, p.Propertydate1, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Propertyid, p.Propertyname, p.Propertytable, p.Propertyvalname, p.Propertyblankok, p.Propertydatatype, p.Propertyvalues, p.Propertydescript, p.Propertynotes, p.Propertychar1, p.Propertychar2, p.Propertynum1, p.Propertynum2, p.Propertydate1, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Property to the database.
-func (p *Property) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Property.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Property) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.property (` +
-		`propertyid, propertyname, propertytable, propertyvalname, propertyblankok, propertydatatype, propertyvalues, propertydescript, propertynotes, propertychar1, propertychar2, propertynum1, propertynum2, propertydate1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`propertyid, propertyname, propertytable, propertyvalname, propertyblankok, propertydatatype, propertyvalues, propertydescript, propertynotes, propertychar1, propertychar2, propertynum1, propertynum2, propertydate1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.propertyid, EXCLUDED.propertyname, EXCLUDED.propertytable, EXCLUDED.propertyvalname, EXCLUDED.propertyblankok, EXCLUDED.propertydatatype, EXCLUDED.propertyvalues, EXCLUDED.propertydescript, EXCLUDED.propertynotes, EXCLUDED.propertychar1, EXCLUDED.propertychar2, EXCLUDED.propertynum1, EXCLUDED.propertynum2, EXCLUDED.propertydate1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Propertyid, p.Propertyname, p.Propertytable, p.Propertyvalname, p.Propertyblankok, p.Propertydatatype, p.Propertyvalues, p.Propertydescript, p.Propertynotes, p.Propertychar1, p.Propertychar2, p.Propertynum1, p.Propertynum2, p.Propertydate1, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Propertyid, p.Propertyname, p.Propertytable, p.Propertyvalname, p.Propertyblankok, p.Propertydatatype, p.Propertyvalues, p.Propertydescript, p.Propertynotes, p.Propertychar1, p.Propertychar2, p.Propertynum1, p.Propertynum2, p.Propertydate1, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Property from the database.
-func (p *Property) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.property WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PropertyByEquinoxLrn retrieves a row from 'equinox.property' as a Property.
@@ -187,9 +43,7 @@ func PropertyByEquinoxLrn(db XODB, equinoxLrn int64) (*Property, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Property{
-		_exists: true,
-	}
+	p := Property{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Propertyid, &p.Propertyname, &p.Propertytable, &p.Propertyvalname, &p.Propertyblankok, &p.Propertydatatype, &p.Propertyvalues, &p.Propertydescript, &p.Propertynotes, &p.Propertychar1, &p.Propertychar2, &p.Propertynum1, &p.Propertynum2, &p.Propertydate1, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

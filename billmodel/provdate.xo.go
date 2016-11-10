@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -22,149 +21,6 @@ type Provdate struct {
 	Proveditedby  sql.NullString `json:"proveditedby"`  // proveditedby
 	EquinoxLrn    int64          `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Provdate exists in the database.
-func (p *Provdate) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Provdate has been deleted from the database.
-func (p *Provdate) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Provdate to the database.
-func (p *Provdate) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.provdate (` +
-		`provdate, provreqdate, provcreateddt, provcreatedtm, provcreatedby, provediteddt, proveditedtm, proveditedby, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Provdate, p.Provreqdate, p.Provcreateddt, p.Provcreatedtm, p.Provcreatedby, p.Provediteddt, p.Proveditedtm, p.Proveditedby, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Provdate, p.Provreqdate, p.Provcreateddt, p.Provcreatedtm, p.Provcreatedby, p.Provediteddt, p.Proveditedtm, p.Proveditedby, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Provdate in the database.
-func (p *Provdate) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.provdate SET (` +
-		`provdate, provreqdate, provcreateddt, provcreatedtm, provcreatedby, provediteddt, proveditedtm, proveditedby, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) WHERE equinox_lrn = $10`
-
-	// run query
-	XOLog(sqlstr, p.Provdate, p.Provreqdate, p.Provcreateddt, p.Provcreatedtm, p.Provcreatedby, p.Provediteddt, p.Proveditedtm, p.Proveditedby, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Provdate, p.Provreqdate, p.Provcreateddt, p.Provcreatedtm, p.Provcreatedby, p.Provediteddt, p.Proveditedtm, p.Proveditedby, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Provdate to the database.
-func (p *Provdate) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Provdate.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Provdate) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.provdate (` +
-		`provdate, provreqdate, provcreateddt, provcreatedtm, provcreatedby, provediteddt, proveditedtm, proveditedby, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`provdate, provreqdate, provcreateddt, provcreatedtm, provcreatedby, provediteddt, proveditedtm, proveditedby, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.provdate, EXCLUDED.provreqdate, EXCLUDED.provcreateddt, EXCLUDED.provcreatedtm, EXCLUDED.provcreatedby, EXCLUDED.provediteddt, EXCLUDED.proveditedtm, EXCLUDED.proveditedby, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Provdate, p.Provreqdate, p.Provcreateddt, p.Provcreatedtm, p.Provcreatedby, p.Provediteddt, p.Proveditedtm, p.Proveditedby, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Provdate, p.Provreqdate, p.Provcreateddt, p.Provcreatedtm, p.Provcreatedby, p.Provediteddt, p.Proveditedtm, p.Proveditedby, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Provdate from the database.
-func (p *Provdate) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.provdate WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // ProvdateByEquinoxLrn retrieves a row from 'equinox.provdate' as a Provdate.
@@ -181,9 +37,7 @@ func ProvdateByEquinoxLrn(db XODB, equinoxLrn int64) (*Provdate, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Provdate{
-		_exists: true,
-	}
+	p := Provdate{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Provdate, &p.Provreqdate, &p.Provcreateddt, &p.Provcreatedtm, &p.Provcreatedby, &p.Provediteddt, &p.Proveditedtm, &p.Proveditedby, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

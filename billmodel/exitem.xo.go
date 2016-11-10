@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -44,149 +43,6 @@ type Exitem struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exitem exists in the database.
-func (e *Exitem) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exitem has been deleted from the database.
-func (e *Exitem) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exitem to the database.
-func (e *Exitem) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exitems (` +
-		`exitemprodcode, exitemdesc, exitemlineqty, exitemlineeach, exitemlinevat, exitemlinetotal, exitemdiscrate, exitemdiscval, exitemcontra, exitempromocode, exitemprinted, exitemrpc, exitemsms, exitemgprs, exitemmms, exitemlocal, exitemintl, exitemterm, exitemnettariff, exitemsubtariff, exitemport, exitemtype, exitemconndate, exitemrefunddate, exitemrefundqty, exitemrefundsel, exitemssparec1, exitemssparen1, exitemsspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Exitemprodcode, e.Exitemdesc, e.Exitemlineqty, e.Exitemlineeach, e.Exitemlinevat, e.Exitemlinetotal, e.Exitemdiscrate, e.Exitemdiscval, e.Exitemcontra, e.Exitempromocode, e.Exitemprinted, e.Exitemrpc, e.Exitemsms, e.Exitemgprs, e.Exitemmms, e.Exitemlocal, e.Exitemintl, e.Exitemterm, e.Exitemnettariff, e.Exitemsubtariff, e.Exitemport, e.Exitemtype, e.Exitemconndate, e.Exitemrefunddate, e.Exitemrefundqty, e.Exitemrefundsel, e.Exitemssparec1, e.Exitemssparen1, e.Exitemsspared1, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Exitemprodcode, e.Exitemdesc, e.Exitemlineqty, e.Exitemlineeach, e.Exitemlinevat, e.Exitemlinetotal, e.Exitemdiscrate, e.Exitemdiscval, e.Exitemcontra, e.Exitempromocode, e.Exitemprinted, e.Exitemrpc, e.Exitemsms, e.Exitemgprs, e.Exitemmms, e.Exitemlocal, e.Exitemintl, e.Exitemterm, e.Exitemnettariff, e.Exitemsubtariff, e.Exitemport, e.Exitemtype, e.Exitemconndate, e.Exitemrefunddate, e.Exitemrefundqty, e.Exitemrefundsel, e.Exitemssparec1, e.Exitemssparen1, e.Exitemsspared1, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exitem in the database.
-func (e *Exitem) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exitems SET (` +
-		`exitemprodcode, exitemdesc, exitemlineqty, exitemlineeach, exitemlinevat, exitemlinetotal, exitemdiscrate, exitemdiscval, exitemcontra, exitempromocode, exitemprinted, exitemrpc, exitemsms, exitemgprs, exitemmms, exitemlocal, exitemintl, exitemterm, exitemnettariff, exitemsubtariff, exitemport, exitemtype, exitemconndate, exitemrefunddate, exitemrefundqty, exitemrefundsel, exitemssparec1, exitemssparen1, exitemsspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) WHERE equinox_lrn = $32`
-
-	// run query
-	XOLog(sqlstr, e.Exitemprodcode, e.Exitemdesc, e.Exitemlineqty, e.Exitemlineeach, e.Exitemlinevat, e.Exitemlinetotal, e.Exitemdiscrate, e.Exitemdiscval, e.Exitemcontra, e.Exitempromocode, e.Exitemprinted, e.Exitemrpc, e.Exitemsms, e.Exitemgprs, e.Exitemmms, e.Exitemlocal, e.Exitemintl, e.Exitemterm, e.Exitemnettariff, e.Exitemsubtariff, e.Exitemport, e.Exitemtype, e.Exitemconndate, e.Exitemrefunddate, e.Exitemrefundqty, e.Exitemrefundsel, e.Exitemssparec1, e.Exitemssparen1, e.Exitemsspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Exitemprodcode, e.Exitemdesc, e.Exitemlineqty, e.Exitemlineeach, e.Exitemlinevat, e.Exitemlinetotal, e.Exitemdiscrate, e.Exitemdiscval, e.Exitemcontra, e.Exitempromocode, e.Exitemprinted, e.Exitemrpc, e.Exitemsms, e.Exitemgprs, e.Exitemmms, e.Exitemlocal, e.Exitemintl, e.Exitemterm, e.Exitemnettariff, e.Exitemsubtariff, e.Exitemport, e.Exitemtype, e.Exitemconndate, e.Exitemrefunddate, e.Exitemrefundqty, e.Exitemrefundsel, e.Exitemssparec1, e.Exitemssparen1, e.Exitemsspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exitem to the database.
-func (e *Exitem) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exitem.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exitem) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exitems (` +
-		`exitemprodcode, exitemdesc, exitemlineqty, exitemlineeach, exitemlinevat, exitemlinetotal, exitemdiscrate, exitemdiscval, exitemcontra, exitempromocode, exitemprinted, exitemrpc, exitemsms, exitemgprs, exitemmms, exitemlocal, exitemintl, exitemterm, exitemnettariff, exitemsubtariff, exitemport, exitemtype, exitemconndate, exitemrefunddate, exitemrefundqty, exitemrefundsel, exitemssparec1, exitemssparen1, exitemsspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`exitemprodcode, exitemdesc, exitemlineqty, exitemlineeach, exitemlinevat, exitemlinetotal, exitemdiscrate, exitemdiscval, exitemcontra, exitempromocode, exitemprinted, exitemrpc, exitemsms, exitemgprs, exitemmms, exitemlocal, exitemintl, exitemterm, exitemnettariff, exitemsubtariff, exitemport, exitemtype, exitemconndate, exitemrefunddate, exitemrefundqty, exitemrefundsel, exitemssparec1, exitemssparen1, exitemsspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.exitemprodcode, EXCLUDED.exitemdesc, EXCLUDED.exitemlineqty, EXCLUDED.exitemlineeach, EXCLUDED.exitemlinevat, EXCLUDED.exitemlinetotal, EXCLUDED.exitemdiscrate, EXCLUDED.exitemdiscval, EXCLUDED.exitemcontra, EXCLUDED.exitempromocode, EXCLUDED.exitemprinted, EXCLUDED.exitemrpc, EXCLUDED.exitemsms, EXCLUDED.exitemgprs, EXCLUDED.exitemmms, EXCLUDED.exitemlocal, EXCLUDED.exitemintl, EXCLUDED.exitemterm, EXCLUDED.exitemnettariff, EXCLUDED.exitemsubtariff, EXCLUDED.exitemport, EXCLUDED.exitemtype, EXCLUDED.exitemconndate, EXCLUDED.exitemrefunddate, EXCLUDED.exitemrefundqty, EXCLUDED.exitemrefundsel, EXCLUDED.exitemssparec1, EXCLUDED.exitemssparen1, EXCLUDED.exitemsspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Exitemprodcode, e.Exitemdesc, e.Exitemlineqty, e.Exitemlineeach, e.Exitemlinevat, e.Exitemlinetotal, e.Exitemdiscrate, e.Exitemdiscval, e.Exitemcontra, e.Exitempromocode, e.Exitemprinted, e.Exitemrpc, e.Exitemsms, e.Exitemgprs, e.Exitemmms, e.Exitemlocal, e.Exitemintl, e.Exitemterm, e.Exitemnettariff, e.Exitemsubtariff, e.Exitemport, e.Exitemtype, e.Exitemconndate, e.Exitemrefunddate, e.Exitemrefundqty, e.Exitemrefundsel, e.Exitemssparec1, e.Exitemssparen1, e.Exitemsspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Exitemprodcode, e.Exitemdesc, e.Exitemlineqty, e.Exitemlineeach, e.Exitemlinevat, e.Exitemlinetotal, e.Exitemdiscrate, e.Exitemdiscval, e.Exitemcontra, e.Exitempromocode, e.Exitemprinted, e.Exitemrpc, e.Exitemsms, e.Exitemgprs, e.Exitemmms, e.Exitemlocal, e.Exitemintl, e.Exitemterm, e.Exitemnettariff, e.Exitemsubtariff, e.Exitemport, e.Exitemtype, e.Exitemconndate, e.Exitemrefunddate, e.Exitemrefundqty, e.Exitemrefundsel, e.Exitemssparec1, e.Exitemssparen1, e.Exitemsspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exitem from the database.
-func (e *Exitem) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exitems WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExitemByEquinoxLrn retrieves a row from 'equinox.exitems' as a Exitem.
@@ -203,9 +59,7 @@ func ExitemByEquinoxLrn(db XODB, equinoxLrn int64) (*Exitem, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exitem{
-		_exists: true,
-	}
+	e := Exitem{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Exitemprodcode, &e.Exitemdesc, &e.Exitemlineqty, &e.Exitemlineeach, &e.Exitemlinevat, &e.Exitemlinetotal, &e.Exitemdiscrate, &e.Exitemdiscval, &e.Exitemcontra, &e.Exitempromocode, &e.Exitemprinted, &e.Exitemrpc, &e.Exitemsms, &e.Exitemgprs, &e.Exitemmms, &e.Exitemlocal, &e.Exitemintl, &e.Exitemterm, &e.Exitemnettariff, &e.Exitemsubtariff, &e.Exitemport, &e.Exitemtype, &e.Exitemconndate, &e.Exitemrefunddate, &e.Exitemrefundqty, &e.Exitemrefundsel, &e.Exitemssparec1, &e.Exitemssparen1, &e.Exitemsspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

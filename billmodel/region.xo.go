@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type Region struct {
 	Regspared1       pq.NullTime     `json:"regspared1"`       // regspared1
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Region exists in the database.
-func (r *Region) Exists() bool {
-	return r._exists
-}
-
-// Deleted provides information if the Region has been deleted from the database.
-func (r *Region) Deleted() bool {
-	return r._deleted
-}
-
-// Insert inserts the Region to the database.
-func (r *Region) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.regions (` +
-		`regstd, reglocalexchange, regitvregion, regarea, regmobcoverage, regcwinterconnec, reggeogregion, reglocallist, regsparec1, regsparen1, regspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, r.Regstd, r.Reglocalexchange, r.Regitvregion, r.Regarea, r.Regmobcoverage, r.Regcwinterconnec, r.Reggeogregion, r.Reglocallist, r.Regsparec1, r.Regsparen1, r.Regspared1, r.EquinoxSec)
-	err = db.QueryRow(sqlstr, r.Regstd, r.Reglocalexchange, r.Regitvregion, r.Regarea, r.Regmobcoverage, r.Regcwinterconnec, r.Reggeogregion, r.Reglocallist, r.Regsparec1, r.Regsparen1, r.Regspared1, r.EquinoxSec).Scan(&r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Update updates the Region in the database.
-func (r *Region) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.regions SET (` +
-		`regstd, reglocalexchange, regitvregion, regarea, regmobcoverage, regcwinterconnec, reggeogregion, reglocallist, regsparec1, regsparen1, regspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, r.Regstd, r.Reglocalexchange, r.Regitvregion, r.Regarea, r.Regmobcoverage, r.Regcwinterconnec, r.Reggeogregion, r.Reglocallist, r.Regsparec1, r.Regsparen1, r.Regspared1, r.EquinoxSec, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.Regstd, r.Reglocalexchange, r.Regitvregion, r.Regarea, r.Regmobcoverage, r.Regcwinterconnec, r.Reggeogregion, r.Reglocallist, r.Regsparec1, r.Regsparen1, r.Regspared1, r.EquinoxSec, r.EquinoxLrn)
-	return err
-}
-
-// Save saves the Region to the database.
-func (r *Region) Save(db XODB) error {
-	if r.Exists() {
-		return r.Update(db)
-	}
-
-	return r.Insert(db)
-}
-
-// Upsert performs an upsert for Region.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (r *Region) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.regions (` +
-		`regstd, reglocalexchange, regitvregion, regarea, regmobcoverage, regcwinterconnec, reggeogregion, reglocallist, regsparec1, regsparen1, regspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`regstd, reglocalexchange, regitvregion, regarea, regmobcoverage, regcwinterconnec, reggeogregion, reglocallist, regsparec1, regsparen1, regspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.regstd, EXCLUDED.reglocalexchange, EXCLUDED.regitvregion, EXCLUDED.regarea, EXCLUDED.regmobcoverage, EXCLUDED.regcwinterconnec, EXCLUDED.reggeogregion, EXCLUDED.reglocallist, EXCLUDED.regsparec1, EXCLUDED.regsparen1, EXCLUDED.regspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, r.Regstd, r.Reglocalexchange, r.Regitvregion, r.Regarea, r.Regmobcoverage, r.Regcwinterconnec, r.Reggeogregion, r.Reglocallist, r.Regsparec1, r.Regsparen1, r.Regspared1, r.EquinoxLrn, r.EquinoxSec)
-	_, err = db.Exec(sqlstr, r.Regstd, r.Reglocalexchange, r.Regitvregion, r.Regarea, r.Regmobcoverage, r.Regcwinterconnec, r.Reggeogregion, r.Reglocallist, r.Regsparec1, r.Regsparen1, r.Regspared1, r.EquinoxLrn, r.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Delete deletes the Region from the database.
-func (r *Region) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.regions WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	r._deleted = true
-
-	return nil
 }
 
 // RegionByEquinoxLrn retrieves a row from 'equinox.regions' as a Region.
@@ -184,9 +40,7 @@ func RegionByEquinoxLrn(db XODB, equinoxLrn int64) (*Region, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	r := Region{
-		_exists: true,
-	}
+	r := Region{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&r.Regstd, &r.Reglocalexchange, &r.Regitvregion, &r.Regarea, &r.Regmobcoverage, &r.Regcwinterconnec, &r.Reggeogregion, &r.Reglocallist, &r.Regsparec1, &r.Regsparen1, &r.Regspared1, &r.EquinoxLrn, &r.EquinoxSec)
 	if err != nil {

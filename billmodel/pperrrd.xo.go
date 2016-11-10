@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type Pperrrd struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Pperrrd exists in the database.
-func (p *Pperrrd) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Pperrrd has been deleted from the database.
-func (p *Pperrrd) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Pperrrd to the database.
-func (p *Pperrrd) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pperrrd (` +
-		`pperrrdreading, pperrrddate, pperrrdtariff, pperrrdtrfdt, pperrrdreg, pperrrdadded, pperrrdallocated, pperrrdallocto, pperrrdsrc, pperrrdorigref, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Pperrrdreading, p.Pperrrddate, p.Pperrrdtariff, p.Pperrrdtrfdt, p.Pperrrdreg, p.Pperrrdadded, p.Pperrrdallocated, p.Pperrrdallocto, p.Pperrrdsrc, p.Pperrrdorigref, p.EquinoxPrn, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Pperrrdreading, p.Pperrrddate, p.Pperrrdtariff, p.Pperrrdtrfdt, p.Pperrrdreg, p.Pperrrdadded, p.Pperrrdallocated, p.Pperrrdallocto, p.Pperrrdsrc, p.Pperrrdorigref, p.EquinoxPrn, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Pperrrd in the database.
-func (p *Pperrrd) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.pperrrd SET (` +
-		`pperrrdreading, pperrrddate, pperrrdtariff, pperrrdtrfdt, pperrrdreg, pperrrdadded, pperrrdallocated, pperrrdallocto, pperrrdsrc, pperrrdorigref, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, p.Pperrrdreading, p.Pperrrddate, p.Pperrrdtariff, p.Pperrrdtrfdt, p.Pperrrdreg, p.Pperrrdadded, p.Pperrrdallocated, p.Pperrrdallocto, p.Pperrrdsrc, p.Pperrrdorigref, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Pperrrdreading, p.Pperrrddate, p.Pperrrdtariff, p.Pperrrdtrfdt, p.Pperrrdreg, p.Pperrrdadded, p.Pperrrdallocated, p.Pperrrdallocto, p.Pperrrdsrc, p.Pperrrdorigref, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Pperrrd to the database.
-func (p *Pperrrd) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Pperrrd.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Pperrrd) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pperrrd (` +
-		`pperrrdreading, pperrrddate, pperrrdtariff, pperrrdtrfdt, pperrrdreg, pperrrdadded, pperrrdallocated, pperrrdallocto, pperrrdsrc, pperrrdorigref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`pperrrdreading, pperrrddate, pperrrdtariff, pperrrdtrfdt, pperrrdreg, pperrrdadded, pperrrdallocated, pperrrdallocto, pperrrdsrc, pperrrdorigref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.pperrrdreading, EXCLUDED.pperrrddate, EXCLUDED.pperrrdtariff, EXCLUDED.pperrrdtrfdt, EXCLUDED.pperrrdreg, EXCLUDED.pperrrdadded, EXCLUDED.pperrrdallocated, EXCLUDED.pperrrdallocto, EXCLUDED.pperrrdsrc, EXCLUDED.pperrrdorigref, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Pperrrdreading, p.Pperrrddate, p.Pperrrdtariff, p.Pperrrdtrfdt, p.Pperrrdreg, p.Pperrrdadded, p.Pperrrdallocated, p.Pperrrdallocto, p.Pperrrdsrc, p.Pperrrdorigref, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Pperrrdreading, p.Pperrrddate, p.Pperrrdtariff, p.Pperrrdtrfdt, p.Pperrrdreg, p.Pperrrdadded, p.Pperrrdallocated, p.Pperrrdallocto, p.Pperrrdsrc, p.Pperrrdorigref, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Pperrrd from the database.
-func (p *Pperrrd) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.pperrrd WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PperrrdByEquinoxLrn retrieves a row from 'equinox.pperrrd' as a Pperrrd.
@@ -184,9 +40,7 @@ func PperrrdByEquinoxLrn(db XODB, equinoxLrn int64) (*Pperrrd, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Pperrrd{
-		_exists: true,
-	}
+	p := Pperrrd{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Pperrrdreading, &p.Pperrrddate, &p.Pperrrdtariff, &p.Pperrrdtrfdt, &p.Pperrrdreg, &p.Pperrrdadded, &p.Pperrrdallocated, &p.Pperrrdallocto, &p.Pperrrdsrc, &p.Pperrrdorigref, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

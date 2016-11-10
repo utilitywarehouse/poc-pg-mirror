@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -124,149 +123,6 @@ type Tra struct {
 	TrSpared1       pq.NullTime     `json:"tr_spared1"`       // tr_spared1
 	EquinoxLrn      int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Tra exists in the database.
-func (t *Tra) Exists() bool {
-	return t._exists
-}
-
-// Deleted provides information if the Tra has been deleted from the database.
-func (t *Tra) Deleted() bool {
-	return t._deleted
-}
-
-// Insert inserts the Tra to the database.
-func (t *Tra) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tras (` +
-		`tr_custaccountno, tr_clinumber, tr_importdate, tr_fuel_type, tr_supplier_ref, tr_account_name, tr_supply_add1, tr_supply_add2, tr_supply_add3, tr_supply_add4, tr_supply_add5, tr_supply_pcode, tr_payment_meth, tr_arrears_flag, tr_long_term_vac, tr_mpan_mprn, tr_meterserialno, tr_meter_type, tr_meter_install, tr_meter_inspect, tr_meterlocation, tr_meter_status, tr_annualcons_d, tr_annualcons_n, tr_sc3_score, tr_sc3_index, tr_reason_tab01, tr_reason_tab02, tr_reason_tab03, tr_reason_tab04, tr_reason_tab05, tr_reason_tab06, tr_reason_tab07, tr_reason_tab08, tr_reason_tab09, tr_reason_tab10, tr_reason_tab11, tr_reason_tab12, tr_reason_tab13, tr_reason_tab14, tr_reason_tab15, tr_reason_tab16, tr_reason_tab17, tr_reason_tab18, tr_reason_tab19, tr_reason_tab20, tr_reason_tab21, tr_reason_tab22, tr_reason_tab23, tr_reason_tab24, tr_reason_tab25, tr_reason_tab26, tr_reason_tab27, tr_reason_tab28, tr_reason_tab29, tr_reason_tab30, tr_sup_invest_id, tr_lead_source, tr_curinvestcode, tr_tamp_rep_d, tr_invest_start, tr_visit_1, tr_visit_2, tr_visit_3, tr_court_date, tr_warrant_d, tr_warrant_a, tr_warrant_r, tr_d0239_rec, tr_tamp_code, tr_tamp_source, tr_theft_type, tr_outcome, tr_vulnerable, tr_crime_refno, tr_sec_devs_fit, tr_date_closed, tr_date_rep_in, tr_cont_refno, tr_theft_typecms, tr_tog_investout, tr_total_costs, tr_cust_charged, tr_charge_exvat, tr_charge_vat, tr_charge_incvat, tr_rev_recovered, tr_theft_started, tr_theft_ended, tr_assessed_loss, tr_day_un_reckwh, tr_night_ureckwh, tr_day_rate, tr_night_rate, tr_sent_to_dc, tr_aa_updated, tr_consump_exvat, tr_consumpnrgvat, tr_consumpstdvat, tr_consump_total, tr_unitrate, tr_lastchange_d, tr_lastchange_t, tr_lastchange_u, tr_sent_back, tr_statuschanged, tr_sparec1, tr_sparen1, tr_sparem1, tr_spared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, t.TrCustaccountno, t.TrClinumber, t.TrImportdate, t.TrFuelType, t.TrSupplierRef, t.TrAccountName, t.TrSupplyAdd1, t.TrSupplyAdd2, t.TrSupplyAdd3, t.TrSupplyAdd4, t.TrSupplyAdd5, t.TrSupplyPcode, t.TrPaymentMeth, t.TrArrearsFlag, t.TrLongTermVac, t.TrMpanMprn, t.TrMeterserialno, t.TrMeterType, t.TrMeterInstall, t.TrMeterInspect, t.TrMeterlocation, t.TrMeterStatus, t.TrAnnualconsD, t.TrAnnualconsN, t.TrSc3Score, t.TrSc3Index, t.TrReasonTab01, t.TrReasonTab02, t.TrReasonTab03, t.TrReasonTab04, t.TrReasonTab05, t.TrReasonTab06, t.TrReasonTab07, t.TrReasonTab08, t.TrReasonTab09, t.TrReasonTab10, t.TrReasonTab11, t.TrReasonTab12, t.TrReasonTab13, t.TrReasonTab14, t.TrReasonTab15, t.TrReasonTab16, t.TrReasonTab17, t.TrReasonTab18, t.TrReasonTab19, t.TrReasonTab20, t.TrReasonTab21, t.TrReasonTab22, t.TrReasonTab23, t.TrReasonTab24, t.TrReasonTab25, t.TrReasonTab26, t.TrReasonTab27, t.TrReasonTab28, t.TrReasonTab29, t.TrReasonTab30, t.TrSupInvestID, t.TrLeadSource, t.TrCurinvestcode, t.TrTampRepD, t.TrInvestStart, t.TrVisit1, t.TrVisit2, t.TrVisit3, t.TrCourtDate, t.TrWarrantD, t.TrWarrantA, t.TrWarrantR, t.TrD0239Rec, t.TrTampCode, t.TrTampSource, t.TrTheftType, t.TrOutcome, t.TrVulnerable, t.TrCrimeRefno, t.TrSecDevsFit, t.TrDateClosed, t.TrDateRepIn, t.TrContRefno, t.TrTheftTypecms, t.TrTogInvestout, t.TrTotalCosts, t.TrCustCharged, t.TrChargeExvat, t.TrChargeVat, t.TrChargeIncvat, t.TrRevRecovered, t.TrTheftStarted, t.TrTheftEnded, t.TrAssessedLoss, t.TrDayUnReckwh, t.TrNightUreckwh, t.TrDayRate, t.TrNightRate, t.TrSentToDc, t.TrAaUpdated, t.TrConsumpExvat, t.TrConsumpnrgvat, t.TrConsumpstdvat, t.TrConsumpTotal, t.TrUnitrate, t.TrLastchangeD, t.TrLastchangeT, t.TrLastchangeU, t.TrSentBack, t.TrStatuschanged, t.TrSparec1, t.TrSparen1, t.TrSparem1, t.TrSpared1, t.EquinoxSec)
-	err = db.QueryRow(sqlstr, t.TrCustaccountno, t.TrClinumber, t.TrImportdate, t.TrFuelType, t.TrSupplierRef, t.TrAccountName, t.TrSupplyAdd1, t.TrSupplyAdd2, t.TrSupplyAdd3, t.TrSupplyAdd4, t.TrSupplyAdd5, t.TrSupplyPcode, t.TrPaymentMeth, t.TrArrearsFlag, t.TrLongTermVac, t.TrMpanMprn, t.TrMeterserialno, t.TrMeterType, t.TrMeterInstall, t.TrMeterInspect, t.TrMeterlocation, t.TrMeterStatus, t.TrAnnualconsD, t.TrAnnualconsN, t.TrSc3Score, t.TrSc3Index, t.TrReasonTab01, t.TrReasonTab02, t.TrReasonTab03, t.TrReasonTab04, t.TrReasonTab05, t.TrReasonTab06, t.TrReasonTab07, t.TrReasonTab08, t.TrReasonTab09, t.TrReasonTab10, t.TrReasonTab11, t.TrReasonTab12, t.TrReasonTab13, t.TrReasonTab14, t.TrReasonTab15, t.TrReasonTab16, t.TrReasonTab17, t.TrReasonTab18, t.TrReasonTab19, t.TrReasonTab20, t.TrReasonTab21, t.TrReasonTab22, t.TrReasonTab23, t.TrReasonTab24, t.TrReasonTab25, t.TrReasonTab26, t.TrReasonTab27, t.TrReasonTab28, t.TrReasonTab29, t.TrReasonTab30, t.TrSupInvestID, t.TrLeadSource, t.TrCurinvestcode, t.TrTampRepD, t.TrInvestStart, t.TrVisit1, t.TrVisit2, t.TrVisit3, t.TrCourtDate, t.TrWarrantD, t.TrWarrantA, t.TrWarrantR, t.TrD0239Rec, t.TrTampCode, t.TrTampSource, t.TrTheftType, t.TrOutcome, t.TrVulnerable, t.TrCrimeRefno, t.TrSecDevsFit, t.TrDateClosed, t.TrDateRepIn, t.TrContRefno, t.TrTheftTypecms, t.TrTogInvestout, t.TrTotalCosts, t.TrCustCharged, t.TrChargeExvat, t.TrChargeVat, t.TrChargeIncvat, t.TrRevRecovered, t.TrTheftStarted, t.TrTheftEnded, t.TrAssessedLoss, t.TrDayUnReckwh, t.TrNightUreckwh, t.TrDayRate, t.TrNightRate, t.TrSentToDc, t.TrAaUpdated, t.TrConsumpExvat, t.TrConsumpnrgvat, t.TrConsumpstdvat, t.TrConsumpTotal, t.TrUnitrate, t.TrLastchangeD, t.TrLastchangeT, t.TrLastchangeU, t.TrSentBack, t.TrStatuschanged, t.TrSparec1, t.TrSparen1, t.TrSparem1, t.TrSpared1, t.EquinoxSec).Scan(&t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Update updates the Tra in the database.
-func (t *Tra) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.tras SET (` +
-		`tr_custaccountno, tr_clinumber, tr_importdate, tr_fuel_type, tr_supplier_ref, tr_account_name, tr_supply_add1, tr_supply_add2, tr_supply_add3, tr_supply_add4, tr_supply_add5, tr_supply_pcode, tr_payment_meth, tr_arrears_flag, tr_long_term_vac, tr_mpan_mprn, tr_meterserialno, tr_meter_type, tr_meter_install, tr_meter_inspect, tr_meterlocation, tr_meter_status, tr_annualcons_d, tr_annualcons_n, tr_sc3_score, tr_sc3_index, tr_reason_tab01, tr_reason_tab02, tr_reason_tab03, tr_reason_tab04, tr_reason_tab05, tr_reason_tab06, tr_reason_tab07, tr_reason_tab08, tr_reason_tab09, tr_reason_tab10, tr_reason_tab11, tr_reason_tab12, tr_reason_tab13, tr_reason_tab14, tr_reason_tab15, tr_reason_tab16, tr_reason_tab17, tr_reason_tab18, tr_reason_tab19, tr_reason_tab20, tr_reason_tab21, tr_reason_tab22, tr_reason_tab23, tr_reason_tab24, tr_reason_tab25, tr_reason_tab26, tr_reason_tab27, tr_reason_tab28, tr_reason_tab29, tr_reason_tab30, tr_sup_invest_id, tr_lead_source, tr_curinvestcode, tr_tamp_rep_d, tr_invest_start, tr_visit_1, tr_visit_2, tr_visit_3, tr_court_date, tr_warrant_d, tr_warrant_a, tr_warrant_r, tr_d0239_rec, tr_tamp_code, tr_tamp_source, tr_theft_type, tr_outcome, tr_vulnerable, tr_crime_refno, tr_sec_devs_fit, tr_date_closed, tr_date_rep_in, tr_cont_refno, tr_theft_typecms, tr_tog_investout, tr_total_costs, tr_cust_charged, tr_charge_exvat, tr_charge_vat, tr_charge_incvat, tr_rev_recovered, tr_theft_started, tr_theft_ended, tr_assessed_loss, tr_day_un_reckwh, tr_night_ureckwh, tr_day_rate, tr_night_rate, tr_sent_to_dc, tr_aa_updated, tr_consump_exvat, tr_consumpnrgvat, tr_consumpstdvat, tr_consump_total, tr_unitrate, tr_lastchange_d, tr_lastchange_t, tr_lastchange_u, tr_sent_back, tr_statuschanged, tr_sparec1, tr_sparen1, tr_sparem1, tr_spared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111` +
-		`) WHERE equinox_lrn = $112`
-
-	// run query
-	XOLog(sqlstr, t.TrCustaccountno, t.TrClinumber, t.TrImportdate, t.TrFuelType, t.TrSupplierRef, t.TrAccountName, t.TrSupplyAdd1, t.TrSupplyAdd2, t.TrSupplyAdd3, t.TrSupplyAdd4, t.TrSupplyAdd5, t.TrSupplyPcode, t.TrPaymentMeth, t.TrArrearsFlag, t.TrLongTermVac, t.TrMpanMprn, t.TrMeterserialno, t.TrMeterType, t.TrMeterInstall, t.TrMeterInspect, t.TrMeterlocation, t.TrMeterStatus, t.TrAnnualconsD, t.TrAnnualconsN, t.TrSc3Score, t.TrSc3Index, t.TrReasonTab01, t.TrReasonTab02, t.TrReasonTab03, t.TrReasonTab04, t.TrReasonTab05, t.TrReasonTab06, t.TrReasonTab07, t.TrReasonTab08, t.TrReasonTab09, t.TrReasonTab10, t.TrReasonTab11, t.TrReasonTab12, t.TrReasonTab13, t.TrReasonTab14, t.TrReasonTab15, t.TrReasonTab16, t.TrReasonTab17, t.TrReasonTab18, t.TrReasonTab19, t.TrReasonTab20, t.TrReasonTab21, t.TrReasonTab22, t.TrReasonTab23, t.TrReasonTab24, t.TrReasonTab25, t.TrReasonTab26, t.TrReasonTab27, t.TrReasonTab28, t.TrReasonTab29, t.TrReasonTab30, t.TrSupInvestID, t.TrLeadSource, t.TrCurinvestcode, t.TrTampRepD, t.TrInvestStart, t.TrVisit1, t.TrVisit2, t.TrVisit3, t.TrCourtDate, t.TrWarrantD, t.TrWarrantA, t.TrWarrantR, t.TrD0239Rec, t.TrTampCode, t.TrTampSource, t.TrTheftType, t.TrOutcome, t.TrVulnerable, t.TrCrimeRefno, t.TrSecDevsFit, t.TrDateClosed, t.TrDateRepIn, t.TrContRefno, t.TrTheftTypecms, t.TrTogInvestout, t.TrTotalCosts, t.TrCustCharged, t.TrChargeExvat, t.TrChargeVat, t.TrChargeIncvat, t.TrRevRecovered, t.TrTheftStarted, t.TrTheftEnded, t.TrAssessedLoss, t.TrDayUnReckwh, t.TrNightUreckwh, t.TrDayRate, t.TrNightRate, t.TrSentToDc, t.TrAaUpdated, t.TrConsumpExvat, t.TrConsumpnrgvat, t.TrConsumpstdvat, t.TrConsumpTotal, t.TrUnitrate, t.TrLastchangeD, t.TrLastchangeT, t.TrLastchangeU, t.TrSentBack, t.TrStatuschanged, t.TrSparec1, t.TrSparen1, t.TrSparem1, t.TrSpared1, t.EquinoxSec, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.TrCustaccountno, t.TrClinumber, t.TrImportdate, t.TrFuelType, t.TrSupplierRef, t.TrAccountName, t.TrSupplyAdd1, t.TrSupplyAdd2, t.TrSupplyAdd3, t.TrSupplyAdd4, t.TrSupplyAdd5, t.TrSupplyPcode, t.TrPaymentMeth, t.TrArrearsFlag, t.TrLongTermVac, t.TrMpanMprn, t.TrMeterserialno, t.TrMeterType, t.TrMeterInstall, t.TrMeterInspect, t.TrMeterlocation, t.TrMeterStatus, t.TrAnnualconsD, t.TrAnnualconsN, t.TrSc3Score, t.TrSc3Index, t.TrReasonTab01, t.TrReasonTab02, t.TrReasonTab03, t.TrReasonTab04, t.TrReasonTab05, t.TrReasonTab06, t.TrReasonTab07, t.TrReasonTab08, t.TrReasonTab09, t.TrReasonTab10, t.TrReasonTab11, t.TrReasonTab12, t.TrReasonTab13, t.TrReasonTab14, t.TrReasonTab15, t.TrReasonTab16, t.TrReasonTab17, t.TrReasonTab18, t.TrReasonTab19, t.TrReasonTab20, t.TrReasonTab21, t.TrReasonTab22, t.TrReasonTab23, t.TrReasonTab24, t.TrReasonTab25, t.TrReasonTab26, t.TrReasonTab27, t.TrReasonTab28, t.TrReasonTab29, t.TrReasonTab30, t.TrSupInvestID, t.TrLeadSource, t.TrCurinvestcode, t.TrTampRepD, t.TrInvestStart, t.TrVisit1, t.TrVisit2, t.TrVisit3, t.TrCourtDate, t.TrWarrantD, t.TrWarrantA, t.TrWarrantR, t.TrD0239Rec, t.TrTampCode, t.TrTampSource, t.TrTheftType, t.TrOutcome, t.TrVulnerable, t.TrCrimeRefno, t.TrSecDevsFit, t.TrDateClosed, t.TrDateRepIn, t.TrContRefno, t.TrTheftTypecms, t.TrTogInvestout, t.TrTotalCosts, t.TrCustCharged, t.TrChargeExvat, t.TrChargeVat, t.TrChargeIncvat, t.TrRevRecovered, t.TrTheftStarted, t.TrTheftEnded, t.TrAssessedLoss, t.TrDayUnReckwh, t.TrNightUreckwh, t.TrDayRate, t.TrNightRate, t.TrSentToDc, t.TrAaUpdated, t.TrConsumpExvat, t.TrConsumpnrgvat, t.TrConsumpstdvat, t.TrConsumpTotal, t.TrUnitrate, t.TrLastchangeD, t.TrLastchangeT, t.TrLastchangeU, t.TrSentBack, t.TrStatuschanged, t.TrSparec1, t.TrSparen1, t.TrSparem1, t.TrSpared1, t.EquinoxSec, t.EquinoxLrn)
-	return err
-}
-
-// Save saves the Tra to the database.
-func (t *Tra) Save(db XODB) error {
-	if t.Exists() {
-		return t.Update(db)
-	}
-
-	return t.Insert(db)
-}
-
-// Upsert performs an upsert for Tra.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (t *Tra) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tras (` +
-		`tr_custaccountno, tr_clinumber, tr_importdate, tr_fuel_type, tr_supplier_ref, tr_account_name, tr_supply_add1, tr_supply_add2, tr_supply_add3, tr_supply_add4, tr_supply_add5, tr_supply_pcode, tr_payment_meth, tr_arrears_flag, tr_long_term_vac, tr_mpan_mprn, tr_meterserialno, tr_meter_type, tr_meter_install, tr_meter_inspect, tr_meterlocation, tr_meter_status, tr_annualcons_d, tr_annualcons_n, tr_sc3_score, tr_sc3_index, tr_reason_tab01, tr_reason_tab02, tr_reason_tab03, tr_reason_tab04, tr_reason_tab05, tr_reason_tab06, tr_reason_tab07, tr_reason_tab08, tr_reason_tab09, tr_reason_tab10, tr_reason_tab11, tr_reason_tab12, tr_reason_tab13, tr_reason_tab14, tr_reason_tab15, tr_reason_tab16, tr_reason_tab17, tr_reason_tab18, tr_reason_tab19, tr_reason_tab20, tr_reason_tab21, tr_reason_tab22, tr_reason_tab23, tr_reason_tab24, tr_reason_tab25, tr_reason_tab26, tr_reason_tab27, tr_reason_tab28, tr_reason_tab29, tr_reason_tab30, tr_sup_invest_id, tr_lead_source, tr_curinvestcode, tr_tamp_rep_d, tr_invest_start, tr_visit_1, tr_visit_2, tr_visit_3, tr_court_date, tr_warrant_d, tr_warrant_a, tr_warrant_r, tr_d0239_rec, tr_tamp_code, tr_tamp_source, tr_theft_type, tr_outcome, tr_vulnerable, tr_crime_refno, tr_sec_devs_fit, tr_date_closed, tr_date_rep_in, tr_cont_refno, tr_theft_typecms, tr_tog_investout, tr_total_costs, tr_cust_charged, tr_charge_exvat, tr_charge_vat, tr_charge_incvat, tr_rev_recovered, tr_theft_started, tr_theft_ended, tr_assessed_loss, tr_day_un_reckwh, tr_night_ureckwh, tr_day_rate, tr_night_rate, tr_sent_to_dc, tr_aa_updated, tr_consump_exvat, tr_consumpnrgvat, tr_consumpstdvat, tr_consump_total, tr_unitrate, tr_lastchange_d, tr_lastchange_t, tr_lastchange_u, tr_sent_back, tr_statuschanged, tr_sparec1, tr_sparen1, tr_sparem1, tr_spared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111, $112` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`tr_custaccountno, tr_clinumber, tr_importdate, tr_fuel_type, tr_supplier_ref, tr_account_name, tr_supply_add1, tr_supply_add2, tr_supply_add3, tr_supply_add4, tr_supply_add5, tr_supply_pcode, tr_payment_meth, tr_arrears_flag, tr_long_term_vac, tr_mpan_mprn, tr_meterserialno, tr_meter_type, tr_meter_install, tr_meter_inspect, tr_meterlocation, tr_meter_status, tr_annualcons_d, tr_annualcons_n, tr_sc3_score, tr_sc3_index, tr_reason_tab01, tr_reason_tab02, tr_reason_tab03, tr_reason_tab04, tr_reason_tab05, tr_reason_tab06, tr_reason_tab07, tr_reason_tab08, tr_reason_tab09, tr_reason_tab10, tr_reason_tab11, tr_reason_tab12, tr_reason_tab13, tr_reason_tab14, tr_reason_tab15, tr_reason_tab16, tr_reason_tab17, tr_reason_tab18, tr_reason_tab19, tr_reason_tab20, tr_reason_tab21, tr_reason_tab22, tr_reason_tab23, tr_reason_tab24, tr_reason_tab25, tr_reason_tab26, tr_reason_tab27, tr_reason_tab28, tr_reason_tab29, tr_reason_tab30, tr_sup_invest_id, tr_lead_source, tr_curinvestcode, tr_tamp_rep_d, tr_invest_start, tr_visit_1, tr_visit_2, tr_visit_3, tr_court_date, tr_warrant_d, tr_warrant_a, tr_warrant_r, tr_d0239_rec, tr_tamp_code, tr_tamp_source, tr_theft_type, tr_outcome, tr_vulnerable, tr_crime_refno, tr_sec_devs_fit, tr_date_closed, tr_date_rep_in, tr_cont_refno, tr_theft_typecms, tr_tog_investout, tr_total_costs, tr_cust_charged, tr_charge_exvat, tr_charge_vat, tr_charge_incvat, tr_rev_recovered, tr_theft_started, tr_theft_ended, tr_assessed_loss, tr_day_un_reckwh, tr_night_ureckwh, tr_day_rate, tr_night_rate, tr_sent_to_dc, tr_aa_updated, tr_consump_exvat, tr_consumpnrgvat, tr_consumpstdvat, tr_consump_total, tr_unitrate, tr_lastchange_d, tr_lastchange_t, tr_lastchange_u, tr_sent_back, tr_statuschanged, tr_sparec1, tr_sparen1, tr_sparem1, tr_spared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.tr_custaccountno, EXCLUDED.tr_clinumber, EXCLUDED.tr_importdate, EXCLUDED.tr_fuel_type, EXCLUDED.tr_supplier_ref, EXCLUDED.tr_account_name, EXCLUDED.tr_supply_add1, EXCLUDED.tr_supply_add2, EXCLUDED.tr_supply_add3, EXCLUDED.tr_supply_add4, EXCLUDED.tr_supply_add5, EXCLUDED.tr_supply_pcode, EXCLUDED.tr_payment_meth, EXCLUDED.tr_arrears_flag, EXCLUDED.tr_long_term_vac, EXCLUDED.tr_mpan_mprn, EXCLUDED.tr_meterserialno, EXCLUDED.tr_meter_type, EXCLUDED.tr_meter_install, EXCLUDED.tr_meter_inspect, EXCLUDED.tr_meterlocation, EXCLUDED.tr_meter_status, EXCLUDED.tr_annualcons_d, EXCLUDED.tr_annualcons_n, EXCLUDED.tr_sc3_score, EXCLUDED.tr_sc3_index, EXCLUDED.tr_reason_tab01, EXCLUDED.tr_reason_tab02, EXCLUDED.tr_reason_tab03, EXCLUDED.tr_reason_tab04, EXCLUDED.tr_reason_tab05, EXCLUDED.tr_reason_tab06, EXCLUDED.tr_reason_tab07, EXCLUDED.tr_reason_tab08, EXCLUDED.tr_reason_tab09, EXCLUDED.tr_reason_tab10, EXCLUDED.tr_reason_tab11, EXCLUDED.tr_reason_tab12, EXCLUDED.tr_reason_tab13, EXCLUDED.tr_reason_tab14, EXCLUDED.tr_reason_tab15, EXCLUDED.tr_reason_tab16, EXCLUDED.tr_reason_tab17, EXCLUDED.tr_reason_tab18, EXCLUDED.tr_reason_tab19, EXCLUDED.tr_reason_tab20, EXCLUDED.tr_reason_tab21, EXCLUDED.tr_reason_tab22, EXCLUDED.tr_reason_tab23, EXCLUDED.tr_reason_tab24, EXCLUDED.tr_reason_tab25, EXCLUDED.tr_reason_tab26, EXCLUDED.tr_reason_tab27, EXCLUDED.tr_reason_tab28, EXCLUDED.tr_reason_tab29, EXCLUDED.tr_reason_tab30, EXCLUDED.tr_sup_invest_id, EXCLUDED.tr_lead_source, EXCLUDED.tr_curinvestcode, EXCLUDED.tr_tamp_rep_d, EXCLUDED.tr_invest_start, EXCLUDED.tr_visit_1, EXCLUDED.tr_visit_2, EXCLUDED.tr_visit_3, EXCLUDED.tr_court_date, EXCLUDED.tr_warrant_d, EXCLUDED.tr_warrant_a, EXCLUDED.tr_warrant_r, EXCLUDED.tr_d0239_rec, EXCLUDED.tr_tamp_code, EXCLUDED.tr_tamp_source, EXCLUDED.tr_theft_type, EXCLUDED.tr_outcome, EXCLUDED.tr_vulnerable, EXCLUDED.tr_crime_refno, EXCLUDED.tr_sec_devs_fit, EXCLUDED.tr_date_closed, EXCLUDED.tr_date_rep_in, EXCLUDED.tr_cont_refno, EXCLUDED.tr_theft_typecms, EXCLUDED.tr_tog_investout, EXCLUDED.tr_total_costs, EXCLUDED.tr_cust_charged, EXCLUDED.tr_charge_exvat, EXCLUDED.tr_charge_vat, EXCLUDED.tr_charge_incvat, EXCLUDED.tr_rev_recovered, EXCLUDED.tr_theft_started, EXCLUDED.tr_theft_ended, EXCLUDED.tr_assessed_loss, EXCLUDED.tr_day_un_reckwh, EXCLUDED.tr_night_ureckwh, EXCLUDED.tr_day_rate, EXCLUDED.tr_night_rate, EXCLUDED.tr_sent_to_dc, EXCLUDED.tr_aa_updated, EXCLUDED.tr_consump_exvat, EXCLUDED.tr_consumpnrgvat, EXCLUDED.tr_consumpstdvat, EXCLUDED.tr_consump_total, EXCLUDED.tr_unitrate, EXCLUDED.tr_lastchange_d, EXCLUDED.tr_lastchange_t, EXCLUDED.tr_lastchange_u, EXCLUDED.tr_sent_back, EXCLUDED.tr_statuschanged, EXCLUDED.tr_sparec1, EXCLUDED.tr_sparen1, EXCLUDED.tr_sparem1, EXCLUDED.tr_spared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, t.TrCustaccountno, t.TrClinumber, t.TrImportdate, t.TrFuelType, t.TrSupplierRef, t.TrAccountName, t.TrSupplyAdd1, t.TrSupplyAdd2, t.TrSupplyAdd3, t.TrSupplyAdd4, t.TrSupplyAdd5, t.TrSupplyPcode, t.TrPaymentMeth, t.TrArrearsFlag, t.TrLongTermVac, t.TrMpanMprn, t.TrMeterserialno, t.TrMeterType, t.TrMeterInstall, t.TrMeterInspect, t.TrMeterlocation, t.TrMeterStatus, t.TrAnnualconsD, t.TrAnnualconsN, t.TrSc3Score, t.TrSc3Index, t.TrReasonTab01, t.TrReasonTab02, t.TrReasonTab03, t.TrReasonTab04, t.TrReasonTab05, t.TrReasonTab06, t.TrReasonTab07, t.TrReasonTab08, t.TrReasonTab09, t.TrReasonTab10, t.TrReasonTab11, t.TrReasonTab12, t.TrReasonTab13, t.TrReasonTab14, t.TrReasonTab15, t.TrReasonTab16, t.TrReasonTab17, t.TrReasonTab18, t.TrReasonTab19, t.TrReasonTab20, t.TrReasonTab21, t.TrReasonTab22, t.TrReasonTab23, t.TrReasonTab24, t.TrReasonTab25, t.TrReasonTab26, t.TrReasonTab27, t.TrReasonTab28, t.TrReasonTab29, t.TrReasonTab30, t.TrSupInvestID, t.TrLeadSource, t.TrCurinvestcode, t.TrTampRepD, t.TrInvestStart, t.TrVisit1, t.TrVisit2, t.TrVisit3, t.TrCourtDate, t.TrWarrantD, t.TrWarrantA, t.TrWarrantR, t.TrD0239Rec, t.TrTampCode, t.TrTampSource, t.TrTheftType, t.TrOutcome, t.TrVulnerable, t.TrCrimeRefno, t.TrSecDevsFit, t.TrDateClosed, t.TrDateRepIn, t.TrContRefno, t.TrTheftTypecms, t.TrTogInvestout, t.TrTotalCosts, t.TrCustCharged, t.TrChargeExvat, t.TrChargeVat, t.TrChargeIncvat, t.TrRevRecovered, t.TrTheftStarted, t.TrTheftEnded, t.TrAssessedLoss, t.TrDayUnReckwh, t.TrNightUreckwh, t.TrDayRate, t.TrNightRate, t.TrSentToDc, t.TrAaUpdated, t.TrConsumpExvat, t.TrConsumpnrgvat, t.TrConsumpstdvat, t.TrConsumpTotal, t.TrUnitrate, t.TrLastchangeD, t.TrLastchangeT, t.TrLastchangeU, t.TrSentBack, t.TrStatuschanged, t.TrSparec1, t.TrSparen1, t.TrSparem1, t.TrSpared1, t.EquinoxLrn, t.EquinoxSec)
-	_, err = db.Exec(sqlstr, t.TrCustaccountno, t.TrClinumber, t.TrImportdate, t.TrFuelType, t.TrSupplierRef, t.TrAccountName, t.TrSupplyAdd1, t.TrSupplyAdd2, t.TrSupplyAdd3, t.TrSupplyAdd4, t.TrSupplyAdd5, t.TrSupplyPcode, t.TrPaymentMeth, t.TrArrearsFlag, t.TrLongTermVac, t.TrMpanMprn, t.TrMeterserialno, t.TrMeterType, t.TrMeterInstall, t.TrMeterInspect, t.TrMeterlocation, t.TrMeterStatus, t.TrAnnualconsD, t.TrAnnualconsN, t.TrSc3Score, t.TrSc3Index, t.TrReasonTab01, t.TrReasonTab02, t.TrReasonTab03, t.TrReasonTab04, t.TrReasonTab05, t.TrReasonTab06, t.TrReasonTab07, t.TrReasonTab08, t.TrReasonTab09, t.TrReasonTab10, t.TrReasonTab11, t.TrReasonTab12, t.TrReasonTab13, t.TrReasonTab14, t.TrReasonTab15, t.TrReasonTab16, t.TrReasonTab17, t.TrReasonTab18, t.TrReasonTab19, t.TrReasonTab20, t.TrReasonTab21, t.TrReasonTab22, t.TrReasonTab23, t.TrReasonTab24, t.TrReasonTab25, t.TrReasonTab26, t.TrReasonTab27, t.TrReasonTab28, t.TrReasonTab29, t.TrReasonTab30, t.TrSupInvestID, t.TrLeadSource, t.TrCurinvestcode, t.TrTampRepD, t.TrInvestStart, t.TrVisit1, t.TrVisit2, t.TrVisit3, t.TrCourtDate, t.TrWarrantD, t.TrWarrantA, t.TrWarrantR, t.TrD0239Rec, t.TrTampCode, t.TrTampSource, t.TrTheftType, t.TrOutcome, t.TrVulnerable, t.TrCrimeRefno, t.TrSecDevsFit, t.TrDateClosed, t.TrDateRepIn, t.TrContRefno, t.TrTheftTypecms, t.TrTogInvestout, t.TrTotalCosts, t.TrCustCharged, t.TrChargeExvat, t.TrChargeVat, t.TrChargeIncvat, t.TrRevRecovered, t.TrTheftStarted, t.TrTheftEnded, t.TrAssessedLoss, t.TrDayUnReckwh, t.TrNightUreckwh, t.TrDayRate, t.TrNightRate, t.TrSentToDc, t.TrAaUpdated, t.TrConsumpExvat, t.TrConsumpnrgvat, t.TrConsumpstdvat, t.TrConsumpTotal, t.TrUnitrate, t.TrLastchangeD, t.TrLastchangeT, t.TrLastchangeU, t.TrSentBack, t.TrStatuschanged, t.TrSparec1, t.TrSparen1, t.TrSparem1, t.TrSpared1, t.EquinoxLrn, t.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Delete deletes the Tra from the database.
-func (t *Tra) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.tras WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	t._deleted = true
-
-	return nil
 }
 
 // TraByEquinoxLrn retrieves a row from 'equinox.tras' as a Tra.
@@ -283,9 +139,7 @@ func TraByEquinoxLrn(db XODB, equinoxLrn int64) (*Tra, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	t := Tra{
-		_exists: true,
-	}
+	t := Tra{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&t.TrCustaccountno, &t.TrClinumber, &t.TrImportdate, &t.TrFuelType, &t.TrSupplierRef, &t.TrAccountName, &t.TrSupplyAdd1, &t.TrSupplyAdd2, &t.TrSupplyAdd3, &t.TrSupplyAdd4, &t.TrSupplyAdd5, &t.TrSupplyPcode, &t.TrPaymentMeth, &t.TrArrearsFlag, &t.TrLongTermVac, &t.TrMpanMprn, &t.TrMeterserialno, &t.TrMeterType, &t.TrMeterInstall, &t.TrMeterInspect, &t.TrMeterlocation, &t.TrMeterStatus, &t.TrAnnualconsD, &t.TrAnnualconsN, &t.TrSc3Score, &t.TrSc3Index, &t.TrReasonTab01, &t.TrReasonTab02, &t.TrReasonTab03, &t.TrReasonTab04, &t.TrReasonTab05, &t.TrReasonTab06, &t.TrReasonTab07, &t.TrReasonTab08, &t.TrReasonTab09, &t.TrReasonTab10, &t.TrReasonTab11, &t.TrReasonTab12, &t.TrReasonTab13, &t.TrReasonTab14, &t.TrReasonTab15, &t.TrReasonTab16, &t.TrReasonTab17, &t.TrReasonTab18, &t.TrReasonTab19, &t.TrReasonTab20, &t.TrReasonTab21, &t.TrReasonTab22, &t.TrReasonTab23, &t.TrReasonTab24, &t.TrReasonTab25, &t.TrReasonTab26, &t.TrReasonTab27, &t.TrReasonTab28, &t.TrReasonTab29, &t.TrReasonTab30, &t.TrSupInvestID, &t.TrLeadSource, &t.TrCurinvestcode, &t.TrTampRepD, &t.TrInvestStart, &t.TrVisit1, &t.TrVisit2, &t.TrVisit3, &t.TrCourtDate, &t.TrWarrantD, &t.TrWarrantA, &t.TrWarrantR, &t.TrD0239Rec, &t.TrTampCode, &t.TrTampSource, &t.TrTheftType, &t.TrOutcome, &t.TrVulnerable, &t.TrCrimeRefno, &t.TrSecDevsFit, &t.TrDateClosed, &t.TrDateRepIn, &t.TrContRefno, &t.TrTheftTypecms, &t.TrTogInvestout, &t.TrTotalCosts, &t.TrCustCharged, &t.TrChargeExvat, &t.TrChargeVat, &t.TrChargeIncvat, &t.TrRevRecovered, &t.TrTheftStarted, &t.TrTheftEnded, &t.TrAssessedLoss, &t.TrDayUnReckwh, &t.TrNightUreckwh, &t.TrDayRate, &t.TrNightRate, &t.TrSentToDc, &t.TrAaUpdated, &t.TrConsumpExvat, &t.TrConsumpnrgvat, &t.TrConsumpstdvat, &t.TrConsumpTotal, &t.TrUnitrate, &t.TrLastchangeD, &t.TrLastchangeT, &t.TrLastchangeU, &t.TrSentBack, &t.TrStatuschanged, &t.TrSparec1, &t.TrSparen1, &t.TrSparem1, &t.TrSpared1, &t.EquinoxLrn, &t.EquinoxSec)
 	if err != nil {

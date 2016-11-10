@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -19,149 +18,6 @@ type Amvouch struct {
 	EquinoxPrn     sql.NullInt64  `json:"equinox_prn"`    // equinox_prn
 	EquinoxLrn     int64          `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Amvouch exists in the database.
-func (a *Amvouch) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Amvouch has been deleted from the database.
-func (a *Amvouch) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Amvouch to the database.
-func (a *Amvouch) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.amvouch (` +
-		`amvouenddate, amvoustartdate, amvoucode, amvoudesc, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Amvouenddate, a.Amvoustartdate, a.Amvoucode, a.Amvoudesc, a.EquinoxPrn, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Amvouenddate, a.Amvoustartdate, a.Amvoucode, a.Amvoudesc, a.EquinoxPrn, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Amvouch in the database.
-func (a *Amvouch) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.amvouch SET (` +
-		`amvouenddate, amvoustartdate, amvoucode, amvoudesc, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) WHERE equinox_lrn = $7`
-
-	// run query
-	XOLog(sqlstr, a.Amvouenddate, a.Amvoustartdate, a.Amvoucode, a.Amvoudesc, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Amvouenddate, a.Amvoustartdate, a.Amvoucode, a.Amvoudesc, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Amvouch to the database.
-func (a *Amvouch) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Amvouch.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Amvouch) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.amvouch (` +
-		`amvouenddate, amvoustartdate, amvoucode, amvoudesc, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`amvouenddate, amvoustartdate, amvoucode, amvoudesc, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.amvouenddate, EXCLUDED.amvoustartdate, EXCLUDED.amvoucode, EXCLUDED.amvoudesc, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Amvouenddate, a.Amvoustartdate, a.Amvoucode, a.Amvoudesc, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Amvouenddate, a.Amvoustartdate, a.Amvoucode, a.Amvoudesc, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Amvouch from the database.
-func (a *Amvouch) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.amvouch WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AmvouchByEquinoxLrn retrieves a row from 'equinox.amvouch' as a Amvouch.
@@ -178,9 +34,7 @@ func AmvouchByEquinoxLrn(db XODB, equinoxLrn int64) (*Amvouch, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Amvouch{
-		_exists: true,
-	}
+	a := Amvouch{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Amvouenddate, &a.Amvoustartdate, &a.Amvoucode, &a.Amvoudesc, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

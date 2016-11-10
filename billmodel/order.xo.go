@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Order struct {
 	Oinvoiceno     sql.NullString  `json:"oinvoiceno"`     // oinvoiceno
 	EquinoxLrn     int64           `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Order exists in the database.
-func (o *Order) Exists() bool {
-	return o._exists
-}
-
-// Deleted provides information if the Order has been deleted from the database.
-func (o *Order) Deleted() bool {
-	return o._deleted
-}
-
-// Insert inserts the Order to the database.
-func (o *Order) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if o._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.orders (` +
-		`ordertype, oproductname, omake, omodel, odateordered, odatearrived, oqtyordered, oqtyreceived, ounitprice, ovatrate, osupplier, opurchaseorder, onotes, ocompleteddate, ostockduedate, oinvoiceno, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, o.Ordertype, o.Oproductname, o.Omake, o.Omodel, o.Odateordered, o.Odatearrived, o.Oqtyordered, o.Oqtyreceived, o.Ounitprice, o.Ovatrate, o.Osupplier, o.Opurchaseorder, o.Onotes, o.Ocompleteddate, o.Ostockduedate, o.Oinvoiceno, o.EquinoxSec)
-	err = db.QueryRow(sqlstr, o.Ordertype, o.Oproductname, o.Omake, o.Omodel, o.Odateordered, o.Odatearrived, o.Oqtyordered, o.Oqtyreceived, o.Ounitprice, o.Ovatrate, o.Osupplier, o.Opurchaseorder, o.Onotes, o.Ocompleteddate, o.Ostockduedate, o.Oinvoiceno, o.EquinoxSec).Scan(&o.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	o._exists = true
-
-	return nil
-}
-
-// Update updates the Order in the database.
-func (o *Order) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !o._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if o._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.orders SET (` +
-		`ordertype, oproductname, omake, omodel, odateordered, odatearrived, oqtyordered, oqtyreceived, ounitprice, ovatrate, osupplier, opurchaseorder, onotes, ocompleteddate, ostockduedate, oinvoiceno, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, o.Ordertype, o.Oproductname, o.Omake, o.Omodel, o.Odateordered, o.Odatearrived, o.Oqtyordered, o.Oqtyreceived, o.Ounitprice, o.Ovatrate, o.Osupplier, o.Opurchaseorder, o.Onotes, o.Ocompleteddate, o.Ostockduedate, o.Oinvoiceno, o.EquinoxSec, o.EquinoxLrn)
-	_, err = db.Exec(sqlstr, o.Ordertype, o.Oproductname, o.Omake, o.Omodel, o.Odateordered, o.Odatearrived, o.Oqtyordered, o.Oqtyreceived, o.Ounitprice, o.Ovatrate, o.Osupplier, o.Opurchaseorder, o.Onotes, o.Ocompleteddate, o.Ostockduedate, o.Oinvoiceno, o.EquinoxSec, o.EquinoxLrn)
-	return err
-}
-
-// Save saves the Order to the database.
-func (o *Order) Save(db XODB) error {
-	if o.Exists() {
-		return o.Update(db)
-	}
-
-	return o.Insert(db)
-}
-
-// Upsert performs an upsert for Order.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (o *Order) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if o._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.orders (` +
-		`ordertype, oproductname, omake, omodel, odateordered, odatearrived, oqtyordered, oqtyreceived, ounitprice, ovatrate, osupplier, opurchaseorder, onotes, ocompleteddate, ostockduedate, oinvoiceno, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ordertype, oproductname, omake, omodel, odateordered, odatearrived, oqtyordered, oqtyreceived, ounitprice, ovatrate, osupplier, opurchaseorder, onotes, ocompleteddate, ostockduedate, oinvoiceno, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ordertype, EXCLUDED.oproductname, EXCLUDED.omake, EXCLUDED.omodel, EXCLUDED.odateordered, EXCLUDED.odatearrived, EXCLUDED.oqtyordered, EXCLUDED.oqtyreceived, EXCLUDED.ounitprice, EXCLUDED.ovatrate, EXCLUDED.osupplier, EXCLUDED.opurchaseorder, EXCLUDED.onotes, EXCLUDED.ocompleteddate, EXCLUDED.ostockduedate, EXCLUDED.oinvoiceno, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, o.Ordertype, o.Oproductname, o.Omake, o.Omodel, o.Odateordered, o.Odatearrived, o.Oqtyordered, o.Oqtyreceived, o.Ounitprice, o.Ovatrate, o.Osupplier, o.Opurchaseorder, o.Onotes, o.Ocompleteddate, o.Ostockduedate, o.Oinvoiceno, o.EquinoxLrn, o.EquinoxSec)
-	_, err = db.Exec(sqlstr, o.Ordertype, o.Oproductname, o.Omake, o.Omodel, o.Odateordered, o.Odatearrived, o.Oqtyordered, o.Oqtyreceived, o.Ounitprice, o.Ovatrate, o.Osupplier, o.Opurchaseorder, o.Onotes, o.Ocompleteddate, o.Ostockduedate, o.Oinvoiceno, o.EquinoxLrn, o.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	o._exists = true
-
-	return nil
-}
-
-// Delete deletes the Order from the database.
-func (o *Order) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !o._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if o._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.orders WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, o.EquinoxLrn)
-	_, err = db.Exec(sqlstr, o.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	o._deleted = true
-
-	return nil
 }
 
 // OrderByEquinoxLrn retrieves a row from 'equinox.orders' as a Order.
@@ -189,9 +45,7 @@ func OrderByEquinoxLrn(db XODB, equinoxLrn int64) (*Order, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	o := Order{
-		_exists: true,
-	}
+	o := Order{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&o.Ordertype, &o.Oproductname, &o.Omake, &o.Omodel, &o.Odateordered, &o.Odatearrived, &o.Oqtyordered, &o.Oqtyreceived, &o.Ounitprice, &o.Ovatrate, &o.Osupplier, &o.Opurchaseorder, &o.Onotes, &o.Ocompleteddate, &o.Ostockduedate, &o.Oinvoiceno, &o.EquinoxLrn, &o.EquinoxSec)
 	if err != nil {

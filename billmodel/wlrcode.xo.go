@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type Wlrcode struct {
 	Wlrspared1      pq.NullTime    `json:"wlrspared1"`      // wlrspared1
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Wlrcode exists in the database.
-func (w *Wlrcode) Exists() bool {
-	return w._exists
-}
-
-// Deleted provides information if the Wlrcode has been deleted from the database.
-func (w *Wlrcode) Deleted() bool {
-	return w._deleted
-}
-
-// Insert inserts the Wlrcode to the database.
-func (w *Wlrcode) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if w._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.wlrcodes (` +
-		`wlrrejectcode, wlrrejectreason, wlrsparec1, wlrsparec2, wlrsparen1, wlrspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, w.Wlrrejectcode, w.Wlrrejectreason, w.Wlrsparec1, w.Wlrsparec2, w.Wlrsparen1, w.Wlrspared1, w.EquinoxSec)
-	err = db.QueryRow(sqlstr, w.Wlrrejectcode, w.Wlrrejectreason, w.Wlrsparec1, w.Wlrsparec2, w.Wlrsparen1, w.Wlrspared1, w.EquinoxSec).Scan(&w.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	w._exists = true
-
-	return nil
-}
-
-// Update updates the Wlrcode in the database.
-func (w *Wlrcode) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !w._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if w._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.wlrcodes SET (` +
-		`wlrrejectcode, wlrrejectreason, wlrsparec1, wlrsparec2, wlrsparen1, wlrspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, w.Wlrrejectcode, w.Wlrrejectreason, w.Wlrsparec1, w.Wlrsparec2, w.Wlrsparen1, w.Wlrspared1, w.EquinoxSec, w.EquinoxLrn)
-	_, err = db.Exec(sqlstr, w.Wlrrejectcode, w.Wlrrejectreason, w.Wlrsparec1, w.Wlrsparec2, w.Wlrsparen1, w.Wlrspared1, w.EquinoxSec, w.EquinoxLrn)
-	return err
-}
-
-// Save saves the Wlrcode to the database.
-func (w *Wlrcode) Save(db XODB) error {
-	if w.Exists() {
-		return w.Update(db)
-	}
-
-	return w.Insert(db)
-}
-
-// Upsert performs an upsert for Wlrcode.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (w *Wlrcode) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if w._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.wlrcodes (` +
-		`wlrrejectcode, wlrrejectreason, wlrsparec1, wlrsparec2, wlrsparen1, wlrspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`wlrrejectcode, wlrrejectreason, wlrsparec1, wlrsparec2, wlrsparen1, wlrspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.wlrrejectcode, EXCLUDED.wlrrejectreason, EXCLUDED.wlrsparec1, EXCLUDED.wlrsparec2, EXCLUDED.wlrsparen1, EXCLUDED.wlrspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, w.Wlrrejectcode, w.Wlrrejectreason, w.Wlrsparec1, w.Wlrsparec2, w.Wlrsparen1, w.Wlrspared1, w.EquinoxLrn, w.EquinoxSec)
-	_, err = db.Exec(sqlstr, w.Wlrrejectcode, w.Wlrrejectreason, w.Wlrsparec1, w.Wlrsparec2, w.Wlrsparen1, w.Wlrspared1, w.EquinoxLrn, w.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	w._exists = true
-
-	return nil
-}
-
-// Delete deletes the Wlrcode from the database.
-func (w *Wlrcode) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !w._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if w._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.wlrcodes WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, w.EquinoxLrn)
-	_, err = db.Exec(sqlstr, w.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	w._deleted = true
-
-	return nil
 }
 
 // WlrcodeByEquinoxLrn retrieves a row from 'equinox.wlrcodes' as a Wlrcode.
@@ -179,9 +35,7 @@ func WlrcodeByEquinoxLrn(db XODB, equinoxLrn int64) (*Wlrcode, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	w := Wlrcode{
-		_exists: true,
-	}
+	w := Wlrcode{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&w.Wlrrejectcode, &w.Wlrrejectreason, &w.Wlrsparec1, &w.Wlrsparec2, &w.Wlrsparen1, &w.Wlrspared1, &w.EquinoxLrn, &w.EquinoxSec)
 	if err != nil {

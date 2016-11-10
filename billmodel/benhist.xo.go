@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -21,149 +20,6 @@ type Benhist struct {
 	EquinoxPrn     sql.NullInt64   `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn     int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Benhist exists in the database.
-func (b *Benhist) Exists() bool {
-	return b._exists
-}
-
-// Deleted provides information if the Benhist has been deleted from the database.
-func (b *Benhist) Deleted() bool {
-	return b._deleted
-}
-
-// Insert inserts the Benhist to the database.
-func (b *Benhist) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.benhist (` +
-		`benhist_date, benhist_action, benhist_notes, benhist_sparec1, benhist_sparen1, benhist_spared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, b.BenhistDate, b.BenhistAction, b.BenhistNotes, b.BenhistSparec1, b.BenhistSparen1, b.BenhistSpared1, b.EquinoxPrn, b.EquinoxSec)
-	err = db.QueryRow(sqlstr, b.BenhistDate, b.BenhistAction, b.BenhistNotes, b.BenhistSparec1, b.BenhistSparen1, b.BenhistSpared1, b.EquinoxPrn, b.EquinoxSec).Scan(&b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Update updates the Benhist in the database.
-func (b *Benhist) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.benhist SET (` +
-		`benhist_date, benhist_action, benhist_notes, benhist_sparec1, benhist_sparen1, benhist_spared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) WHERE equinox_lrn = $9`
-
-	// run query
-	XOLog(sqlstr, b.BenhistDate, b.BenhistAction, b.BenhistNotes, b.BenhistSparec1, b.BenhistSparen1, b.BenhistSpared1, b.EquinoxPrn, b.EquinoxSec, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.BenhistDate, b.BenhistAction, b.BenhistNotes, b.BenhistSparec1, b.BenhistSparen1, b.BenhistSpared1, b.EquinoxPrn, b.EquinoxSec, b.EquinoxLrn)
-	return err
-}
-
-// Save saves the Benhist to the database.
-func (b *Benhist) Save(db XODB) error {
-	if b.Exists() {
-		return b.Update(db)
-	}
-
-	return b.Insert(db)
-}
-
-// Upsert performs an upsert for Benhist.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (b *Benhist) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.benhist (` +
-		`benhist_date, benhist_action, benhist_notes, benhist_sparec1, benhist_sparen1, benhist_spared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`benhist_date, benhist_action, benhist_notes, benhist_sparec1, benhist_sparen1, benhist_spared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.benhist_date, EXCLUDED.benhist_action, EXCLUDED.benhist_notes, EXCLUDED.benhist_sparec1, EXCLUDED.benhist_sparen1, EXCLUDED.benhist_spared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, b.BenhistDate, b.BenhistAction, b.BenhistNotes, b.BenhistSparec1, b.BenhistSparen1, b.BenhistSpared1, b.EquinoxPrn, b.EquinoxLrn, b.EquinoxSec)
-	_, err = db.Exec(sqlstr, b.BenhistDate, b.BenhistAction, b.BenhistNotes, b.BenhistSparec1, b.BenhistSparen1, b.BenhistSpared1, b.EquinoxPrn, b.EquinoxLrn, b.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Delete deletes the Benhist from the database.
-func (b *Benhist) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.benhist WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	b._deleted = true
-
-	return nil
 }
 
 // BenhistByEquinoxLrn retrieves a row from 'equinox.benhist' as a Benhist.
@@ -180,9 +36,7 @@ func BenhistByEquinoxLrn(db XODB, equinoxLrn int64) (*Benhist, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	b := Benhist{
-		_exists: true,
-	}
+	b := Benhist{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&b.BenhistDate, &b.BenhistAction, &b.BenhistNotes, &b.BenhistSparec1, &b.BenhistSparen1, &b.BenhistSpared1, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
 	if err != nil {

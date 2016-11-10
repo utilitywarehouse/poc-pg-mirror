@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -56,149 +55,6 @@ type Commrun struct {
 	Crpledgercrdate  pq.NullTime     `json:"crpledgercrdate"`  // crpledgercrdate
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Commrun exists in the database.
-func (c *Commrun) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Commrun has been deleted from the database.
-func (c *Commrun) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Commrun to the database.
-func (c *Commrun) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.commrun (` +
-		`crnumber, crperiod, crbillinggroup, crbillsperiod, crcallsperiod, crcurrenttp, crcurrenttml, crdate, crlogfile, croutputpath, crstatementspath, crbacspath, crcmmssnblepath, crstatementsread, crstatementexten, crtabcommitted, crtabsubmitted, crtabdebited, crloanssignedoff, crstarted, crfinished, crbacssubmitted, crrensubmitted, crrendebited, crarchived, crfirstinvoiceno, crlastinvoiceno, crstatusold, cremailsent, cremailoutstndng, crprintsent, crprintoutstndng, crskipped, crrenewalcode, crsparec1, crsparec2, crsparen1, crsparen2, crsparel1, crstatus, crsarssignedoff, crpledgercrdate, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Crnumber, c.Crperiod, c.Crbillinggroup, c.Crbillsperiod, c.Crcallsperiod, c.Crcurrenttp, c.Crcurrenttml, c.Crdate, c.Crlogfile, c.Croutputpath, c.Crstatementspath, c.Crbacspath, c.Crcmmssnblepath, c.Crstatementsread, c.Crstatementexten, c.Crtabcommitted, c.Crtabsubmitted, c.Crtabdebited, c.Crloanssignedoff, c.Crstarted, c.Crfinished, c.Crbacssubmitted, c.Crrensubmitted, c.Crrendebited, c.Crarchived, c.Crfirstinvoiceno, c.Crlastinvoiceno, c.Crstatusold, c.Cremailsent, c.Cremailoutstndng, c.Crprintsent, c.Crprintoutstndng, c.Crskipped, c.Crrenewalcode, c.Crsparec1, c.Crsparec2, c.Crsparen1, c.Crsparen2, c.Crsparel1, c.Crstatus, c.Crsarssignedoff, c.Crpledgercrdate, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Crnumber, c.Crperiod, c.Crbillinggroup, c.Crbillsperiod, c.Crcallsperiod, c.Crcurrenttp, c.Crcurrenttml, c.Crdate, c.Crlogfile, c.Croutputpath, c.Crstatementspath, c.Crbacspath, c.Crcmmssnblepath, c.Crstatementsread, c.Crstatementexten, c.Crtabcommitted, c.Crtabsubmitted, c.Crtabdebited, c.Crloanssignedoff, c.Crstarted, c.Crfinished, c.Crbacssubmitted, c.Crrensubmitted, c.Crrendebited, c.Crarchived, c.Crfirstinvoiceno, c.Crlastinvoiceno, c.Crstatusold, c.Cremailsent, c.Cremailoutstndng, c.Crprintsent, c.Crprintoutstndng, c.Crskipped, c.Crrenewalcode, c.Crsparec1, c.Crsparec2, c.Crsparen1, c.Crsparen2, c.Crsparel1, c.Crstatus, c.Crsarssignedoff, c.Crpledgercrdate, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Commrun in the database.
-func (c *Commrun) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.commrun SET (` +
-		`crnumber, crperiod, crbillinggroup, crbillsperiod, crcallsperiod, crcurrenttp, crcurrenttml, crdate, crlogfile, croutputpath, crstatementspath, crbacspath, crcmmssnblepath, crstatementsread, crstatementexten, crtabcommitted, crtabsubmitted, crtabdebited, crloanssignedoff, crstarted, crfinished, crbacssubmitted, crrensubmitted, crrendebited, crarchived, crfirstinvoiceno, crlastinvoiceno, crstatusold, cremailsent, cremailoutstndng, crprintsent, crprintoutstndng, crskipped, crrenewalcode, crsparec1, crsparec2, crsparen1, crsparen2, crsparel1, crstatus, crsarssignedoff, crpledgercrdate, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43` +
-		`) WHERE equinox_lrn = $44`
-
-	// run query
-	XOLog(sqlstr, c.Crnumber, c.Crperiod, c.Crbillinggroup, c.Crbillsperiod, c.Crcallsperiod, c.Crcurrenttp, c.Crcurrenttml, c.Crdate, c.Crlogfile, c.Croutputpath, c.Crstatementspath, c.Crbacspath, c.Crcmmssnblepath, c.Crstatementsread, c.Crstatementexten, c.Crtabcommitted, c.Crtabsubmitted, c.Crtabdebited, c.Crloanssignedoff, c.Crstarted, c.Crfinished, c.Crbacssubmitted, c.Crrensubmitted, c.Crrendebited, c.Crarchived, c.Crfirstinvoiceno, c.Crlastinvoiceno, c.Crstatusold, c.Cremailsent, c.Cremailoutstndng, c.Crprintsent, c.Crprintoutstndng, c.Crskipped, c.Crrenewalcode, c.Crsparec1, c.Crsparec2, c.Crsparen1, c.Crsparen2, c.Crsparel1, c.Crstatus, c.Crsarssignedoff, c.Crpledgercrdate, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Crnumber, c.Crperiod, c.Crbillinggroup, c.Crbillsperiod, c.Crcallsperiod, c.Crcurrenttp, c.Crcurrenttml, c.Crdate, c.Crlogfile, c.Croutputpath, c.Crstatementspath, c.Crbacspath, c.Crcmmssnblepath, c.Crstatementsread, c.Crstatementexten, c.Crtabcommitted, c.Crtabsubmitted, c.Crtabdebited, c.Crloanssignedoff, c.Crstarted, c.Crfinished, c.Crbacssubmitted, c.Crrensubmitted, c.Crrendebited, c.Crarchived, c.Crfirstinvoiceno, c.Crlastinvoiceno, c.Crstatusold, c.Cremailsent, c.Cremailoutstndng, c.Crprintsent, c.Crprintoutstndng, c.Crskipped, c.Crrenewalcode, c.Crsparec1, c.Crsparec2, c.Crsparen1, c.Crsparen2, c.Crsparel1, c.Crstatus, c.Crsarssignedoff, c.Crpledgercrdate, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Commrun to the database.
-func (c *Commrun) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Commrun.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Commrun) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.commrun (` +
-		`crnumber, crperiod, crbillinggroup, crbillsperiod, crcallsperiod, crcurrenttp, crcurrenttml, crdate, crlogfile, croutputpath, crstatementspath, crbacspath, crcmmssnblepath, crstatementsread, crstatementexten, crtabcommitted, crtabsubmitted, crtabdebited, crloanssignedoff, crstarted, crfinished, crbacssubmitted, crrensubmitted, crrendebited, crarchived, crfirstinvoiceno, crlastinvoiceno, crstatusold, cremailsent, cremailoutstndng, crprintsent, crprintoutstndng, crskipped, crrenewalcode, crsparec1, crsparec2, crsparen1, crsparen2, crsparel1, crstatus, crsarssignedoff, crpledgercrdate, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`crnumber, crperiod, crbillinggroup, crbillsperiod, crcallsperiod, crcurrenttp, crcurrenttml, crdate, crlogfile, croutputpath, crstatementspath, crbacspath, crcmmssnblepath, crstatementsread, crstatementexten, crtabcommitted, crtabsubmitted, crtabdebited, crloanssignedoff, crstarted, crfinished, crbacssubmitted, crrensubmitted, crrendebited, crarchived, crfirstinvoiceno, crlastinvoiceno, crstatusold, cremailsent, cremailoutstndng, crprintsent, crprintoutstndng, crskipped, crrenewalcode, crsparec1, crsparec2, crsparen1, crsparen2, crsparel1, crstatus, crsarssignedoff, crpledgercrdate, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.crnumber, EXCLUDED.crperiod, EXCLUDED.crbillinggroup, EXCLUDED.crbillsperiod, EXCLUDED.crcallsperiod, EXCLUDED.crcurrenttp, EXCLUDED.crcurrenttml, EXCLUDED.crdate, EXCLUDED.crlogfile, EXCLUDED.croutputpath, EXCLUDED.crstatementspath, EXCLUDED.crbacspath, EXCLUDED.crcmmssnblepath, EXCLUDED.crstatementsread, EXCLUDED.crstatementexten, EXCLUDED.crtabcommitted, EXCLUDED.crtabsubmitted, EXCLUDED.crtabdebited, EXCLUDED.crloanssignedoff, EXCLUDED.crstarted, EXCLUDED.crfinished, EXCLUDED.crbacssubmitted, EXCLUDED.crrensubmitted, EXCLUDED.crrendebited, EXCLUDED.crarchived, EXCLUDED.crfirstinvoiceno, EXCLUDED.crlastinvoiceno, EXCLUDED.crstatusold, EXCLUDED.cremailsent, EXCLUDED.cremailoutstndng, EXCLUDED.crprintsent, EXCLUDED.crprintoutstndng, EXCLUDED.crskipped, EXCLUDED.crrenewalcode, EXCLUDED.crsparec1, EXCLUDED.crsparec2, EXCLUDED.crsparen1, EXCLUDED.crsparen2, EXCLUDED.crsparel1, EXCLUDED.crstatus, EXCLUDED.crsarssignedoff, EXCLUDED.crpledgercrdate, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Crnumber, c.Crperiod, c.Crbillinggroup, c.Crbillsperiod, c.Crcallsperiod, c.Crcurrenttp, c.Crcurrenttml, c.Crdate, c.Crlogfile, c.Croutputpath, c.Crstatementspath, c.Crbacspath, c.Crcmmssnblepath, c.Crstatementsread, c.Crstatementexten, c.Crtabcommitted, c.Crtabsubmitted, c.Crtabdebited, c.Crloanssignedoff, c.Crstarted, c.Crfinished, c.Crbacssubmitted, c.Crrensubmitted, c.Crrendebited, c.Crarchived, c.Crfirstinvoiceno, c.Crlastinvoiceno, c.Crstatusold, c.Cremailsent, c.Cremailoutstndng, c.Crprintsent, c.Crprintoutstndng, c.Crskipped, c.Crrenewalcode, c.Crsparec1, c.Crsparec2, c.Crsparen1, c.Crsparen2, c.Crsparel1, c.Crstatus, c.Crsarssignedoff, c.Crpledgercrdate, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Crnumber, c.Crperiod, c.Crbillinggroup, c.Crbillsperiod, c.Crcallsperiod, c.Crcurrenttp, c.Crcurrenttml, c.Crdate, c.Crlogfile, c.Croutputpath, c.Crstatementspath, c.Crbacspath, c.Crcmmssnblepath, c.Crstatementsread, c.Crstatementexten, c.Crtabcommitted, c.Crtabsubmitted, c.Crtabdebited, c.Crloanssignedoff, c.Crstarted, c.Crfinished, c.Crbacssubmitted, c.Crrensubmitted, c.Crrendebited, c.Crarchived, c.Crfirstinvoiceno, c.Crlastinvoiceno, c.Crstatusold, c.Cremailsent, c.Cremailoutstndng, c.Crprintsent, c.Crprintoutstndng, c.Crskipped, c.Crrenewalcode, c.Crsparec1, c.Crsparec2, c.Crsparen1, c.Crsparen2, c.Crsparel1, c.Crstatus, c.Crsarssignedoff, c.Crpledgercrdate, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Commrun from the database.
-func (c *Commrun) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.commrun WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CommrunByEquinoxLrn retrieves a row from 'equinox.commrun' as a Commrun.
@@ -215,9 +71,7 @@ func CommrunByEquinoxLrn(db XODB, equinoxLrn int64) (*Commrun, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Commrun{
-		_exists: true,
-	}
+	c := Commrun{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Crnumber, &c.Crperiod, &c.Crbillinggroup, &c.Crbillsperiod, &c.Crcallsperiod, &c.Crcurrenttp, &c.Crcurrenttml, &c.Crdate, &c.Crlogfile, &c.Croutputpath, &c.Crstatementspath, &c.Crbacspath, &c.Crcmmssnblepath, &c.Crstatementsread, &c.Crstatementexten, &c.Crtabcommitted, &c.Crtabsubmitted, &c.Crtabdebited, &c.Crloanssignedoff, &c.Crstarted, &c.Crfinished, &c.Crbacssubmitted, &c.Crrensubmitted, &c.Crrendebited, &c.Crarchived, &c.Crfirstinvoiceno, &c.Crlastinvoiceno, &c.Crstatusold, &c.Cremailsent, &c.Cremailoutstndng, &c.Crprintsent, &c.Crprintoutstndng, &c.Crskipped, &c.Crrenewalcode, &c.Crsparec1, &c.Crsparec2, &c.Crsparen1, &c.Crsparen2, &c.Crsparel1, &c.Crstatus, &c.Crsarssignedoff, &c.Crpledgercrdate, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

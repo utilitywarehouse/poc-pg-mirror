@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Tariff struct {
 	Tariffspared1    pq.NullTime     `json:"tariffspared1"`    // tariffspared1
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Tariff exists in the database.
-func (t *Tariff) Exists() bool {
-	return t._exists
-}
-
-// Deleted provides information if the Tariff has been deleted from the database.
-func (t *Tariff) Deleted() bool {
-	return t._deleted
-}
-
-// Insert inserts the Tariff to the database.
-func (t *Tariff) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tariff (` +
-		`tariffuniquesys, tariffid, tariffname, tariffcomments, tariffstartdate, tariffenddate, tarifffreemins, tariffreducedmin, tarifffreetexts, tarifffreemintyp, tarifffreemincnt, tariffusage, tariffnewold, tariffcompack, tariffsubtariff, tariffsparen1, tariffspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, t.Tariffuniquesys, t.Tariffid, t.Tariffname, t.Tariffcomments, t.Tariffstartdate, t.Tariffenddate, t.Tarifffreemins, t.Tariffreducedmin, t.Tarifffreetexts, t.Tarifffreemintyp, t.Tarifffreemincnt, t.Tariffusage, t.Tariffnewold, t.Tariffcompack, t.Tariffsubtariff, t.Tariffsparen1, t.Tariffspared1, t.EquinoxSec)
-	err = db.QueryRow(sqlstr, t.Tariffuniquesys, t.Tariffid, t.Tariffname, t.Tariffcomments, t.Tariffstartdate, t.Tariffenddate, t.Tarifffreemins, t.Tariffreducedmin, t.Tarifffreetexts, t.Tarifffreemintyp, t.Tarifffreemincnt, t.Tariffusage, t.Tariffnewold, t.Tariffcompack, t.Tariffsubtariff, t.Tariffsparen1, t.Tariffspared1, t.EquinoxSec).Scan(&t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Update updates the Tariff in the database.
-func (t *Tariff) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.tariff SET (` +
-		`tariffuniquesys, tariffid, tariffname, tariffcomments, tariffstartdate, tariffenddate, tarifffreemins, tariffreducedmin, tarifffreetexts, tarifffreemintyp, tarifffreemincnt, tariffusage, tariffnewold, tariffcompack, tariffsubtariff, tariffsparen1, tariffspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, t.Tariffuniquesys, t.Tariffid, t.Tariffname, t.Tariffcomments, t.Tariffstartdate, t.Tariffenddate, t.Tarifffreemins, t.Tariffreducedmin, t.Tarifffreetexts, t.Tarifffreemintyp, t.Tarifffreemincnt, t.Tariffusage, t.Tariffnewold, t.Tariffcompack, t.Tariffsubtariff, t.Tariffsparen1, t.Tariffspared1, t.EquinoxSec, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.Tariffuniquesys, t.Tariffid, t.Tariffname, t.Tariffcomments, t.Tariffstartdate, t.Tariffenddate, t.Tarifffreemins, t.Tariffreducedmin, t.Tarifffreetexts, t.Tarifffreemintyp, t.Tarifffreemincnt, t.Tariffusage, t.Tariffnewold, t.Tariffcompack, t.Tariffsubtariff, t.Tariffsparen1, t.Tariffspared1, t.EquinoxSec, t.EquinoxLrn)
-	return err
-}
-
-// Save saves the Tariff to the database.
-func (t *Tariff) Save(db XODB) error {
-	if t.Exists() {
-		return t.Update(db)
-	}
-
-	return t.Insert(db)
-}
-
-// Upsert performs an upsert for Tariff.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (t *Tariff) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tariff (` +
-		`tariffuniquesys, tariffid, tariffname, tariffcomments, tariffstartdate, tariffenddate, tarifffreemins, tariffreducedmin, tarifffreetexts, tarifffreemintyp, tarifffreemincnt, tariffusage, tariffnewold, tariffcompack, tariffsubtariff, tariffsparen1, tariffspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`tariffuniquesys, tariffid, tariffname, tariffcomments, tariffstartdate, tariffenddate, tarifffreemins, tariffreducedmin, tarifffreetexts, tarifffreemintyp, tarifffreemincnt, tariffusage, tariffnewold, tariffcompack, tariffsubtariff, tariffsparen1, tariffspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.tariffuniquesys, EXCLUDED.tariffid, EXCLUDED.tariffname, EXCLUDED.tariffcomments, EXCLUDED.tariffstartdate, EXCLUDED.tariffenddate, EXCLUDED.tarifffreemins, EXCLUDED.tariffreducedmin, EXCLUDED.tarifffreetexts, EXCLUDED.tarifffreemintyp, EXCLUDED.tarifffreemincnt, EXCLUDED.tariffusage, EXCLUDED.tariffnewold, EXCLUDED.tariffcompack, EXCLUDED.tariffsubtariff, EXCLUDED.tariffsparen1, EXCLUDED.tariffspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, t.Tariffuniquesys, t.Tariffid, t.Tariffname, t.Tariffcomments, t.Tariffstartdate, t.Tariffenddate, t.Tarifffreemins, t.Tariffreducedmin, t.Tarifffreetexts, t.Tarifffreemintyp, t.Tarifffreemincnt, t.Tariffusage, t.Tariffnewold, t.Tariffcompack, t.Tariffsubtariff, t.Tariffsparen1, t.Tariffspared1, t.EquinoxLrn, t.EquinoxSec)
-	_, err = db.Exec(sqlstr, t.Tariffuniquesys, t.Tariffid, t.Tariffname, t.Tariffcomments, t.Tariffstartdate, t.Tariffenddate, t.Tarifffreemins, t.Tariffreducedmin, t.Tarifffreetexts, t.Tarifffreemintyp, t.Tarifffreemincnt, t.Tariffusage, t.Tariffnewold, t.Tariffcompack, t.Tariffsubtariff, t.Tariffsparen1, t.Tariffspared1, t.EquinoxLrn, t.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Delete deletes the Tariff from the database.
-func (t *Tariff) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.tariff WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	t._deleted = true
-
-	return nil
 }
 
 // TariffByEquinoxLrn retrieves a row from 'equinox.tariff' as a Tariff.
@@ -190,9 +46,7 @@ func TariffByEquinoxLrn(db XODB, equinoxLrn int64) (*Tariff, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	t := Tariff{
-		_exists: true,
-	}
+	t := Tariff{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&t.Tariffuniquesys, &t.Tariffid, &t.Tariffname, &t.Tariffcomments, &t.Tariffstartdate, &t.Tariffenddate, &t.Tarifffreemins, &t.Tariffreducedmin, &t.Tarifffreetexts, &t.Tarifffreemintyp, &t.Tarifffreemincnt, &t.Tariffusage, &t.Tariffnewold, &t.Tariffcompack, &t.Tariffsubtariff, &t.Tariffsparen1, &t.Tariffspared1, &t.EquinoxLrn, &t.EquinoxSec)
 	if err != nil {

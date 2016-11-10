@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Valcom struct {
 	EquinoxPrn      sql.NullInt64  `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Valcom exists in the database.
-func (v *Valcom) Exists() bool {
-	return v._exists
-}
-
-// Deleted provides information if the Valcom has been deleted from the database.
-func (v *Valcom) Deleted() bool {
-	return v._deleted
-}
-
-// Insert inserts the Valcom to the database.
-func (v *Valcom) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.valcom (` +
-		`vcomfield, vcomrange, vcomvalue, vcomdatatype, vcomoperation, vcomdatefrom, vcomdateto, vcommandatory, vcomfillblank, vcomdateentered, vcomenteredby, vcommacrouse, vcommacrobf, vcommacroaf, vcomerror, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, v.Vcomfield, v.Vcomrange, v.Vcomvalue, v.Vcomdatatype, v.Vcomoperation, v.Vcomdatefrom, v.Vcomdateto, v.Vcommandatory, v.Vcomfillblank, v.Vcomdateentered, v.Vcomenteredby, v.Vcommacrouse, v.Vcommacrobf, v.Vcommacroaf, v.Vcomerror, v.EquinoxPrn, v.EquinoxSec)
-	err = db.QueryRow(sqlstr, v.Vcomfield, v.Vcomrange, v.Vcomvalue, v.Vcomdatatype, v.Vcomoperation, v.Vcomdatefrom, v.Vcomdateto, v.Vcommandatory, v.Vcomfillblank, v.Vcomdateentered, v.Vcomenteredby, v.Vcommacrouse, v.Vcommacrobf, v.Vcommacroaf, v.Vcomerror, v.EquinoxPrn, v.EquinoxSec).Scan(&v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Update updates the Valcom in the database.
-func (v *Valcom) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.valcom SET (` +
-		`vcomfield, vcomrange, vcomvalue, vcomdatatype, vcomoperation, vcomdatefrom, vcomdateto, vcommandatory, vcomfillblank, vcomdateentered, vcomenteredby, vcommacrouse, vcommacrobf, vcommacroaf, vcomerror, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, v.Vcomfield, v.Vcomrange, v.Vcomvalue, v.Vcomdatatype, v.Vcomoperation, v.Vcomdatefrom, v.Vcomdateto, v.Vcommandatory, v.Vcomfillblank, v.Vcomdateentered, v.Vcomenteredby, v.Vcommacrouse, v.Vcommacrobf, v.Vcommacroaf, v.Vcomerror, v.EquinoxPrn, v.EquinoxSec, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.Vcomfield, v.Vcomrange, v.Vcomvalue, v.Vcomdatatype, v.Vcomoperation, v.Vcomdatefrom, v.Vcomdateto, v.Vcommandatory, v.Vcomfillblank, v.Vcomdateentered, v.Vcomenteredby, v.Vcommacrouse, v.Vcommacrobf, v.Vcommacroaf, v.Vcomerror, v.EquinoxPrn, v.EquinoxSec, v.EquinoxLrn)
-	return err
-}
-
-// Save saves the Valcom to the database.
-func (v *Valcom) Save(db XODB) error {
-	if v.Exists() {
-		return v.Update(db)
-	}
-
-	return v.Insert(db)
-}
-
-// Upsert performs an upsert for Valcom.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (v *Valcom) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.valcom (` +
-		`vcomfield, vcomrange, vcomvalue, vcomdatatype, vcomoperation, vcomdatefrom, vcomdateto, vcommandatory, vcomfillblank, vcomdateentered, vcomenteredby, vcommacrouse, vcommacrobf, vcommacroaf, vcomerror, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`vcomfield, vcomrange, vcomvalue, vcomdatatype, vcomoperation, vcomdatefrom, vcomdateto, vcommandatory, vcomfillblank, vcomdateentered, vcomenteredby, vcommacrouse, vcommacrobf, vcommacroaf, vcomerror, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.vcomfield, EXCLUDED.vcomrange, EXCLUDED.vcomvalue, EXCLUDED.vcomdatatype, EXCLUDED.vcomoperation, EXCLUDED.vcomdatefrom, EXCLUDED.vcomdateto, EXCLUDED.vcommandatory, EXCLUDED.vcomfillblank, EXCLUDED.vcomdateentered, EXCLUDED.vcomenteredby, EXCLUDED.vcommacrouse, EXCLUDED.vcommacrobf, EXCLUDED.vcommacroaf, EXCLUDED.vcomerror, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, v.Vcomfield, v.Vcomrange, v.Vcomvalue, v.Vcomdatatype, v.Vcomoperation, v.Vcomdatefrom, v.Vcomdateto, v.Vcommandatory, v.Vcomfillblank, v.Vcomdateentered, v.Vcomenteredby, v.Vcommacrouse, v.Vcommacrobf, v.Vcommacroaf, v.Vcomerror, v.EquinoxPrn, v.EquinoxLrn, v.EquinoxSec)
-	_, err = db.Exec(sqlstr, v.Vcomfield, v.Vcomrange, v.Vcomvalue, v.Vcomdatatype, v.Vcomoperation, v.Vcomdatefrom, v.Vcomdateto, v.Vcommandatory, v.Vcomfillblank, v.Vcomdateentered, v.Vcomenteredby, v.Vcommacrouse, v.Vcommacrobf, v.Vcommacroaf, v.Vcomerror, v.EquinoxPrn, v.EquinoxLrn, v.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Delete deletes the Valcom from the database.
-func (v *Valcom) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.valcom WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	v._deleted = true
-
-	return nil
 }
 
 // ValcomByEquinoxLrn retrieves a row from 'equinox.valcom' as a Valcom.
@@ -189,9 +45,7 @@ func ValcomByEquinoxLrn(db XODB, equinoxLrn int64) (*Valcom, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	v := Valcom{
-		_exists: true,
-	}
+	v := Valcom{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&v.Vcomfield, &v.Vcomrange, &v.Vcomvalue, &v.Vcomdatatype, &v.Vcomoperation, &v.Vcomdatefrom, &v.Vcomdateto, &v.Vcommandatory, &v.Vcomfillblank, &v.Vcomdateentered, &v.Vcomenteredby, &v.Vcommacrouse, &v.Vcommacrobf, &v.Vcommacroaf, &v.Vcomerror, &v.EquinoxPrn, &v.EquinoxLrn, &v.EquinoxSec)
 	if err != nil {

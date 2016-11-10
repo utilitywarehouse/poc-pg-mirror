@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -60,149 +59,6 @@ type Edsitem struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Edsitem exists in the database.
-func (e *Edsitem) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Edsitem has been deleted from the database.
-func (e *Edsitem) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Edsitem to the database.
-func (e *Edsitem) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.edsitem (` +
-		`edsiinstance, edsibatchno, edsiimportbalnce, edsiimported, edsielecmpan, edsielecserialno, edsigasmpr, edsigasserialno, edsisent, edsireturned, edsipdvoutcome, edsisentwarrant, edsiagentcomment, edsippmrequested, edsiappointment, edsiappointment2, edsippminstalled, edsidebtloadppme, edsidebtloadppmg, edsichangetenant, edsiproofrecd, edsitenantcomp, edsipdvreqconf, edsipdvcharge, edsicourtdate, edsiisoldate, edsireplan, edsireplanreason, edsicourtdate2, edsiisoldate2, edsineedsdiscon, edsidatewarrant, edsiagentname, edsiagentcontact, edsinewmsne, edsinewmsng, edsiclosingreadg, edsiclosingreade, edsidisconnected, edsifinaldebt, edsidisconreadg, edsidisconreade, edsiwarrantbatch, edsilegalaction, edsippmwarrant, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Edsiinstance, e.Edsibatchno, e.Edsiimportbalnce, e.Edsiimported, e.Edsielecmpan, e.Edsielecserialno, e.Edsigasmpr, e.Edsigasserialno, e.Edsisent, e.Edsireturned, e.Edsipdvoutcome, e.Edsisentwarrant, e.Edsiagentcomment, e.Edsippmrequested, e.Edsiappointment, e.Edsiappointment2, e.Edsippminstalled, e.Edsidebtloadppme, e.Edsidebtloadppmg, e.Edsichangetenant, e.Edsiproofrecd, e.Edsitenantcomp, e.Edsipdvreqconf, e.Edsipdvcharge, e.Edsicourtdate, e.Edsiisoldate, e.Edsireplan, e.Edsireplanreason, e.Edsicourtdate2, e.Edsiisoldate2, e.Edsineedsdiscon, e.Edsidatewarrant, e.Edsiagentname, e.Edsiagentcontact, e.Edsinewmsne, e.Edsinewmsng, e.Edsiclosingreadg, e.Edsiclosingreade, e.Edsidisconnected, e.Edsifinaldebt, e.Edsidisconreadg, e.Edsidisconreade, e.Edsiwarrantbatch, e.Edsilegalaction, e.Edsippmwarrant, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Edsiinstance, e.Edsibatchno, e.Edsiimportbalnce, e.Edsiimported, e.Edsielecmpan, e.Edsielecserialno, e.Edsigasmpr, e.Edsigasserialno, e.Edsisent, e.Edsireturned, e.Edsipdvoutcome, e.Edsisentwarrant, e.Edsiagentcomment, e.Edsippmrequested, e.Edsiappointment, e.Edsiappointment2, e.Edsippminstalled, e.Edsidebtloadppme, e.Edsidebtloadppmg, e.Edsichangetenant, e.Edsiproofrecd, e.Edsitenantcomp, e.Edsipdvreqconf, e.Edsipdvcharge, e.Edsicourtdate, e.Edsiisoldate, e.Edsireplan, e.Edsireplanreason, e.Edsicourtdate2, e.Edsiisoldate2, e.Edsineedsdiscon, e.Edsidatewarrant, e.Edsiagentname, e.Edsiagentcontact, e.Edsinewmsne, e.Edsinewmsng, e.Edsiclosingreadg, e.Edsiclosingreade, e.Edsidisconnected, e.Edsifinaldebt, e.Edsidisconreadg, e.Edsidisconreade, e.Edsiwarrantbatch, e.Edsilegalaction, e.Edsippmwarrant, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Edsitem in the database.
-func (e *Edsitem) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.edsitem SET (` +
-		`edsiinstance, edsibatchno, edsiimportbalnce, edsiimported, edsielecmpan, edsielecserialno, edsigasmpr, edsigasserialno, edsisent, edsireturned, edsipdvoutcome, edsisentwarrant, edsiagentcomment, edsippmrequested, edsiappointment, edsiappointment2, edsippminstalled, edsidebtloadppme, edsidebtloadppmg, edsichangetenant, edsiproofrecd, edsitenantcomp, edsipdvreqconf, edsipdvcharge, edsicourtdate, edsiisoldate, edsireplan, edsireplanreason, edsicourtdate2, edsiisoldate2, edsineedsdiscon, edsidatewarrant, edsiagentname, edsiagentcontact, edsinewmsne, edsinewmsng, edsiclosingreadg, edsiclosingreade, edsidisconnected, edsifinaldebt, edsidisconreadg, edsidisconreade, edsiwarrantbatch, edsilegalaction, edsippmwarrant, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47` +
-		`) WHERE equinox_lrn = $48`
-
-	// run query
-	XOLog(sqlstr, e.Edsiinstance, e.Edsibatchno, e.Edsiimportbalnce, e.Edsiimported, e.Edsielecmpan, e.Edsielecserialno, e.Edsigasmpr, e.Edsigasserialno, e.Edsisent, e.Edsireturned, e.Edsipdvoutcome, e.Edsisentwarrant, e.Edsiagentcomment, e.Edsippmrequested, e.Edsiappointment, e.Edsiappointment2, e.Edsippminstalled, e.Edsidebtloadppme, e.Edsidebtloadppmg, e.Edsichangetenant, e.Edsiproofrecd, e.Edsitenantcomp, e.Edsipdvreqconf, e.Edsipdvcharge, e.Edsicourtdate, e.Edsiisoldate, e.Edsireplan, e.Edsireplanreason, e.Edsicourtdate2, e.Edsiisoldate2, e.Edsineedsdiscon, e.Edsidatewarrant, e.Edsiagentname, e.Edsiagentcontact, e.Edsinewmsne, e.Edsinewmsng, e.Edsiclosingreadg, e.Edsiclosingreade, e.Edsidisconnected, e.Edsifinaldebt, e.Edsidisconreadg, e.Edsidisconreade, e.Edsiwarrantbatch, e.Edsilegalaction, e.Edsippmwarrant, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Edsiinstance, e.Edsibatchno, e.Edsiimportbalnce, e.Edsiimported, e.Edsielecmpan, e.Edsielecserialno, e.Edsigasmpr, e.Edsigasserialno, e.Edsisent, e.Edsireturned, e.Edsipdvoutcome, e.Edsisentwarrant, e.Edsiagentcomment, e.Edsippmrequested, e.Edsiappointment, e.Edsiappointment2, e.Edsippminstalled, e.Edsidebtloadppme, e.Edsidebtloadppmg, e.Edsichangetenant, e.Edsiproofrecd, e.Edsitenantcomp, e.Edsipdvreqconf, e.Edsipdvcharge, e.Edsicourtdate, e.Edsiisoldate, e.Edsireplan, e.Edsireplanreason, e.Edsicourtdate2, e.Edsiisoldate2, e.Edsineedsdiscon, e.Edsidatewarrant, e.Edsiagentname, e.Edsiagentcontact, e.Edsinewmsne, e.Edsinewmsng, e.Edsiclosingreadg, e.Edsiclosingreade, e.Edsidisconnected, e.Edsifinaldebt, e.Edsidisconreadg, e.Edsidisconreade, e.Edsiwarrantbatch, e.Edsilegalaction, e.Edsippmwarrant, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Edsitem to the database.
-func (e *Edsitem) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Edsitem.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Edsitem) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.edsitem (` +
-		`edsiinstance, edsibatchno, edsiimportbalnce, edsiimported, edsielecmpan, edsielecserialno, edsigasmpr, edsigasserialno, edsisent, edsireturned, edsipdvoutcome, edsisentwarrant, edsiagentcomment, edsippmrequested, edsiappointment, edsiappointment2, edsippminstalled, edsidebtloadppme, edsidebtloadppmg, edsichangetenant, edsiproofrecd, edsitenantcomp, edsipdvreqconf, edsipdvcharge, edsicourtdate, edsiisoldate, edsireplan, edsireplanreason, edsicourtdate2, edsiisoldate2, edsineedsdiscon, edsidatewarrant, edsiagentname, edsiagentcontact, edsinewmsne, edsinewmsng, edsiclosingreadg, edsiclosingreade, edsidisconnected, edsifinaldebt, edsidisconreadg, edsidisconreade, edsiwarrantbatch, edsilegalaction, edsippmwarrant, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`edsiinstance, edsibatchno, edsiimportbalnce, edsiimported, edsielecmpan, edsielecserialno, edsigasmpr, edsigasserialno, edsisent, edsireturned, edsipdvoutcome, edsisentwarrant, edsiagentcomment, edsippmrequested, edsiappointment, edsiappointment2, edsippminstalled, edsidebtloadppme, edsidebtloadppmg, edsichangetenant, edsiproofrecd, edsitenantcomp, edsipdvreqconf, edsipdvcharge, edsicourtdate, edsiisoldate, edsireplan, edsireplanreason, edsicourtdate2, edsiisoldate2, edsineedsdiscon, edsidatewarrant, edsiagentname, edsiagentcontact, edsinewmsne, edsinewmsng, edsiclosingreadg, edsiclosingreade, edsidisconnected, edsifinaldebt, edsidisconreadg, edsidisconreade, edsiwarrantbatch, edsilegalaction, edsippmwarrant, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.edsiinstance, EXCLUDED.edsibatchno, EXCLUDED.edsiimportbalnce, EXCLUDED.edsiimported, EXCLUDED.edsielecmpan, EXCLUDED.edsielecserialno, EXCLUDED.edsigasmpr, EXCLUDED.edsigasserialno, EXCLUDED.edsisent, EXCLUDED.edsireturned, EXCLUDED.edsipdvoutcome, EXCLUDED.edsisentwarrant, EXCLUDED.edsiagentcomment, EXCLUDED.edsippmrequested, EXCLUDED.edsiappointment, EXCLUDED.edsiappointment2, EXCLUDED.edsippminstalled, EXCLUDED.edsidebtloadppme, EXCLUDED.edsidebtloadppmg, EXCLUDED.edsichangetenant, EXCLUDED.edsiproofrecd, EXCLUDED.edsitenantcomp, EXCLUDED.edsipdvreqconf, EXCLUDED.edsipdvcharge, EXCLUDED.edsicourtdate, EXCLUDED.edsiisoldate, EXCLUDED.edsireplan, EXCLUDED.edsireplanreason, EXCLUDED.edsicourtdate2, EXCLUDED.edsiisoldate2, EXCLUDED.edsineedsdiscon, EXCLUDED.edsidatewarrant, EXCLUDED.edsiagentname, EXCLUDED.edsiagentcontact, EXCLUDED.edsinewmsne, EXCLUDED.edsinewmsng, EXCLUDED.edsiclosingreadg, EXCLUDED.edsiclosingreade, EXCLUDED.edsidisconnected, EXCLUDED.edsifinaldebt, EXCLUDED.edsidisconreadg, EXCLUDED.edsidisconreade, EXCLUDED.edsiwarrantbatch, EXCLUDED.edsilegalaction, EXCLUDED.edsippmwarrant, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Edsiinstance, e.Edsibatchno, e.Edsiimportbalnce, e.Edsiimported, e.Edsielecmpan, e.Edsielecserialno, e.Edsigasmpr, e.Edsigasserialno, e.Edsisent, e.Edsireturned, e.Edsipdvoutcome, e.Edsisentwarrant, e.Edsiagentcomment, e.Edsippmrequested, e.Edsiappointment, e.Edsiappointment2, e.Edsippminstalled, e.Edsidebtloadppme, e.Edsidebtloadppmg, e.Edsichangetenant, e.Edsiproofrecd, e.Edsitenantcomp, e.Edsipdvreqconf, e.Edsipdvcharge, e.Edsicourtdate, e.Edsiisoldate, e.Edsireplan, e.Edsireplanreason, e.Edsicourtdate2, e.Edsiisoldate2, e.Edsineedsdiscon, e.Edsidatewarrant, e.Edsiagentname, e.Edsiagentcontact, e.Edsinewmsne, e.Edsinewmsng, e.Edsiclosingreadg, e.Edsiclosingreade, e.Edsidisconnected, e.Edsifinaldebt, e.Edsidisconreadg, e.Edsidisconreade, e.Edsiwarrantbatch, e.Edsilegalaction, e.Edsippmwarrant, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Edsiinstance, e.Edsibatchno, e.Edsiimportbalnce, e.Edsiimported, e.Edsielecmpan, e.Edsielecserialno, e.Edsigasmpr, e.Edsigasserialno, e.Edsisent, e.Edsireturned, e.Edsipdvoutcome, e.Edsisentwarrant, e.Edsiagentcomment, e.Edsippmrequested, e.Edsiappointment, e.Edsiappointment2, e.Edsippminstalled, e.Edsidebtloadppme, e.Edsidebtloadppmg, e.Edsichangetenant, e.Edsiproofrecd, e.Edsitenantcomp, e.Edsipdvreqconf, e.Edsipdvcharge, e.Edsicourtdate, e.Edsiisoldate, e.Edsireplan, e.Edsireplanreason, e.Edsicourtdate2, e.Edsiisoldate2, e.Edsineedsdiscon, e.Edsidatewarrant, e.Edsiagentname, e.Edsiagentcontact, e.Edsinewmsne, e.Edsinewmsng, e.Edsiclosingreadg, e.Edsiclosingreade, e.Edsidisconnected, e.Edsifinaldebt, e.Edsidisconreadg, e.Edsidisconreade, e.Edsiwarrantbatch, e.Edsilegalaction, e.Edsippmwarrant, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Edsitem from the database.
-func (e *Edsitem) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.edsitem WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EdsitemByEquinoxLrn retrieves a row from 'equinox.edsitem' as a Edsitem.
@@ -219,9 +75,7 @@ func EdsitemByEquinoxLrn(db XODB, equinoxLrn int64) (*Edsitem, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Edsitem{
-		_exists: true,
-	}
+	e := Edsitem{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Edsiinstance, &e.Edsibatchno, &e.Edsiimportbalnce, &e.Edsiimported, &e.Edsielecmpan, &e.Edsielecserialno, &e.Edsigasmpr, &e.Edsigasserialno, &e.Edsisent, &e.Edsireturned, &e.Edsipdvoutcome, &e.Edsisentwarrant, &e.Edsiagentcomment, &e.Edsippmrequested, &e.Edsiappointment, &e.Edsiappointment2, &e.Edsippminstalled, &e.Edsidebtloadppme, &e.Edsidebtloadppmg, &e.Edsichangetenant, &e.Edsiproofrecd, &e.Edsitenantcomp, &e.Edsipdvreqconf, &e.Edsipdvcharge, &e.Edsicourtdate, &e.Edsiisoldate, &e.Edsireplan, &e.Edsireplanreason, &e.Edsicourtdate2, &e.Edsiisoldate2, &e.Edsineedsdiscon, &e.Edsidatewarrant, &e.Edsiagentname, &e.Edsiagentcontact, &e.Edsinewmsne, &e.Edsinewmsng, &e.Edsiclosingreadg, &e.Edsiclosingreade, &e.Edsidisconnected, &e.Edsifinaldebt, &e.Edsidisconreadg, &e.Edsidisconreade, &e.Edsiwarrantbatch, &e.Edsilegalaction, &e.Edsippmwarrant, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

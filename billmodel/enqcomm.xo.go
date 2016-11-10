@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -43,149 +42,6 @@ type Enqcomm struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Enqcomm exists in the database.
-func (e *Enqcomm) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Enqcomm has been deleted from the database.
-func (e *Enqcomm) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Enqcomm to the database.
-func (e *Enqcomm) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.enqcomms (` +
-		`eqcomuniquesys, ecomdate, ecomtime, ecomprobcode, ecomdetails, ecomenteredby, ecomcliservice, ecomadditional1, ecomadditional2, ecomadditional3, ecomadditional4, ecomadditional5, ecomadditional6, ecomadditional7, ecomadditional8, ecomadditional9, ecomadditional10, ecompriority, ecomstatus, ecomtaskto, ecomcompletedate, ecomcompleteby, ecomhistoric, ecomactiondate, ecomactiontime, ecomdip, ecomlastchange, ecomletterpath, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Eqcomuniquesys, e.Ecomdate, e.Ecomtime, e.Ecomprobcode, e.Ecomdetails, e.Ecomenteredby, e.Ecomcliservice, e.Ecomadditional1, e.Ecomadditional2, e.Ecomadditional3, e.Ecomadditional4, e.Ecomadditional5, e.Ecomadditional6, e.Ecomadditional7, e.Ecomadditional8, e.Ecomadditional9, e.Ecomadditional10, e.Ecompriority, e.Ecomstatus, e.Ecomtaskto, e.Ecomcompletedate, e.Ecomcompleteby, e.Ecomhistoric, e.Ecomactiondate, e.Ecomactiontime, e.Ecomdip, e.Ecomlastchange, e.Ecomletterpath, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Eqcomuniquesys, e.Ecomdate, e.Ecomtime, e.Ecomprobcode, e.Ecomdetails, e.Ecomenteredby, e.Ecomcliservice, e.Ecomadditional1, e.Ecomadditional2, e.Ecomadditional3, e.Ecomadditional4, e.Ecomadditional5, e.Ecomadditional6, e.Ecomadditional7, e.Ecomadditional8, e.Ecomadditional9, e.Ecomadditional10, e.Ecompriority, e.Ecomstatus, e.Ecomtaskto, e.Ecomcompletedate, e.Ecomcompleteby, e.Ecomhistoric, e.Ecomactiondate, e.Ecomactiontime, e.Ecomdip, e.Ecomlastchange, e.Ecomletterpath, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Enqcomm in the database.
-func (e *Enqcomm) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.enqcomms SET (` +
-		`eqcomuniquesys, ecomdate, ecomtime, ecomprobcode, ecomdetails, ecomenteredby, ecomcliservice, ecomadditional1, ecomadditional2, ecomadditional3, ecomadditional4, ecomadditional5, ecomadditional6, ecomadditional7, ecomadditional8, ecomadditional9, ecomadditional10, ecompriority, ecomstatus, ecomtaskto, ecomcompletedate, ecomcompleteby, ecomhistoric, ecomactiondate, ecomactiontime, ecomdip, ecomlastchange, ecomletterpath, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30` +
-		`) WHERE equinox_lrn = $31`
-
-	// run query
-	XOLog(sqlstr, e.Eqcomuniquesys, e.Ecomdate, e.Ecomtime, e.Ecomprobcode, e.Ecomdetails, e.Ecomenteredby, e.Ecomcliservice, e.Ecomadditional1, e.Ecomadditional2, e.Ecomadditional3, e.Ecomadditional4, e.Ecomadditional5, e.Ecomadditional6, e.Ecomadditional7, e.Ecomadditional8, e.Ecomadditional9, e.Ecomadditional10, e.Ecompriority, e.Ecomstatus, e.Ecomtaskto, e.Ecomcompletedate, e.Ecomcompleteby, e.Ecomhistoric, e.Ecomactiondate, e.Ecomactiontime, e.Ecomdip, e.Ecomlastchange, e.Ecomletterpath, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Eqcomuniquesys, e.Ecomdate, e.Ecomtime, e.Ecomprobcode, e.Ecomdetails, e.Ecomenteredby, e.Ecomcliservice, e.Ecomadditional1, e.Ecomadditional2, e.Ecomadditional3, e.Ecomadditional4, e.Ecomadditional5, e.Ecomadditional6, e.Ecomadditional7, e.Ecomadditional8, e.Ecomadditional9, e.Ecomadditional10, e.Ecompriority, e.Ecomstatus, e.Ecomtaskto, e.Ecomcompletedate, e.Ecomcompleteby, e.Ecomhistoric, e.Ecomactiondate, e.Ecomactiontime, e.Ecomdip, e.Ecomlastchange, e.Ecomletterpath, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Enqcomm to the database.
-func (e *Enqcomm) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Enqcomm.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Enqcomm) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.enqcomms (` +
-		`eqcomuniquesys, ecomdate, ecomtime, ecomprobcode, ecomdetails, ecomenteredby, ecomcliservice, ecomadditional1, ecomadditional2, ecomadditional3, ecomadditional4, ecomadditional5, ecomadditional6, ecomadditional7, ecomadditional8, ecomadditional9, ecomadditional10, ecompriority, ecomstatus, ecomtaskto, ecomcompletedate, ecomcompleteby, ecomhistoric, ecomactiondate, ecomactiontime, ecomdip, ecomlastchange, ecomletterpath, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`eqcomuniquesys, ecomdate, ecomtime, ecomprobcode, ecomdetails, ecomenteredby, ecomcliservice, ecomadditional1, ecomadditional2, ecomadditional3, ecomadditional4, ecomadditional5, ecomadditional6, ecomadditional7, ecomadditional8, ecomadditional9, ecomadditional10, ecompriority, ecomstatus, ecomtaskto, ecomcompletedate, ecomcompleteby, ecomhistoric, ecomactiondate, ecomactiontime, ecomdip, ecomlastchange, ecomletterpath, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.eqcomuniquesys, EXCLUDED.ecomdate, EXCLUDED.ecomtime, EXCLUDED.ecomprobcode, EXCLUDED.ecomdetails, EXCLUDED.ecomenteredby, EXCLUDED.ecomcliservice, EXCLUDED.ecomadditional1, EXCLUDED.ecomadditional2, EXCLUDED.ecomadditional3, EXCLUDED.ecomadditional4, EXCLUDED.ecomadditional5, EXCLUDED.ecomadditional6, EXCLUDED.ecomadditional7, EXCLUDED.ecomadditional8, EXCLUDED.ecomadditional9, EXCLUDED.ecomadditional10, EXCLUDED.ecompriority, EXCLUDED.ecomstatus, EXCLUDED.ecomtaskto, EXCLUDED.ecomcompletedate, EXCLUDED.ecomcompleteby, EXCLUDED.ecomhistoric, EXCLUDED.ecomactiondate, EXCLUDED.ecomactiontime, EXCLUDED.ecomdip, EXCLUDED.ecomlastchange, EXCLUDED.ecomletterpath, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Eqcomuniquesys, e.Ecomdate, e.Ecomtime, e.Ecomprobcode, e.Ecomdetails, e.Ecomenteredby, e.Ecomcliservice, e.Ecomadditional1, e.Ecomadditional2, e.Ecomadditional3, e.Ecomadditional4, e.Ecomadditional5, e.Ecomadditional6, e.Ecomadditional7, e.Ecomadditional8, e.Ecomadditional9, e.Ecomadditional10, e.Ecompriority, e.Ecomstatus, e.Ecomtaskto, e.Ecomcompletedate, e.Ecomcompleteby, e.Ecomhistoric, e.Ecomactiondate, e.Ecomactiontime, e.Ecomdip, e.Ecomlastchange, e.Ecomletterpath, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Eqcomuniquesys, e.Ecomdate, e.Ecomtime, e.Ecomprobcode, e.Ecomdetails, e.Ecomenteredby, e.Ecomcliservice, e.Ecomadditional1, e.Ecomadditional2, e.Ecomadditional3, e.Ecomadditional4, e.Ecomadditional5, e.Ecomadditional6, e.Ecomadditional7, e.Ecomadditional8, e.Ecomadditional9, e.Ecomadditional10, e.Ecompriority, e.Ecomstatus, e.Ecomtaskto, e.Ecomcompletedate, e.Ecomcompleteby, e.Ecomhistoric, e.Ecomactiondate, e.Ecomactiontime, e.Ecomdip, e.Ecomlastchange, e.Ecomletterpath, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Enqcomm from the database.
-func (e *Enqcomm) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.enqcomms WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EnqcommByEquinoxLrn retrieves a row from 'equinox.enqcomms' as a Enqcomm.
@@ -202,9 +58,7 @@ func EnqcommByEquinoxLrn(db XODB, equinoxLrn int64) (*Enqcomm, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Enqcomm{
-		_exists: true,
-	}
+	e := Enqcomm{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Eqcomuniquesys, &e.Ecomdate, &e.Ecomtime, &e.Ecomprobcode, &e.Ecomdetails, &e.Ecomenteredby, &e.Ecomcliservice, &e.Ecomadditional1, &e.Ecomadditional2, &e.Ecomadditional3, &e.Ecomadditional4, &e.Ecomadditional5, &e.Ecomadditional6, &e.Ecomadditional7, &e.Ecomadditional8, &e.Ecomadditional9, &e.Ecomadditional10, &e.Ecompriority, &e.Ecomstatus, &e.Ecomtaskto, &e.Ecomcompletedate, &e.Ecomcompleteby, &e.Ecomhistoric, &e.Ecomactiondate, &e.Ecomactiontime, &e.Ecomdip, &e.Ecomlastchange, &e.Ecomletterpath, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Ecoldz struct {
 	EquinoxPrn      sql.NullInt64   `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ecoldz exists in the database.
-func (e *Ecoldz) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Ecoldz has been deleted from the database.
-func (e *Ecoldz) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Ecoldz to the database.
-func (e *Ecoldz) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ecoldz (` +
-		`ecoldzldz, ecoldzdate, ecoldzcv, ecoldzperaqused, ecoldzperaccum, ecoldzalp01, ecoldzalp02, ecoldzdaf01, ecoldzdaf02, ecoldzcwv, ecoldzsncwv, ecoldzwsens, ecoldzsnd, ecoldzwcf, ecoldzsf, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Ecoldzldz, e.Ecoldzdate, e.Ecoldzcv, e.Ecoldzperaqused, e.Ecoldzperaccum, e.Ecoldzalp01, e.Ecoldzalp02, e.Ecoldzdaf01, e.Ecoldzdaf02, e.Ecoldzcwv, e.Ecoldzsncwv, e.Ecoldzwsens, e.Ecoldzsnd, e.Ecoldzwcf, e.Ecoldzsf, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Ecoldzldz, e.Ecoldzdate, e.Ecoldzcv, e.Ecoldzperaqused, e.Ecoldzperaccum, e.Ecoldzalp01, e.Ecoldzalp02, e.Ecoldzdaf01, e.Ecoldzdaf02, e.Ecoldzcwv, e.Ecoldzsncwv, e.Ecoldzwsens, e.Ecoldzsnd, e.Ecoldzwcf, e.Ecoldzsf, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Ecoldz in the database.
-func (e *Ecoldz) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ecoldz SET (` +
-		`ecoldzldz, ecoldzdate, ecoldzcv, ecoldzperaqused, ecoldzperaccum, ecoldzalp01, ecoldzalp02, ecoldzdaf01, ecoldzdaf02, ecoldzcwv, ecoldzsncwv, ecoldzwsens, ecoldzsnd, ecoldzwcf, ecoldzsf, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, e.Ecoldzldz, e.Ecoldzdate, e.Ecoldzcv, e.Ecoldzperaqused, e.Ecoldzperaccum, e.Ecoldzalp01, e.Ecoldzalp02, e.Ecoldzdaf01, e.Ecoldzdaf02, e.Ecoldzcwv, e.Ecoldzsncwv, e.Ecoldzwsens, e.Ecoldzsnd, e.Ecoldzwcf, e.Ecoldzsf, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Ecoldzldz, e.Ecoldzdate, e.Ecoldzcv, e.Ecoldzperaqused, e.Ecoldzperaccum, e.Ecoldzalp01, e.Ecoldzalp02, e.Ecoldzdaf01, e.Ecoldzdaf02, e.Ecoldzcwv, e.Ecoldzsncwv, e.Ecoldzwsens, e.Ecoldzsnd, e.Ecoldzwcf, e.Ecoldzsf, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ecoldz to the database.
-func (e *Ecoldz) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Ecoldz.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Ecoldz) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ecoldz (` +
-		`ecoldzldz, ecoldzdate, ecoldzcv, ecoldzperaqused, ecoldzperaccum, ecoldzalp01, ecoldzalp02, ecoldzdaf01, ecoldzdaf02, ecoldzcwv, ecoldzsncwv, ecoldzwsens, ecoldzsnd, ecoldzwcf, ecoldzsf, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ecoldzldz, ecoldzdate, ecoldzcv, ecoldzperaqused, ecoldzperaccum, ecoldzalp01, ecoldzalp02, ecoldzdaf01, ecoldzdaf02, ecoldzcwv, ecoldzsncwv, ecoldzwsens, ecoldzsnd, ecoldzwcf, ecoldzsf, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ecoldzldz, EXCLUDED.ecoldzdate, EXCLUDED.ecoldzcv, EXCLUDED.ecoldzperaqused, EXCLUDED.ecoldzperaccum, EXCLUDED.ecoldzalp01, EXCLUDED.ecoldzalp02, EXCLUDED.ecoldzdaf01, EXCLUDED.ecoldzdaf02, EXCLUDED.ecoldzcwv, EXCLUDED.ecoldzsncwv, EXCLUDED.ecoldzwsens, EXCLUDED.ecoldzsnd, EXCLUDED.ecoldzwcf, EXCLUDED.ecoldzsf, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Ecoldzldz, e.Ecoldzdate, e.Ecoldzcv, e.Ecoldzperaqused, e.Ecoldzperaccum, e.Ecoldzalp01, e.Ecoldzalp02, e.Ecoldzdaf01, e.Ecoldzdaf02, e.Ecoldzcwv, e.Ecoldzsncwv, e.Ecoldzwsens, e.Ecoldzsnd, e.Ecoldzwcf, e.Ecoldzsf, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Ecoldzldz, e.Ecoldzdate, e.Ecoldzcv, e.Ecoldzperaqused, e.Ecoldzperaccum, e.Ecoldzalp01, e.Ecoldzalp02, e.Ecoldzdaf01, e.Ecoldzdaf02, e.Ecoldzcwv, e.Ecoldzsncwv, e.Ecoldzwsens, e.Ecoldzsnd, e.Ecoldzwcf, e.Ecoldzsf, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ecoldz from the database.
-func (e *Ecoldz) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ecoldz WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EcoldzByEquinoxLrn retrieves a row from 'equinox.ecoldz' as a Ecoldz.
@@ -189,9 +45,7 @@ func EcoldzByEquinoxLrn(db XODB, equinoxLrn int64) (*Ecoldz, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Ecoldz{
-		_exists: true,
-	}
+	e := Ecoldz{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Ecoldzldz, &e.Ecoldzdate, &e.Ecoldzcv, &e.Ecoldzperaqused, &e.Ecoldzperaccum, &e.Ecoldzalp01, &e.Ecoldzalp02, &e.Ecoldzdaf01, &e.Ecoldzdaf02, &e.Ecoldzcwv, &e.Ecoldzsncwv, &e.Ecoldzwsens, &e.Ecoldzsnd, &e.Ecoldzwcf, &e.Ecoldzsf, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

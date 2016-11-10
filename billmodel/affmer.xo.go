@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -44,149 +43,6 @@ type Affmer struct {
 	Affmersparen2    sql.NullFloat64 `json:"affmersparen2"`    // affmersparen2
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Affmer exists in the database.
-func (a *Affmer) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Affmer has been deleted from the database.
-func (a *Affmer) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Affmer to the database.
-func (a *Affmer) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.affmer (` +
-		`affmerid, affmername, affmerdesc, affmerpreferred, affmerperpay, affmerfixpay, affmercashback, affmerbuyressign, affmerspecial, affmerspecialcbc, affmersectors, affmerstatus, affmerrefresh, affmerspecialurl, affmerdeeplinkur, affmerstoreurl, affmerdomain, affmerpref2, affmerchanged, affmerpmmref, affmerranking, affmerbignames, affmernotes, affmerstart, affmerend, affmernovouchers, affmersparec1, affmersparec2, affmersparen1, affmersparen2, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Affmerid, a.Affmername, a.Affmerdesc, a.Affmerpreferred, a.Affmerperpay, a.Affmerfixpay, a.Affmercashback, a.Affmerbuyressign, a.Affmerspecial, a.Affmerspecialcbc, a.Affmersectors, a.Affmerstatus, a.Affmerrefresh, a.Affmerspecialurl, a.Affmerdeeplinkur, a.Affmerstoreurl, a.Affmerdomain, a.Affmerpref2, a.Affmerchanged, a.Affmerpmmref, a.Affmerranking, a.Affmerbignames, a.Affmernotes, a.Affmerstart, a.Affmerend, a.Affmernovouchers, a.Affmersparec1, a.Affmersparec2, a.Affmersparen1, a.Affmersparen2, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Affmerid, a.Affmername, a.Affmerdesc, a.Affmerpreferred, a.Affmerperpay, a.Affmerfixpay, a.Affmercashback, a.Affmerbuyressign, a.Affmerspecial, a.Affmerspecialcbc, a.Affmersectors, a.Affmerstatus, a.Affmerrefresh, a.Affmerspecialurl, a.Affmerdeeplinkur, a.Affmerstoreurl, a.Affmerdomain, a.Affmerpref2, a.Affmerchanged, a.Affmerpmmref, a.Affmerranking, a.Affmerbignames, a.Affmernotes, a.Affmerstart, a.Affmerend, a.Affmernovouchers, a.Affmersparec1, a.Affmersparec2, a.Affmersparen1, a.Affmersparen2, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Affmer in the database.
-func (a *Affmer) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.affmer SET (` +
-		`affmerid, affmername, affmerdesc, affmerpreferred, affmerperpay, affmerfixpay, affmercashback, affmerbuyressign, affmerspecial, affmerspecialcbc, affmersectors, affmerstatus, affmerrefresh, affmerspecialurl, affmerdeeplinkur, affmerstoreurl, affmerdomain, affmerpref2, affmerchanged, affmerpmmref, affmerranking, affmerbignames, affmernotes, affmerstart, affmerend, affmernovouchers, affmersparec1, affmersparec2, affmersparen1, affmersparen2, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) WHERE equinox_lrn = $32`
-
-	// run query
-	XOLog(sqlstr, a.Affmerid, a.Affmername, a.Affmerdesc, a.Affmerpreferred, a.Affmerperpay, a.Affmerfixpay, a.Affmercashback, a.Affmerbuyressign, a.Affmerspecial, a.Affmerspecialcbc, a.Affmersectors, a.Affmerstatus, a.Affmerrefresh, a.Affmerspecialurl, a.Affmerdeeplinkur, a.Affmerstoreurl, a.Affmerdomain, a.Affmerpref2, a.Affmerchanged, a.Affmerpmmref, a.Affmerranking, a.Affmerbignames, a.Affmernotes, a.Affmerstart, a.Affmerend, a.Affmernovouchers, a.Affmersparec1, a.Affmersparec2, a.Affmersparen1, a.Affmersparen2, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Affmerid, a.Affmername, a.Affmerdesc, a.Affmerpreferred, a.Affmerperpay, a.Affmerfixpay, a.Affmercashback, a.Affmerbuyressign, a.Affmerspecial, a.Affmerspecialcbc, a.Affmersectors, a.Affmerstatus, a.Affmerrefresh, a.Affmerspecialurl, a.Affmerdeeplinkur, a.Affmerstoreurl, a.Affmerdomain, a.Affmerpref2, a.Affmerchanged, a.Affmerpmmref, a.Affmerranking, a.Affmerbignames, a.Affmernotes, a.Affmerstart, a.Affmerend, a.Affmernovouchers, a.Affmersparec1, a.Affmersparec2, a.Affmersparen1, a.Affmersparen2, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Affmer to the database.
-func (a *Affmer) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Affmer.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Affmer) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.affmer (` +
-		`affmerid, affmername, affmerdesc, affmerpreferred, affmerperpay, affmerfixpay, affmercashback, affmerbuyressign, affmerspecial, affmerspecialcbc, affmersectors, affmerstatus, affmerrefresh, affmerspecialurl, affmerdeeplinkur, affmerstoreurl, affmerdomain, affmerpref2, affmerchanged, affmerpmmref, affmerranking, affmerbignames, affmernotes, affmerstart, affmerend, affmernovouchers, affmersparec1, affmersparec2, affmersparen1, affmersparen2, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`affmerid, affmername, affmerdesc, affmerpreferred, affmerperpay, affmerfixpay, affmercashback, affmerbuyressign, affmerspecial, affmerspecialcbc, affmersectors, affmerstatus, affmerrefresh, affmerspecialurl, affmerdeeplinkur, affmerstoreurl, affmerdomain, affmerpref2, affmerchanged, affmerpmmref, affmerranking, affmerbignames, affmernotes, affmerstart, affmerend, affmernovouchers, affmersparec1, affmersparec2, affmersparen1, affmersparen2, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.affmerid, EXCLUDED.affmername, EXCLUDED.affmerdesc, EXCLUDED.affmerpreferred, EXCLUDED.affmerperpay, EXCLUDED.affmerfixpay, EXCLUDED.affmercashback, EXCLUDED.affmerbuyressign, EXCLUDED.affmerspecial, EXCLUDED.affmerspecialcbc, EXCLUDED.affmersectors, EXCLUDED.affmerstatus, EXCLUDED.affmerrefresh, EXCLUDED.affmerspecialurl, EXCLUDED.affmerdeeplinkur, EXCLUDED.affmerstoreurl, EXCLUDED.affmerdomain, EXCLUDED.affmerpref2, EXCLUDED.affmerchanged, EXCLUDED.affmerpmmref, EXCLUDED.affmerranking, EXCLUDED.affmerbignames, EXCLUDED.affmernotes, EXCLUDED.affmerstart, EXCLUDED.affmerend, EXCLUDED.affmernovouchers, EXCLUDED.affmersparec1, EXCLUDED.affmersparec2, EXCLUDED.affmersparen1, EXCLUDED.affmersparen2, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Affmerid, a.Affmername, a.Affmerdesc, a.Affmerpreferred, a.Affmerperpay, a.Affmerfixpay, a.Affmercashback, a.Affmerbuyressign, a.Affmerspecial, a.Affmerspecialcbc, a.Affmersectors, a.Affmerstatus, a.Affmerrefresh, a.Affmerspecialurl, a.Affmerdeeplinkur, a.Affmerstoreurl, a.Affmerdomain, a.Affmerpref2, a.Affmerchanged, a.Affmerpmmref, a.Affmerranking, a.Affmerbignames, a.Affmernotes, a.Affmerstart, a.Affmerend, a.Affmernovouchers, a.Affmersparec1, a.Affmersparec2, a.Affmersparen1, a.Affmersparen2, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Affmerid, a.Affmername, a.Affmerdesc, a.Affmerpreferred, a.Affmerperpay, a.Affmerfixpay, a.Affmercashback, a.Affmerbuyressign, a.Affmerspecial, a.Affmerspecialcbc, a.Affmersectors, a.Affmerstatus, a.Affmerrefresh, a.Affmerspecialurl, a.Affmerdeeplinkur, a.Affmerstoreurl, a.Affmerdomain, a.Affmerpref2, a.Affmerchanged, a.Affmerpmmref, a.Affmerranking, a.Affmerbignames, a.Affmernotes, a.Affmerstart, a.Affmerend, a.Affmernovouchers, a.Affmersparec1, a.Affmersparec2, a.Affmersparen1, a.Affmersparen2, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Affmer from the database.
-func (a *Affmer) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.affmer WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AffmerByEquinoxLrn retrieves a row from 'equinox.affmer' as a Affmer.
@@ -203,9 +59,7 @@ func AffmerByEquinoxLrn(db XODB, equinoxLrn int64) (*Affmer, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Affmer{
-		_exists: true,
-	}
+	a := Affmer{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Affmerid, &a.Affmername, &a.Affmerdesc, &a.Affmerpreferred, &a.Affmerperpay, &a.Affmerfixpay, &a.Affmercashback, &a.Affmerbuyressign, &a.Affmerspecial, &a.Affmerspecialcbc, &a.Affmersectors, &a.Affmerstatus, &a.Affmerrefresh, &a.Affmerspecialurl, &a.Affmerdeeplinkur, &a.Affmerstoreurl, &a.Affmerdomain, &a.Affmerpref2, &a.Affmerchanged, &a.Affmerpmmref, &a.Affmerranking, &a.Affmerbignames, &a.Affmernotes, &a.Affmerstart, &a.Affmerend, &a.Affmernovouchers, &a.Affmersparec1, &a.Affmersparec2, &a.Affmersparen1, &a.Affmersparen2, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

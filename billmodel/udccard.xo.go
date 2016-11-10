@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Udccard struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Udccard exists in the database.
-func (u *Udccard) Exists() bool {
-	return u._exists
-}
-
-// Deleted provides information if the Udccard has been deleted from the database.
-func (u *Udccard) Deleted() bool {
-	return u._deleted
-}
-
-// Insert inserts the Udccard to the database.
-func (u *Udccard) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if u._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.udccard (` +
-		`udccenteredon, udccenteredby, udcccardtype, udcccardnumber, udcccardname, udccshopperref, udccpostcode, udccvalid, udccexpiry, udcccardissue, udccdigits, udccaddress, udcccardunisys, udccfirstpayment, udccfirstpaydate, udccchangetime, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, u.Udccenteredon, u.Udccenteredby, u.Udcccardtype, u.Udcccardnumber, u.Udcccardname, u.Udccshopperref, u.Udccpostcode, u.Udccvalid, u.Udccexpiry, u.Udcccardissue, u.Udccdigits, u.Udccaddress, u.Udcccardunisys, u.Udccfirstpayment, u.Udccfirstpaydate, u.Udccchangetime, u.EquinoxPrn, u.EquinoxSec)
-	err = db.QueryRow(sqlstr, u.Udccenteredon, u.Udccenteredby, u.Udcccardtype, u.Udcccardnumber, u.Udcccardname, u.Udccshopperref, u.Udccpostcode, u.Udccvalid, u.Udccexpiry, u.Udcccardissue, u.Udccdigits, u.Udccaddress, u.Udcccardunisys, u.Udccfirstpayment, u.Udccfirstpaydate, u.Udccchangetime, u.EquinoxPrn, u.EquinoxSec).Scan(&u.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	u._exists = true
-
-	return nil
-}
-
-// Update updates the Udccard in the database.
-func (u *Udccard) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !u._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if u._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.udccard SET (` +
-		`udccenteredon, udccenteredby, udcccardtype, udcccardnumber, udcccardname, udccshopperref, udccpostcode, udccvalid, udccexpiry, udcccardissue, udccdigits, udccaddress, udcccardunisys, udccfirstpayment, udccfirstpaydate, udccchangetime, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, u.Udccenteredon, u.Udccenteredby, u.Udcccardtype, u.Udcccardnumber, u.Udcccardname, u.Udccshopperref, u.Udccpostcode, u.Udccvalid, u.Udccexpiry, u.Udcccardissue, u.Udccdigits, u.Udccaddress, u.Udcccardunisys, u.Udccfirstpayment, u.Udccfirstpaydate, u.Udccchangetime, u.EquinoxPrn, u.EquinoxSec, u.EquinoxLrn)
-	_, err = db.Exec(sqlstr, u.Udccenteredon, u.Udccenteredby, u.Udcccardtype, u.Udcccardnumber, u.Udcccardname, u.Udccshopperref, u.Udccpostcode, u.Udccvalid, u.Udccexpiry, u.Udcccardissue, u.Udccdigits, u.Udccaddress, u.Udcccardunisys, u.Udccfirstpayment, u.Udccfirstpaydate, u.Udccchangetime, u.EquinoxPrn, u.EquinoxSec, u.EquinoxLrn)
-	return err
-}
-
-// Save saves the Udccard to the database.
-func (u *Udccard) Save(db XODB) error {
-	if u.Exists() {
-		return u.Update(db)
-	}
-
-	return u.Insert(db)
-}
-
-// Upsert performs an upsert for Udccard.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (u *Udccard) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if u._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.udccard (` +
-		`udccenteredon, udccenteredby, udcccardtype, udcccardnumber, udcccardname, udccshopperref, udccpostcode, udccvalid, udccexpiry, udcccardissue, udccdigits, udccaddress, udcccardunisys, udccfirstpayment, udccfirstpaydate, udccchangetime, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`udccenteredon, udccenteredby, udcccardtype, udcccardnumber, udcccardname, udccshopperref, udccpostcode, udccvalid, udccexpiry, udcccardissue, udccdigits, udccaddress, udcccardunisys, udccfirstpayment, udccfirstpaydate, udccchangetime, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.udccenteredon, EXCLUDED.udccenteredby, EXCLUDED.udcccardtype, EXCLUDED.udcccardnumber, EXCLUDED.udcccardname, EXCLUDED.udccshopperref, EXCLUDED.udccpostcode, EXCLUDED.udccvalid, EXCLUDED.udccexpiry, EXCLUDED.udcccardissue, EXCLUDED.udccdigits, EXCLUDED.udccaddress, EXCLUDED.udcccardunisys, EXCLUDED.udccfirstpayment, EXCLUDED.udccfirstpaydate, EXCLUDED.udccchangetime, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, u.Udccenteredon, u.Udccenteredby, u.Udcccardtype, u.Udcccardnumber, u.Udcccardname, u.Udccshopperref, u.Udccpostcode, u.Udccvalid, u.Udccexpiry, u.Udcccardissue, u.Udccdigits, u.Udccaddress, u.Udcccardunisys, u.Udccfirstpayment, u.Udccfirstpaydate, u.Udccchangetime, u.EquinoxPrn, u.EquinoxLrn, u.EquinoxSec)
-	_, err = db.Exec(sqlstr, u.Udccenteredon, u.Udccenteredby, u.Udcccardtype, u.Udcccardnumber, u.Udcccardname, u.Udccshopperref, u.Udccpostcode, u.Udccvalid, u.Udccexpiry, u.Udcccardissue, u.Udccdigits, u.Udccaddress, u.Udcccardunisys, u.Udccfirstpayment, u.Udccfirstpaydate, u.Udccchangetime, u.EquinoxPrn, u.EquinoxLrn, u.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	u._exists = true
-
-	return nil
-}
-
-// Delete deletes the Udccard from the database.
-func (u *Udccard) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !u._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if u._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.udccard WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, u.EquinoxLrn)
-	_, err = db.Exec(sqlstr, u.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	u._deleted = true
-
-	return nil
 }
 
 // UdccardByEquinoxLrn retrieves a row from 'equinox.udccard' as a Udccard.
@@ -190,9 +46,7 @@ func UdccardByEquinoxLrn(db XODB, equinoxLrn int64) (*Udccard, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	u := Udccard{
-		_exists: true,
-	}
+	u := Udccard{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&u.Udccenteredon, &u.Udccenteredby, &u.Udcccardtype, &u.Udcccardnumber, &u.Udcccardname, &u.Udccshopperref, &u.Udccpostcode, &u.Udccvalid, &u.Udccexpiry, &u.Udcccardissue, &u.Udccdigits, &u.Udccaddress, &u.Udcccardunisys, &u.Udccfirstpayment, &u.Udccfirstpaydate, &u.Udccchangetime, &u.EquinoxPrn, &u.EquinoxLrn, &u.EquinoxSec)
 	if err != nil {

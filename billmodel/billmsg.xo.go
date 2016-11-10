@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -19,149 +18,6 @@ type Billmsg struct {
 	Bmgsresponseby   sql.NullString `json:"bmgsresponseby"`   // bmgsresponseby
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Billmsg exists in the database.
-func (b *Billmsg) Exists() bool {
-	return b._exists
-}
-
-// Deleted provides information if the Billmsg has been deleted from the database.
-func (b *Billmsg) Deleted() bool {
-	return b._deleted
-}
-
-// Insert inserts the Billmsg to the database.
-func (b *Billmsg) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.billmsgs (` +
-		`bmsgcustaccount, bmsgmessageid, bmsgsentdate, bmsgresponsedate, bmgsresponseby, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, b.Bmsgcustaccount, b.Bmsgmessageid, b.Bmsgsentdate, b.Bmsgresponsedate, b.Bmgsresponseby, b.EquinoxSec)
-	err = db.QueryRow(sqlstr, b.Bmsgcustaccount, b.Bmsgmessageid, b.Bmsgsentdate, b.Bmsgresponsedate, b.Bmgsresponseby, b.EquinoxSec).Scan(&b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Update updates the Billmsg in the database.
-func (b *Billmsg) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.billmsgs SET (` +
-		`bmsgcustaccount, bmsgmessageid, bmsgsentdate, bmsgresponsedate, bmgsresponseby, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) WHERE equinox_lrn = $7`
-
-	// run query
-	XOLog(sqlstr, b.Bmsgcustaccount, b.Bmsgmessageid, b.Bmsgsentdate, b.Bmsgresponsedate, b.Bmgsresponseby, b.EquinoxSec, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.Bmsgcustaccount, b.Bmsgmessageid, b.Bmsgsentdate, b.Bmsgresponsedate, b.Bmgsresponseby, b.EquinoxSec, b.EquinoxLrn)
-	return err
-}
-
-// Save saves the Billmsg to the database.
-func (b *Billmsg) Save(db XODB) error {
-	if b.Exists() {
-		return b.Update(db)
-	}
-
-	return b.Insert(db)
-}
-
-// Upsert performs an upsert for Billmsg.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (b *Billmsg) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.billmsgs (` +
-		`bmsgcustaccount, bmsgmessageid, bmsgsentdate, bmsgresponsedate, bmgsresponseby, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`bmsgcustaccount, bmsgmessageid, bmsgsentdate, bmsgresponsedate, bmgsresponseby, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.bmsgcustaccount, EXCLUDED.bmsgmessageid, EXCLUDED.bmsgsentdate, EXCLUDED.bmsgresponsedate, EXCLUDED.bmgsresponseby, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, b.Bmsgcustaccount, b.Bmsgmessageid, b.Bmsgsentdate, b.Bmsgresponsedate, b.Bmgsresponseby, b.EquinoxLrn, b.EquinoxSec)
-	_, err = db.Exec(sqlstr, b.Bmsgcustaccount, b.Bmsgmessageid, b.Bmsgsentdate, b.Bmsgresponsedate, b.Bmgsresponseby, b.EquinoxLrn, b.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Delete deletes the Billmsg from the database.
-func (b *Billmsg) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.billmsgs WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	b._deleted = true
-
-	return nil
 }
 
 // BillmsgByEquinoxLrn retrieves a row from 'equinox.billmsgs' as a Billmsg.
@@ -178,9 +34,7 @@ func BillmsgByEquinoxLrn(db XODB, equinoxLrn int64) (*Billmsg, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	b := Billmsg{
-		_exists: true,
-	}
+	b := Billmsg{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&b.Bmsgcustaccount, &b.Bmsgmessageid, &b.Bmsgsentdate, &b.Bmsgresponsedate, &b.Bmgsresponseby, &b.EquinoxLrn, &b.EquinoxSec)
 	if err != nil {

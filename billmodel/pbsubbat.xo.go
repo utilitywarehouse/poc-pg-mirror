@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type Pbsubbat struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Pbsubbat exists in the database.
-func (p *Pbsubbat) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Pbsubbat has been deleted from the database.
-func (p *Pbsubbat) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Pbsubbat to the database.
-func (p *Pbsubbat) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pbsubbat (` +
-		`pbsubbatchref, pbsubbatchdate, pbsubbatchamount, pbsubbatchtype, pbsubbatchbalanc, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Pbsubbatchref, p.Pbsubbatchdate, p.Pbsubbatchamount, p.Pbsubbatchtype, p.Pbsubbatchbalanc, p.EquinoxPrn, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Pbsubbatchref, p.Pbsubbatchdate, p.Pbsubbatchamount, p.Pbsubbatchtype, p.Pbsubbatchbalanc, p.EquinoxPrn, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Pbsubbat in the database.
-func (p *Pbsubbat) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.pbsubbat SET (` +
-		`pbsubbatchref, pbsubbatchdate, pbsubbatchamount, pbsubbatchtype, pbsubbatchbalanc, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, p.Pbsubbatchref, p.Pbsubbatchdate, p.Pbsubbatchamount, p.Pbsubbatchtype, p.Pbsubbatchbalanc, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Pbsubbatchref, p.Pbsubbatchdate, p.Pbsubbatchamount, p.Pbsubbatchtype, p.Pbsubbatchbalanc, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Pbsubbat to the database.
-func (p *Pbsubbat) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Pbsubbat.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Pbsubbat) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pbsubbat (` +
-		`pbsubbatchref, pbsubbatchdate, pbsubbatchamount, pbsubbatchtype, pbsubbatchbalanc, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`pbsubbatchref, pbsubbatchdate, pbsubbatchamount, pbsubbatchtype, pbsubbatchbalanc, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.pbsubbatchref, EXCLUDED.pbsubbatchdate, EXCLUDED.pbsubbatchamount, EXCLUDED.pbsubbatchtype, EXCLUDED.pbsubbatchbalanc, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Pbsubbatchref, p.Pbsubbatchdate, p.Pbsubbatchamount, p.Pbsubbatchtype, p.Pbsubbatchbalanc, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Pbsubbatchref, p.Pbsubbatchdate, p.Pbsubbatchamount, p.Pbsubbatchtype, p.Pbsubbatchbalanc, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Pbsubbat from the database.
-func (p *Pbsubbat) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.pbsubbat WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PbsubbatByEquinoxLrn retrieves a row from 'equinox.pbsubbat' as a Pbsubbat.
@@ -179,9 +35,7 @@ func PbsubbatByEquinoxLrn(db XODB, equinoxLrn int64) (*Pbsubbat, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Pbsubbat{
-		_exists: true,
-	}
+	p := Pbsubbat{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Pbsubbatchref, &p.Pbsubbatchdate, &p.Pbsubbatchamount, &p.Pbsubbatchtype, &p.Pbsubbatchbalanc, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

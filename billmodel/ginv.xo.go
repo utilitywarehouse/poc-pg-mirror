@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -38,149 +37,6 @@ type Ginv struct {
 	Ginvlastyear     sql.NullFloat64 `json:"ginvlastyear"`     // ginvlastyear
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ginv exists in the database.
-func (g *Ginv) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Ginv has been deleted from the database.
-func (g *Ginv) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Ginv to the database.
-func (g *Ginv) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ginv (` +
-		`ginvgreference, ginvyear, ginvbilledkwh, ginvbilledexvat, ginvreadtypes, ginv11monthskwh, ginvyearly, ginvppkwh, ginvaqkwh, ginvppkwhs, ginvnewlivedate, ginvnewtariff, ginvnewnotified, ginvtcr, ginvtcrdual, ginvrct, ginvrctsave, ginvact, ginvactsave, ginvtariffreason, ginvprojection, ginvprojkwh, ginvactest, ginvlastyear, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Ginvgreference, g.Ginvyear, g.Ginvbilledkwh, g.Ginvbilledexvat, g.Ginvreadtypes, g.Ginv11monthskwh, g.Ginvyearly, g.Ginvppkwh, g.Ginvaqkwh, g.Ginvppkwhs, g.Ginvnewlivedate, g.Ginvnewtariff, g.Ginvnewnotified, g.Ginvtcr, g.Ginvtcrdual, g.Ginvrct, g.Ginvrctsave, g.Ginvact, g.Ginvactsave, g.Ginvtariffreason, g.Ginvprojection, g.Ginvprojkwh, g.Ginvactest, g.Ginvlastyear, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Ginvgreference, g.Ginvyear, g.Ginvbilledkwh, g.Ginvbilledexvat, g.Ginvreadtypes, g.Ginv11monthskwh, g.Ginvyearly, g.Ginvppkwh, g.Ginvaqkwh, g.Ginvppkwhs, g.Ginvnewlivedate, g.Ginvnewtariff, g.Ginvnewnotified, g.Ginvtcr, g.Ginvtcrdual, g.Ginvrct, g.Ginvrctsave, g.Ginvact, g.Ginvactsave, g.Ginvtariffreason, g.Ginvprojection, g.Ginvprojkwh, g.Ginvactest, g.Ginvlastyear, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Ginv in the database.
-func (g *Ginv) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ginv SET (` +
-		`ginvgreference, ginvyear, ginvbilledkwh, ginvbilledexvat, ginvreadtypes, ginv11monthskwh, ginvyearly, ginvppkwh, ginvaqkwh, ginvppkwhs, ginvnewlivedate, ginvnewtariff, ginvnewnotified, ginvtcr, ginvtcrdual, ginvrct, ginvrctsave, ginvact, ginvactsave, ginvtariffreason, ginvprojection, ginvprojkwh, ginvactest, ginvlastyear, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25` +
-		`) WHERE equinox_lrn = $26`
-
-	// run query
-	XOLog(sqlstr, g.Ginvgreference, g.Ginvyear, g.Ginvbilledkwh, g.Ginvbilledexvat, g.Ginvreadtypes, g.Ginv11monthskwh, g.Ginvyearly, g.Ginvppkwh, g.Ginvaqkwh, g.Ginvppkwhs, g.Ginvnewlivedate, g.Ginvnewtariff, g.Ginvnewnotified, g.Ginvtcr, g.Ginvtcrdual, g.Ginvrct, g.Ginvrctsave, g.Ginvact, g.Ginvactsave, g.Ginvtariffreason, g.Ginvprojection, g.Ginvprojkwh, g.Ginvactest, g.Ginvlastyear, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Ginvgreference, g.Ginvyear, g.Ginvbilledkwh, g.Ginvbilledexvat, g.Ginvreadtypes, g.Ginv11monthskwh, g.Ginvyearly, g.Ginvppkwh, g.Ginvaqkwh, g.Ginvppkwhs, g.Ginvnewlivedate, g.Ginvnewtariff, g.Ginvnewnotified, g.Ginvtcr, g.Ginvtcrdual, g.Ginvrct, g.Ginvrctsave, g.Ginvact, g.Ginvactsave, g.Ginvtariffreason, g.Ginvprojection, g.Ginvprojkwh, g.Ginvactest, g.Ginvlastyear, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ginv to the database.
-func (g *Ginv) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Ginv.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Ginv) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ginv (` +
-		`ginvgreference, ginvyear, ginvbilledkwh, ginvbilledexvat, ginvreadtypes, ginv11monthskwh, ginvyearly, ginvppkwh, ginvaqkwh, ginvppkwhs, ginvnewlivedate, ginvnewtariff, ginvnewnotified, ginvtcr, ginvtcrdual, ginvrct, ginvrctsave, ginvact, ginvactsave, ginvtariffreason, ginvprojection, ginvprojkwh, ginvactest, ginvlastyear, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ginvgreference, ginvyear, ginvbilledkwh, ginvbilledexvat, ginvreadtypes, ginv11monthskwh, ginvyearly, ginvppkwh, ginvaqkwh, ginvppkwhs, ginvnewlivedate, ginvnewtariff, ginvnewnotified, ginvtcr, ginvtcrdual, ginvrct, ginvrctsave, ginvact, ginvactsave, ginvtariffreason, ginvprojection, ginvprojkwh, ginvactest, ginvlastyear, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ginvgreference, EXCLUDED.ginvyear, EXCLUDED.ginvbilledkwh, EXCLUDED.ginvbilledexvat, EXCLUDED.ginvreadtypes, EXCLUDED.ginv11monthskwh, EXCLUDED.ginvyearly, EXCLUDED.ginvppkwh, EXCLUDED.ginvaqkwh, EXCLUDED.ginvppkwhs, EXCLUDED.ginvnewlivedate, EXCLUDED.ginvnewtariff, EXCLUDED.ginvnewnotified, EXCLUDED.ginvtcr, EXCLUDED.ginvtcrdual, EXCLUDED.ginvrct, EXCLUDED.ginvrctsave, EXCLUDED.ginvact, EXCLUDED.ginvactsave, EXCLUDED.ginvtariffreason, EXCLUDED.ginvprojection, EXCLUDED.ginvprojkwh, EXCLUDED.ginvactest, EXCLUDED.ginvlastyear, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Ginvgreference, g.Ginvyear, g.Ginvbilledkwh, g.Ginvbilledexvat, g.Ginvreadtypes, g.Ginv11monthskwh, g.Ginvyearly, g.Ginvppkwh, g.Ginvaqkwh, g.Ginvppkwhs, g.Ginvnewlivedate, g.Ginvnewtariff, g.Ginvnewnotified, g.Ginvtcr, g.Ginvtcrdual, g.Ginvrct, g.Ginvrctsave, g.Ginvact, g.Ginvactsave, g.Ginvtariffreason, g.Ginvprojection, g.Ginvprojkwh, g.Ginvactest, g.Ginvlastyear, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Ginvgreference, g.Ginvyear, g.Ginvbilledkwh, g.Ginvbilledexvat, g.Ginvreadtypes, g.Ginv11monthskwh, g.Ginvyearly, g.Ginvppkwh, g.Ginvaqkwh, g.Ginvppkwhs, g.Ginvnewlivedate, g.Ginvnewtariff, g.Ginvnewnotified, g.Ginvtcr, g.Ginvtcrdual, g.Ginvrct, g.Ginvrctsave, g.Ginvact, g.Ginvactsave, g.Ginvtariffreason, g.Ginvprojection, g.Ginvprojkwh, g.Ginvactest, g.Ginvlastyear, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ginv from the database.
-func (g *Ginv) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ginv WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GinvByEquinoxLrn retrieves a row from 'equinox.ginv' as a Ginv.
@@ -197,9 +53,7 @@ func GinvByEquinoxLrn(db XODB, equinoxLrn int64) (*Ginv, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Ginv{
-		_exists: true,
-	}
+	g := Ginv{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Ginvgreference, &g.Ginvyear, &g.Ginvbilledkwh, &g.Ginvbilledexvat, &g.Ginvreadtypes, &g.Ginv11monthskwh, &g.Ginvyearly, &g.Ginvppkwh, &g.Ginvaqkwh, &g.Ginvppkwhs, &g.Ginvnewlivedate, &g.Ginvnewtariff, &g.Ginvnewnotified, &g.Ginvtcr, &g.Ginvtcrdual, &g.Ginvrct, &g.Ginvrctsave, &g.Ginvact, &g.Ginvactsave, &g.Ginvtariffreason, &g.Ginvprojection, &g.Ginvprojkwh, &g.Ginvactest, &g.Ginvlastyear, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

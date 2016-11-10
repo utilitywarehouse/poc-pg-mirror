@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Chpact struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Chpact exists in the database.
-func (c *Chpact) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Chpact has been deleted from the database.
-func (c *Chpact) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Chpact to the database.
-func (c *Chpact) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.chpact (` +
-		`chpactid, chpactstatus, chpactcreateddt, chpactcreatedtm, chpacttype, chpactescto, chpactnotes, chpactreminder, chpactremsched, chpactremtype, chpactremdt, chpactremtm, chpactremmsg, chpactcreatedby, chpactcompletedt, chpactcompletetm, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Chpactid, c.Chpactstatus, c.Chpactcreateddt, c.Chpactcreatedtm, c.Chpacttype, c.Chpactescto, c.Chpactnotes, c.Chpactreminder, c.Chpactremsched, c.Chpactremtype, c.Chpactremdt, c.Chpactremtm, c.Chpactremmsg, c.Chpactcreatedby, c.Chpactcompletedt, c.Chpactcompletetm, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Chpactid, c.Chpactstatus, c.Chpactcreateddt, c.Chpactcreatedtm, c.Chpacttype, c.Chpactescto, c.Chpactnotes, c.Chpactreminder, c.Chpactremsched, c.Chpactremtype, c.Chpactremdt, c.Chpactremtm, c.Chpactremmsg, c.Chpactcreatedby, c.Chpactcompletedt, c.Chpactcompletetm, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Chpact in the database.
-func (c *Chpact) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.chpact SET (` +
-		`chpactid, chpactstatus, chpactcreateddt, chpactcreatedtm, chpacttype, chpactescto, chpactnotes, chpactreminder, chpactremsched, chpactremtype, chpactremdt, chpactremtm, chpactremmsg, chpactcreatedby, chpactcompletedt, chpactcompletetm, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, c.Chpactid, c.Chpactstatus, c.Chpactcreateddt, c.Chpactcreatedtm, c.Chpacttype, c.Chpactescto, c.Chpactnotes, c.Chpactreminder, c.Chpactremsched, c.Chpactremtype, c.Chpactremdt, c.Chpactremtm, c.Chpactremmsg, c.Chpactcreatedby, c.Chpactcompletedt, c.Chpactcompletetm, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Chpactid, c.Chpactstatus, c.Chpactcreateddt, c.Chpactcreatedtm, c.Chpacttype, c.Chpactescto, c.Chpactnotes, c.Chpactreminder, c.Chpactremsched, c.Chpactremtype, c.Chpactremdt, c.Chpactremtm, c.Chpactremmsg, c.Chpactcreatedby, c.Chpactcompletedt, c.Chpactcompletetm, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Chpact to the database.
-func (c *Chpact) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Chpact.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Chpact) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.chpact (` +
-		`chpactid, chpactstatus, chpactcreateddt, chpactcreatedtm, chpacttype, chpactescto, chpactnotes, chpactreminder, chpactremsched, chpactremtype, chpactremdt, chpactremtm, chpactremmsg, chpactcreatedby, chpactcompletedt, chpactcompletetm, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`chpactid, chpactstatus, chpactcreateddt, chpactcreatedtm, chpacttype, chpactescto, chpactnotes, chpactreminder, chpactremsched, chpactremtype, chpactremdt, chpactremtm, chpactremmsg, chpactcreatedby, chpactcompletedt, chpactcompletetm, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.chpactid, EXCLUDED.chpactstatus, EXCLUDED.chpactcreateddt, EXCLUDED.chpactcreatedtm, EXCLUDED.chpacttype, EXCLUDED.chpactescto, EXCLUDED.chpactnotes, EXCLUDED.chpactreminder, EXCLUDED.chpactremsched, EXCLUDED.chpactremtype, EXCLUDED.chpactremdt, EXCLUDED.chpactremtm, EXCLUDED.chpactremmsg, EXCLUDED.chpactcreatedby, EXCLUDED.chpactcompletedt, EXCLUDED.chpactcompletetm, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Chpactid, c.Chpactstatus, c.Chpactcreateddt, c.Chpactcreatedtm, c.Chpacttype, c.Chpactescto, c.Chpactnotes, c.Chpactreminder, c.Chpactremsched, c.Chpactremtype, c.Chpactremdt, c.Chpactremtm, c.Chpactremmsg, c.Chpactcreatedby, c.Chpactcompletedt, c.Chpactcompletetm, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Chpactid, c.Chpactstatus, c.Chpactcreateddt, c.Chpactcreatedtm, c.Chpacttype, c.Chpactescto, c.Chpactnotes, c.Chpactreminder, c.Chpactremsched, c.Chpactremtype, c.Chpactremdt, c.Chpactremtm, c.Chpactremmsg, c.Chpactcreatedby, c.Chpactcompletedt, c.Chpactcompletetm, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Chpact from the database.
-func (c *Chpact) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.chpact WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // ChpactByEquinoxLrn retrieves a row from 'equinox.chpact' as a Chpact.
@@ -190,9 +46,7 @@ func ChpactByEquinoxLrn(db XODB, equinoxLrn int64) (*Chpact, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Chpact{
-		_exists: true,
-	}
+	c := Chpact{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Chpactid, &c.Chpactstatus, &c.Chpactcreateddt, &c.Chpactcreatedtm, &c.Chpacttype, &c.Chpactescto, &c.Chpactnotes, &c.Chpactreminder, &c.Chpactremsched, &c.Chpactremtype, &c.Chpactremdt, &c.Chpactremtm, &c.Chpactremmsg, &c.Chpactcreatedby, &c.Chpactcompletedt, &c.Chpactcompletetm, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -39,149 +38,6 @@ type Gasout struct {
 	Gasoutslog      sql.NullInt64   `json:"gasoutslog"`      // gasoutslog
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gasout exists in the database.
-func (g *Gasout) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gasout has been deleted from the database.
-func (g *Gasout) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gasout to the database.
-func (g *Gasout) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gasout (` +
-		`gasoutmpr, gasoutaquilaref, gasoutreceived, gasoutced, gasoutobjected, gasoutstatus, gasoutcustacnt, gasouttocli, gasoutdcrequest, gasoutcli, gasoutdcr, gasoutdebt, gasoutaqold, gasoutobjresp, gasoutobjrespc, gasoutet, gasobjcan, gasobjcansent, gasobjcanresp, gasobjcanac, gasoutchoften, gasoutschar, gasoutsnum, gasoutsdate, gasoutslog, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gasoutmpr, g.Gasoutaquilaref, g.Gasoutreceived, g.Gasoutced, g.Gasoutobjected, g.Gasoutstatus, g.Gasoutcustacnt, g.Gasouttocli, g.Gasoutdcrequest, g.Gasoutcli, g.Gasoutdcr, g.Gasoutdebt, g.Gasoutaqold, g.Gasoutobjresp, g.Gasoutobjrespc, g.Gasoutet, g.Gasobjcan, g.Gasobjcansent, g.Gasobjcanresp, g.Gasobjcanac, g.Gasoutchoften, g.Gasoutschar, g.Gasoutsnum, g.Gasoutsdate, g.Gasoutslog, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gasoutmpr, g.Gasoutaquilaref, g.Gasoutreceived, g.Gasoutced, g.Gasoutobjected, g.Gasoutstatus, g.Gasoutcustacnt, g.Gasouttocli, g.Gasoutdcrequest, g.Gasoutcli, g.Gasoutdcr, g.Gasoutdebt, g.Gasoutaqold, g.Gasoutobjresp, g.Gasoutobjrespc, g.Gasoutet, g.Gasobjcan, g.Gasobjcansent, g.Gasobjcanresp, g.Gasobjcanac, g.Gasoutchoften, g.Gasoutschar, g.Gasoutsnum, g.Gasoutsdate, g.Gasoutslog, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gasout in the database.
-func (g *Gasout) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gasout SET (` +
-		`gasoutmpr, gasoutaquilaref, gasoutreceived, gasoutced, gasoutobjected, gasoutstatus, gasoutcustacnt, gasouttocli, gasoutdcrequest, gasoutcli, gasoutdcr, gasoutdebt, gasoutaqold, gasoutobjresp, gasoutobjrespc, gasoutet, gasobjcan, gasobjcansent, gasobjcanresp, gasobjcanac, gasoutchoften, gasoutschar, gasoutsnum, gasoutsdate, gasoutslog, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26` +
-		`) WHERE equinox_lrn = $27`
-
-	// run query
-	XOLog(sqlstr, g.Gasoutmpr, g.Gasoutaquilaref, g.Gasoutreceived, g.Gasoutced, g.Gasoutobjected, g.Gasoutstatus, g.Gasoutcustacnt, g.Gasouttocli, g.Gasoutdcrequest, g.Gasoutcli, g.Gasoutdcr, g.Gasoutdebt, g.Gasoutaqold, g.Gasoutobjresp, g.Gasoutobjrespc, g.Gasoutet, g.Gasobjcan, g.Gasobjcansent, g.Gasobjcanresp, g.Gasobjcanac, g.Gasoutchoften, g.Gasoutschar, g.Gasoutsnum, g.Gasoutsdate, g.Gasoutslog, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gasoutmpr, g.Gasoutaquilaref, g.Gasoutreceived, g.Gasoutced, g.Gasoutobjected, g.Gasoutstatus, g.Gasoutcustacnt, g.Gasouttocli, g.Gasoutdcrequest, g.Gasoutcli, g.Gasoutdcr, g.Gasoutdebt, g.Gasoutaqold, g.Gasoutobjresp, g.Gasoutobjrespc, g.Gasoutet, g.Gasobjcan, g.Gasobjcansent, g.Gasobjcanresp, g.Gasobjcanac, g.Gasoutchoften, g.Gasoutschar, g.Gasoutsnum, g.Gasoutsdate, g.Gasoutslog, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gasout to the database.
-func (g *Gasout) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gasout.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gasout) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gasout (` +
-		`gasoutmpr, gasoutaquilaref, gasoutreceived, gasoutced, gasoutobjected, gasoutstatus, gasoutcustacnt, gasouttocli, gasoutdcrequest, gasoutcli, gasoutdcr, gasoutdebt, gasoutaqold, gasoutobjresp, gasoutobjrespc, gasoutet, gasobjcan, gasobjcansent, gasobjcanresp, gasobjcanac, gasoutchoften, gasoutschar, gasoutsnum, gasoutsdate, gasoutslog, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gasoutmpr, gasoutaquilaref, gasoutreceived, gasoutced, gasoutobjected, gasoutstatus, gasoutcustacnt, gasouttocli, gasoutdcrequest, gasoutcli, gasoutdcr, gasoutdebt, gasoutaqold, gasoutobjresp, gasoutobjrespc, gasoutet, gasobjcan, gasobjcansent, gasobjcanresp, gasobjcanac, gasoutchoften, gasoutschar, gasoutsnum, gasoutsdate, gasoutslog, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gasoutmpr, EXCLUDED.gasoutaquilaref, EXCLUDED.gasoutreceived, EXCLUDED.gasoutced, EXCLUDED.gasoutobjected, EXCLUDED.gasoutstatus, EXCLUDED.gasoutcustacnt, EXCLUDED.gasouttocli, EXCLUDED.gasoutdcrequest, EXCLUDED.gasoutcli, EXCLUDED.gasoutdcr, EXCLUDED.gasoutdebt, EXCLUDED.gasoutaqold, EXCLUDED.gasoutobjresp, EXCLUDED.gasoutobjrespc, EXCLUDED.gasoutet, EXCLUDED.gasobjcan, EXCLUDED.gasobjcansent, EXCLUDED.gasobjcanresp, EXCLUDED.gasobjcanac, EXCLUDED.gasoutchoften, EXCLUDED.gasoutschar, EXCLUDED.gasoutsnum, EXCLUDED.gasoutsdate, EXCLUDED.gasoutslog, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gasoutmpr, g.Gasoutaquilaref, g.Gasoutreceived, g.Gasoutced, g.Gasoutobjected, g.Gasoutstatus, g.Gasoutcustacnt, g.Gasouttocli, g.Gasoutdcrequest, g.Gasoutcli, g.Gasoutdcr, g.Gasoutdebt, g.Gasoutaqold, g.Gasoutobjresp, g.Gasoutobjrespc, g.Gasoutet, g.Gasobjcan, g.Gasobjcansent, g.Gasobjcanresp, g.Gasobjcanac, g.Gasoutchoften, g.Gasoutschar, g.Gasoutsnum, g.Gasoutsdate, g.Gasoutslog, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gasoutmpr, g.Gasoutaquilaref, g.Gasoutreceived, g.Gasoutced, g.Gasoutobjected, g.Gasoutstatus, g.Gasoutcustacnt, g.Gasouttocli, g.Gasoutdcrequest, g.Gasoutcli, g.Gasoutdcr, g.Gasoutdebt, g.Gasoutaqold, g.Gasoutobjresp, g.Gasoutobjrespc, g.Gasoutet, g.Gasobjcan, g.Gasobjcansent, g.Gasobjcanresp, g.Gasobjcanac, g.Gasoutchoften, g.Gasoutschar, g.Gasoutsnum, g.Gasoutsdate, g.Gasoutslog, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gasout from the database.
-func (g *Gasout) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gasout WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GasoutByEquinoxLrn retrieves a row from 'equinox.gasout' as a Gasout.
@@ -198,9 +54,7 @@ func GasoutByEquinoxLrn(db XODB, equinoxLrn int64) (*Gasout, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gasout{
-		_exists: true,
-	}
+	g := Gasout{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gasoutmpr, &g.Gasoutaquilaref, &g.Gasoutreceived, &g.Gasoutced, &g.Gasoutobjected, &g.Gasoutstatus, &g.Gasoutcustacnt, &g.Gasouttocli, &g.Gasoutdcrequest, &g.Gasoutcli, &g.Gasoutdcr, &g.Gasoutdebt, &g.Gasoutaqold, &g.Gasoutobjresp, &g.Gasoutobjrespc, &g.Gasoutet, &g.Gasobjcan, &g.Gasobjcansent, &g.Gasobjcanresp, &g.Gasobjcanac, &g.Gasoutchoften, &g.Gasoutschar, &g.Gasoutsnum, &g.Gasoutsdate, &g.Gasoutslog, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

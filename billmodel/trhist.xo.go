@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -23,149 +22,6 @@ type TrHist struct {
 	EquinoxPrn    sql.NullInt64  `json:"equinox_prn"`    // equinox_prn
 	EquinoxLrn    int64          `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the TrHist exists in the database.
-func (th *TrHist) Exists() bool {
-	return th._exists
-}
-
-// Deleted provides information if the TrHist has been deleted from the database.
-func (th *TrHist) Deleted() bool {
-	return th._deleted
-}
-
-// Insert inserts the TrHist to the database.
-func (th *TrHist) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if th._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tr_hist (` +
-		`trhist_date, trhist_time, trhist_user, trhist_notes, trhist_code, trhist_spared1, trhist_sparec1, trhist_sparen1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, th.TrhistDate, th.TrhistTime, th.TrhistUser, th.TrhistNotes, th.TrhistCode, th.TrhistSpared1, th.TrhistSparec1, th.TrhistSparen1, th.EquinoxPrn, th.EquinoxSec)
-	err = db.QueryRow(sqlstr, th.TrhistDate, th.TrhistTime, th.TrhistUser, th.TrhistNotes, th.TrhistCode, th.TrhistSpared1, th.TrhistSparec1, th.TrhistSparen1, th.EquinoxPrn, th.EquinoxSec).Scan(&th.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	th._exists = true
-
-	return nil
-}
-
-// Update updates the TrHist in the database.
-func (th *TrHist) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !th._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if th._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.tr_hist SET (` +
-		`trhist_date, trhist_time, trhist_user, trhist_notes, trhist_code, trhist_spared1, trhist_sparec1, trhist_sparen1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) WHERE equinox_lrn = $11`
-
-	// run query
-	XOLog(sqlstr, th.TrhistDate, th.TrhistTime, th.TrhistUser, th.TrhistNotes, th.TrhistCode, th.TrhistSpared1, th.TrhistSparec1, th.TrhistSparen1, th.EquinoxPrn, th.EquinoxSec, th.EquinoxLrn)
-	_, err = db.Exec(sqlstr, th.TrhistDate, th.TrhistTime, th.TrhistUser, th.TrhistNotes, th.TrhistCode, th.TrhistSpared1, th.TrhistSparec1, th.TrhistSparen1, th.EquinoxPrn, th.EquinoxSec, th.EquinoxLrn)
-	return err
-}
-
-// Save saves the TrHist to the database.
-func (th *TrHist) Save(db XODB) error {
-	if th.Exists() {
-		return th.Update(db)
-	}
-
-	return th.Insert(db)
-}
-
-// Upsert performs an upsert for TrHist.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (th *TrHist) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if th._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tr_hist (` +
-		`trhist_date, trhist_time, trhist_user, trhist_notes, trhist_code, trhist_spared1, trhist_sparec1, trhist_sparen1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`trhist_date, trhist_time, trhist_user, trhist_notes, trhist_code, trhist_spared1, trhist_sparec1, trhist_sparen1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.trhist_date, EXCLUDED.trhist_time, EXCLUDED.trhist_user, EXCLUDED.trhist_notes, EXCLUDED.trhist_code, EXCLUDED.trhist_spared1, EXCLUDED.trhist_sparec1, EXCLUDED.trhist_sparen1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, th.TrhistDate, th.TrhistTime, th.TrhistUser, th.TrhistNotes, th.TrhistCode, th.TrhistSpared1, th.TrhistSparec1, th.TrhistSparen1, th.EquinoxPrn, th.EquinoxLrn, th.EquinoxSec)
-	_, err = db.Exec(sqlstr, th.TrhistDate, th.TrhistTime, th.TrhistUser, th.TrhistNotes, th.TrhistCode, th.TrhistSpared1, th.TrhistSparec1, th.TrhistSparen1, th.EquinoxPrn, th.EquinoxLrn, th.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	th._exists = true
-
-	return nil
-}
-
-// Delete deletes the TrHist from the database.
-func (th *TrHist) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !th._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if th._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.tr_hist WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, th.EquinoxLrn)
-	_, err = db.Exec(sqlstr, th.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	th._deleted = true
-
-	return nil
 }
 
 // TrHistByEquinoxLrn retrieves a row from 'equinox.tr_hist' as a TrHist.
@@ -182,9 +38,7 @@ func TrHistByEquinoxLrn(db XODB, equinoxLrn int64) (*TrHist, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	th := TrHist{
-		_exists: true,
-	}
+	th := TrHist{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&th.TrhistDate, &th.TrhistTime, &th.TrhistUser, &th.TrhistNotes, &th.TrhistCode, &th.TrhistSpared1, &th.TrhistSparec1, &th.TrhistSparen1, &th.EquinoxPrn, &th.EquinoxLrn, &th.EquinoxSec)
 	if err != nil {

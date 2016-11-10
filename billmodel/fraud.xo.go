@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -79,149 +78,6 @@ type Fraud struct {
 	Frd20p           pq.NullTime     `json:"frd20p"`           // frd20p
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Fraud exists in the database.
-func (f *Fraud) Exists() bool {
-	return f._exists
-}
-
-// Deleted provides information if the Fraud has been deleted from the database.
-func (f *Fraud) Deleted() bool {
-	return f._deleted
-}
-
-// Insert inserts the Fraud to the database.
-func (f *Fraud) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if f._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.fraud (` +
-		`frdcli, frdcliuniquesys, frduseageindex, frdlastcall, frdspendm0, frdspendm1, frdspendm2, frdspendm3, frdcallsm0, frdcallsm1, frdcallsm2, frdcallsm3, frdtextsm0, frdtextsm1, frdtextsm2, frdtextsm3, frdtextschrgm0, frdtextschrgm1, frdtextschrgm2, frdtextschrgm3, frdwholesalem0, frdwholesalem1, frdwholesalem2, frdwholesalem3, frddurationm0, frddurationm1, frddurationm2, frddurationm3, frddurwholeminm0, frddurwholeminm1, frddurwholeminm2, frddurwholeminm3, frdbundleminm0, frdbundleminm1, frdbundleminm2, frdbundleminm3, frddatam0, frddatam1, frddatam2, frddatam3, frdintdatam0, frdintdatam1, frdintdatam2, frdintdatam3, frdintm0, frdintm1, frdintm2, frdintm3, frdpremm0, frdpremm1, frdpremm2, frdpremm3, frdcreditbar, frdcallcontbar, frdspendyest, frdspendyestw, frdspendav, frdcallsav, frdtextsav, frdnewcall, frdmonthlylimit, frdlastukdata, frdlastroamdata, frdnotes, frd20p, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, f.Frdcli, f.Frdcliuniquesys, f.Frduseageindex, f.Frdlastcall, f.Frdspendm0, f.Frdspendm1, f.Frdspendm2, f.Frdspendm3, f.Frdcallsm0, f.Frdcallsm1, f.Frdcallsm2, f.Frdcallsm3, f.Frdtextsm0, f.Frdtextsm1, f.Frdtextsm2, f.Frdtextsm3, f.Frdtextschrgm0, f.Frdtextschrgm1, f.Frdtextschrgm2, f.Frdtextschrgm3, f.Frdwholesalem0, f.Frdwholesalem1, f.Frdwholesalem2, f.Frdwholesalem3, f.Frddurationm0, f.Frddurationm1, f.Frddurationm2, f.Frddurationm3, f.Frddurwholeminm0, f.Frddurwholeminm1, f.Frddurwholeminm2, f.Frddurwholeminm3, f.Frdbundleminm0, f.Frdbundleminm1, f.Frdbundleminm2, f.Frdbundleminm3, f.Frddatam0, f.Frddatam1, f.Frddatam2, f.Frddatam3, f.Frdintdatam0, f.Frdintdatam1, f.Frdintdatam2, f.Frdintdatam3, f.Frdintm0, f.Frdintm1, f.Frdintm2, f.Frdintm3, f.Frdpremm0, f.Frdpremm1, f.Frdpremm2, f.Frdpremm3, f.Frdcreditbar, f.Frdcallcontbar, f.Frdspendyest, f.Frdspendyestw, f.Frdspendav, f.Frdcallsav, f.Frdtextsav, f.Frdnewcall, f.Frdmonthlylimit, f.Frdlastukdata, f.Frdlastroamdata, f.Frdnotes, f.Frd20p, f.EquinoxSec)
-	err = db.QueryRow(sqlstr, f.Frdcli, f.Frdcliuniquesys, f.Frduseageindex, f.Frdlastcall, f.Frdspendm0, f.Frdspendm1, f.Frdspendm2, f.Frdspendm3, f.Frdcallsm0, f.Frdcallsm1, f.Frdcallsm2, f.Frdcallsm3, f.Frdtextsm0, f.Frdtextsm1, f.Frdtextsm2, f.Frdtextsm3, f.Frdtextschrgm0, f.Frdtextschrgm1, f.Frdtextschrgm2, f.Frdtextschrgm3, f.Frdwholesalem0, f.Frdwholesalem1, f.Frdwholesalem2, f.Frdwholesalem3, f.Frddurationm0, f.Frddurationm1, f.Frddurationm2, f.Frddurationm3, f.Frddurwholeminm0, f.Frddurwholeminm1, f.Frddurwholeminm2, f.Frddurwholeminm3, f.Frdbundleminm0, f.Frdbundleminm1, f.Frdbundleminm2, f.Frdbundleminm3, f.Frddatam0, f.Frddatam1, f.Frddatam2, f.Frddatam3, f.Frdintdatam0, f.Frdintdatam1, f.Frdintdatam2, f.Frdintdatam3, f.Frdintm0, f.Frdintm1, f.Frdintm2, f.Frdintm3, f.Frdpremm0, f.Frdpremm1, f.Frdpremm2, f.Frdpremm3, f.Frdcreditbar, f.Frdcallcontbar, f.Frdspendyest, f.Frdspendyestw, f.Frdspendav, f.Frdcallsav, f.Frdtextsav, f.Frdnewcall, f.Frdmonthlylimit, f.Frdlastukdata, f.Frdlastroamdata, f.Frdnotes, f.Frd20p, f.EquinoxSec).Scan(&f.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	f._exists = true
-
-	return nil
-}
-
-// Update updates the Fraud in the database.
-func (f *Fraud) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !f._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if f._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.fraud SET (` +
-		`frdcli, frdcliuniquesys, frduseageindex, frdlastcall, frdspendm0, frdspendm1, frdspendm2, frdspendm3, frdcallsm0, frdcallsm1, frdcallsm2, frdcallsm3, frdtextsm0, frdtextsm1, frdtextsm2, frdtextsm3, frdtextschrgm0, frdtextschrgm1, frdtextschrgm2, frdtextschrgm3, frdwholesalem0, frdwholesalem1, frdwholesalem2, frdwholesalem3, frddurationm0, frddurationm1, frddurationm2, frddurationm3, frddurwholeminm0, frddurwholeminm1, frddurwholeminm2, frddurwholeminm3, frdbundleminm0, frdbundleminm1, frdbundleminm2, frdbundleminm3, frddatam0, frddatam1, frddatam2, frddatam3, frdintdatam0, frdintdatam1, frdintdatam2, frdintdatam3, frdintm0, frdintm1, frdintm2, frdintm3, frdpremm0, frdpremm1, frdpremm2, frdpremm3, frdcreditbar, frdcallcontbar, frdspendyest, frdspendyestw, frdspendav, frdcallsav, frdtextsav, frdnewcall, frdmonthlylimit, frdlastukdata, frdlastroamdata, frdnotes, frd20p, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66` +
-		`) WHERE equinox_lrn = $67`
-
-	// run query
-	XOLog(sqlstr, f.Frdcli, f.Frdcliuniquesys, f.Frduseageindex, f.Frdlastcall, f.Frdspendm0, f.Frdspendm1, f.Frdspendm2, f.Frdspendm3, f.Frdcallsm0, f.Frdcallsm1, f.Frdcallsm2, f.Frdcallsm3, f.Frdtextsm0, f.Frdtextsm1, f.Frdtextsm2, f.Frdtextsm3, f.Frdtextschrgm0, f.Frdtextschrgm1, f.Frdtextschrgm2, f.Frdtextschrgm3, f.Frdwholesalem0, f.Frdwholesalem1, f.Frdwholesalem2, f.Frdwholesalem3, f.Frddurationm0, f.Frddurationm1, f.Frddurationm2, f.Frddurationm3, f.Frddurwholeminm0, f.Frddurwholeminm1, f.Frddurwholeminm2, f.Frddurwholeminm3, f.Frdbundleminm0, f.Frdbundleminm1, f.Frdbundleminm2, f.Frdbundleminm3, f.Frddatam0, f.Frddatam1, f.Frddatam2, f.Frddatam3, f.Frdintdatam0, f.Frdintdatam1, f.Frdintdatam2, f.Frdintdatam3, f.Frdintm0, f.Frdintm1, f.Frdintm2, f.Frdintm3, f.Frdpremm0, f.Frdpremm1, f.Frdpremm2, f.Frdpremm3, f.Frdcreditbar, f.Frdcallcontbar, f.Frdspendyest, f.Frdspendyestw, f.Frdspendav, f.Frdcallsav, f.Frdtextsav, f.Frdnewcall, f.Frdmonthlylimit, f.Frdlastukdata, f.Frdlastroamdata, f.Frdnotes, f.Frd20p, f.EquinoxSec, f.EquinoxLrn)
-	_, err = db.Exec(sqlstr, f.Frdcli, f.Frdcliuniquesys, f.Frduseageindex, f.Frdlastcall, f.Frdspendm0, f.Frdspendm1, f.Frdspendm2, f.Frdspendm3, f.Frdcallsm0, f.Frdcallsm1, f.Frdcallsm2, f.Frdcallsm3, f.Frdtextsm0, f.Frdtextsm1, f.Frdtextsm2, f.Frdtextsm3, f.Frdtextschrgm0, f.Frdtextschrgm1, f.Frdtextschrgm2, f.Frdtextschrgm3, f.Frdwholesalem0, f.Frdwholesalem1, f.Frdwholesalem2, f.Frdwholesalem3, f.Frddurationm0, f.Frddurationm1, f.Frddurationm2, f.Frddurationm3, f.Frddurwholeminm0, f.Frddurwholeminm1, f.Frddurwholeminm2, f.Frddurwholeminm3, f.Frdbundleminm0, f.Frdbundleminm1, f.Frdbundleminm2, f.Frdbundleminm3, f.Frddatam0, f.Frddatam1, f.Frddatam2, f.Frddatam3, f.Frdintdatam0, f.Frdintdatam1, f.Frdintdatam2, f.Frdintdatam3, f.Frdintm0, f.Frdintm1, f.Frdintm2, f.Frdintm3, f.Frdpremm0, f.Frdpremm1, f.Frdpremm2, f.Frdpremm3, f.Frdcreditbar, f.Frdcallcontbar, f.Frdspendyest, f.Frdspendyestw, f.Frdspendav, f.Frdcallsav, f.Frdtextsav, f.Frdnewcall, f.Frdmonthlylimit, f.Frdlastukdata, f.Frdlastroamdata, f.Frdnotes, f.Frd20p, f.EquinoxSec, f.EquinoxLrn)
-	return err
-}
-
-// Save saves the Fraud to the database.
-func (f *Fraud) Save(db XODB) error {
-	if f.Exists() {
-		return f.Update(db)
-	}
-
-	return f.Insert(db)
-}
-
-// Upsert performs an upsert for Fraud.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (f *Fraud) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if f._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.fraud (` +
-		`frdcli, frdcliuniquesys, frduseageindex, frdlastcall, frdspendm0, frdspendm1, frdspendm2, frdspendm3, frdcallsm0, frdcallsm1, frdcallsm2, frdcallsm3, frdtextsm0, frdtextsm1, frdtextsm2, frdtextsm3, frdtextschrgm0, frdtextschrgm1, frdtextschrgm2, frdtextschrgm3, frdwholesalem0, frdwholesalem1, frdwholesalem2, frdwholesalem3, frddurationm0, frddurationm1, frddurationm2, frddurationm3, frddurwholeminm0, frddurwholeminm1, frddurwholeminm2, frddurwholeminm3, frdbundleminm0, frdbundleminm1, frdbundleminm2, frdbundleminm3, frddatam0, frddatam1, frddatam2, frddatam3, frdintdatam0, frdintdatam1, frdintdatam2, frdintdatam3, frdintm0, frdintm1, frdintm2, frdintm3, frdpremm0, frdpremm1, frdpremm2, frdpremm3, frdcreditbar, frdcallcontbar, frdspendyest, frdspendyestw, frdspendav, frdcallsav, frdtextsav, frdnewcall, frdmonthlylimit, frdlastukdata, frdlastroamdata, frdnotes, frd20p, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`frdcli, frdcliuniquesys, frduseageindex, frdlastcall, frdspendm0, frdspendm1, frdspendm2, frdspendm3, frdcallsm0, frdcallsm1, frdcallsm2, frdcallsm3, frdtextsm0, frdtextsm1, frdtextsm2, frdtextsm3, frdtextschrgm0, frdtextschrgm1, frdtextschrgm2, frdtextschrgm3, frdwholesalem0, frdwholesalem1, frdwholesalem2, frdwholesalem3, frddurationm0, frddurationm1, frddurationm2, frddurationm3, frddurwholeminm0, frddurwholeminm1, frddurwholeminm2, frddurwholeminm3, frdbundleminm0, frdbundleminm1, frdbundleminm2, frdbundleminm3, frddatam0, frddatam1, frddatam2, frddatam3, frdintdatam0, frdintdatam1, frdintdatam2, frdintdatam3, frdintm0, frdintm1, frdintm2, frdintm3, frdpremm0, frdpremm1, frdpremm2, frdpremm3, frdcreditbar, frdcallcontbar, frdspendyest, frdspendyestw, frdspendav, frdcallsav, frdtextsav, frdnewcall, frdmonthlylimit, frdlastukdata, frdlastroamdata, frdnotes, frd20p, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.frdcli, EXCLUDED.frdcliuniquesys, EXCLUDED.frduseageindex, EXCLUDED.frdlastcall, EXCLUDED.frdspendm0, EXCLUDED.frdspendm1, EXCLUDED.frdspendm2, EXCLUDED.frdspendm3, EXCLUDED.frdcallsm0, EXCLUDED.frdcallsm1, EXCLUDED.frdcallsm2, EXCLUDED.frdcallsm3, EXCLUDED.frdtextsm0, EXCLUDED.frdtextsm1, EXCLUDED.frdtextsm2, EXCLUDED.frdtextsm3, EXCLUDED.frdtextschrgm0, EXCLUDED.frdtextschrgm1, EXCLUDED.frdtextschrgm2, EXCLUDED.frdtextschrgm3, EXCLUDED.frdwholesalem0, EXCLUDED.frdwholesalem1, EXCLUDED.frdwholesalem2, EXCLUDED.frdwholesalem3, EXCLUDED.frddurationm0, EXCLUDED.frddurationm1, EXCLUDED.frddurationm2, EXCLUDED.frddurationm3, EXCLUDED.frddurwholeminm0, EXCLUDED.frddurwholeminm1, EXCLUDED.frddurwholeminm2, EXCLUDED.frddurwholeminm3, EXCLUDED.frdbundleminm0, EXCLUDED.frdbundleminm1, EXCLUDED.frdbundleminm2, EXCLUDED.frdbundleminm3, EXCLUDED.frddatam0, EXCLUDED.frddatam1, EXCLUDED.frddatam2, EXCLUDED.frddatam3, EXCLUDED.frdintdatam0, EXCLUDED.frdintdatam1, EXCLUDED.frdintdatam2, EXCLUDED.frdintdatam3, EXCLUDED.frdintm0, EXCLUDED.frdintm1, EXCLUDED.frdintm2, EXCLUDED.frdintm3, EXCLUDED.frdpremm0, EXCLUDED.frdpremm1, EXCLUDED.frdpremm2, EXCLUDED.frdpremm3, EXCLUDED.frdcreditbar, EXCLUDED.frdcallcontbar, EXCLUDED.frdspendyest, EXCLUDED.frdspendyestw, EXCLUDED.frdspendav, EXCLUDED.frdcallsav, EXCLUDED.frdtextsav, EXCLUDED.frdnewcall, EXCLUDED.frdmonthlylimit, EXCLUDED.frdlastukdata, EXCLUDED.frdlastroamdata, EXCLUDED.frdnotes, EXCLUDED.frd20p, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, f.Frdcli, f.Frdcliuniquesys, f.Frduseageindex, f.Frdlastcall, f.Frdspendm0, f.Frdspendm1, f.Frdspendm2, f.Frdspendm3, f.Frdcallsm0, f.Frdcallsm1, f.Frdcallsm2, f.Frdcallsm3, f.Frdtextsm0, f.Frdtextsm1, f.Frdtextsm2, f.Frdtextsm3, f.Frdtextschrgm0, f.Frdtextschrgm1, f.Frdtextschrgm2, f.Frdtextschrgm3, f.Frdwholesalem0, f.Frdwholesalem1, f.Frdwholesalem2, f.Frdwholesalem3, f.Frddurationm0, f.Frddurationm1, f.Frddurationm2, f.Frddurationm3, f.Frddurwholeminm0, f.Frddurwholeminm1, f.Frddurwholeminm2, f.Frddurwholeminm3, f.Frdbundleminm0, f.Frdbundleminm1, f.Frdbundleminm2, f.Frdbundleminm3, f.Frddatam0, f.Frddatam1, f.Frddatam2, f.Frddatam3, f.Frdintdatam0, f.Frdintdatam1, f.Frdintdatam2, f.Frdintdatam3, f.Frdintm0, f.Frdintm1, f.Frdintm2, f.Frdintm3, f.Frdpremm0, f.Frdpremm1, f.Frdpremm2, f.Frdpremm3, f.Frdcreditbar, f.Frdcallcontbar, f.Frdspendyest, f.Frdspendyestw, f.Frdspendav, f.Frdcallsav, f.Frdtextsav, f.Frdnewcall, f.Frdmonthlylimit, f.Frdlastukdata, f.Frdlastroamdata, f.Frdnotes, f.Frd20p, f.EquinoxLrn, f.EquinoxSec)
-	_, err = db.Exec(sqlstr, f.Frdcli, f.Frdcliuniquesys, f.Frduseageindex, f.Frdlastcall, f.Frdspendm0, f.Frdspendm1, f.Frdspendm2, f.Frdspendm3, f.Frdcallsm0, f.Frdcallsm1, f.Frdcallsm2, f.Frdcallsm3, f.Frdtextsm0, f.Frdtextsm1, f.Frdtextsm2, f.Frdtextsm3, f.Frdtextschrgm0, f.Frdtextschrgm1, f.Frdtextschrgm2, f.Frdtextschrgm3, f.Frdwholesalem0, f.Frdwholesalem1, f.Frdwholesalem2, f.Frdwholesalem3, f.Frddurationm0, f.Frddurationm1, f.Frddurationm2, f.Frddurationm3, f.Frddurwholeminm0, f.Frddurwholeminm1, f.Frddurwholeminm2, f.Frddurwholeminm3, f.Frdbundleminm0, f.Frdbundleminm1, f.Frdbundleminm2, f.Frdbundleminm3, f.Frddatam0, f.Frddatam1, f.Frddatam2, f.Frddatam3, f.Frdintdatam0, f.Frdintdatam1, f.Frdintdatam2, f.Frdintdatam3, f.Frdintm0, f.Frdintm1, f.Frdintm2, f.Frdintm3, f.Frdpremm0, f.Frdpremm1, f.Frdpremm2, f.Frdpremm3, f.Frdcreditbar, f.Frdcallcontbar, f.Frdspendyest, f.Frdspendyestw, f.Frdspendav, f.Frdcallsav, f.Frdtextsav, f.Frdnewcall, f.Frdmonthlylimit, f.Frdlastukdata, f.Frdlastroamdata, f.Frdnotes, f.Frd20p, f.EquinoxLrn, f.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	f._exists = true
-
-	return nil
-}
-
-// Delete deletes the Fraud from the database.
-func (f *Fraud) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !f._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if f._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.fraud WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, f.EquinoxLrn)
-	_, err = db.Exec(sqlstr, f.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	f._deleted = true
-
-	return nil
 }
 
 // FraudByEquinoxLrn retrieves a row from 'equinox.fraud' as a Fraud.
@@ -238,9 +94,7 @@ func FraudByEquinoxLrn(db XODB, equinoxLrn int64) (*Fraud, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	f := Fraud{
-		_exists: true,
-	}
+	f := Fraud{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&f.Frdcli, &f.Frdcliuniquesys, &f.Frduseageindex, &f.Frdlastcall, &f.Frdspendm0, &f.Frdspendm1, &f.Frdspendm2, &f.Frdspendm3, &f.Frdcallsm0, &f.Frdcallsm1, &f.Frdcallsm2, &f.Frdcallsm3, &f.Frdtextsm0, &f.Frdtextsm1, &f.Frdtextsm2, &f.Frdtextsm3, &f.Frdtextschrgm0, &f.Frdtextschrgm1, &f.Frdtextschrgm2, &f.Frdtextschrgm3, &f.Frdwholesalem0, &f.Frdwholesalem1, &f.Frdwholesalem2, &f.Frdwholesalem3, &f.Frddurationm0, &f.Frddurationm1, &f.Frddurationm2, &f.Frddurationm3, &f.Frddurwholeminm0, &f.Frddurwholeminm1, &f.Frddurwholeminm2, &f.Frddurwholeminm3, &f.Frdbundleminm0, &f.Frdbundleminm1, &f.Frdbundleminm2, &f.Frdbundleminm3, &f.Frddatam0, &f.Frddatam1, &f.Frddatam2, &f.Frddatam3, &f.Frdintdatam0, &f.Frdintdatam1, &f.Frdintdatam2, &f.Frdintdatam3, &f.Frdintm0, &f.Frdintm1, &f.Frdintm2, &f.Frdintm3, &f.Frdpremm0, &f.Frdpremm1, &f.Frdpremm2, &f.Frdpremm3, &f.Frdcreditbar, &f.Frdcallcontbar, &f.Frdspendyest, &f.Frdspendyestw, &f.Frdspendav, &f.Frdcallsav, &f.Frdtextsav, &f.Frdnewcall, &f.Frdmonthlylimit, &f.Frdlastukdata, &f.Frdlastroamdata, &f.Frdnotes, &f.Frd20p, &f.EquinoxLrn, &f.EquinoxSec)
 	if err != nil {

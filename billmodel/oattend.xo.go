@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -28,149 +27,6 @@ type OAttend struct {
 	EquinoxPrn    sql.NullInt64  `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn    int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the OAttend exists in the database.
-func (oa *OAttend) Exists() bool {
-	return oa._exists
-}
-
-// Deleted provides information if the OAttend has been deleted from the database.
-func (oa *OAttend) Deleted() bool {
-	return oa._deleted
-}
-
-// Insert inserts the OAttend to the database.
-func (oa *OAttend) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if oa._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.o_attend (` +
-		`oa_event_id, oa_exec_id, oa_spaces, oa_commcode, oa_notifyby, oa_notified, oa_noshow, oa_level, oa_completed, oa_dateadded, oa_tablet_req, oa_tablet_given, oa_verified, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, oa.OaEventID, oa.OaExecID, oa.OaSpaces, oa.OaCommcode, oa.OaNotifyby, oa.OaNotified, oa.OaNoshow, oa.OaLevel, oa.OaCompleted, oa.OaDateadded, oa.OaTabletReq, oa.OaTabletGiven, oa.OaVerified, oa.EquinoxPrn, oa.EquinoxSec)
-	err = db.QueryRow(sqlstr, oa.OaEventID, oa.OaExecID, oa.OaSpaces, oa.OaCommcode, oa.OaNotifyby, oa.OaNotified, oa.OaNoshow, oa.OaLevel, oa.OaCompleted, oa.OaDateadded, oa.OaTabletReq, oa.OaTabletGiven, oa.OaVerified, oa.EquinoxPrn, oa.EquinoxSec).Scan(&oa.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	oa._exists = true
-
-	return nil
-}
-
-// Update updates the OAttend in the database.
-func (oa *OAttend) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !oa._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if oa._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.o_attend SET (` +
-		`oa_event_id, oa_exec_id, oa_spaces, oa_commcode, oa_notifyby, oa_notified, oa_noshow, oa_level, oa_completed, oa_dateadded, oa_tablet_req, oa_tablet_given, oa_verified, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) WHERE equinox_lrn = $16`
-
-	// run query
-	XOLog(sqlstr, oa.OaEventID, oa.OaExecID, oa.OaSpaces, oa.OaCommcode, oa.OaNotifyby, oa.OaNotified, oa.OaNoshow, oa.OaLevel, oa.OaCompleted, oa.OaDateadded, oa.OaTabletReq, oa.OaTabletGiven, oa.OaVerified, oa.EquinoxPrn, oa.EquinoxSec, oa.EquinoxLrn)
-	_, err = db.Exec(sqlstr, oa.OaEventID, oa.OaExecID, oa.OaSpaces, oa.OaCommcode, oa.OaNotifyby, oa.OaNotified, oa.OaNoshow, oa.OaLevel, oa.OaCompleted, oa.OaDateadded, oa.OaTabletReq, oa.OaTabletGiven, oa.OaVerified, oa.EquinoxPrn, oa.EquinoxSec, oa.EquinoxLrn)
-	return err
-}
-
-// Save saves the OAttend to the database.
-func (oa *OAttend) Save(db XODB) error {
-	if oa.Exists() {
-		return oa.Update(db)
-	}
-
-	return oa.Insert(db)
-}
-
-// Upsert performs an upsert for OAttend.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (oa *OAttend) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if oa._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.o_attend (` +
-		`oa_event_id, oa_exec_id, oa_spaces, oa_commcode, oa_notifyby, oa_notified, oa_noshow, oa_level, oa_completed, oa_dateadded, oa_tablet_req, oa_tablet_given, oa_verified, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`oa_event_id, oa_exec_id, oa_spaces, oa_commcode, oa_notifyby, oa_notified, oa_noshow, oa_level, oa_completed, oa_dateadded, oa_tablet_req, oa_tablet_given, oa_verified, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.oa_event_id, EXCLUDED.oa_exec_id, EXCLUDED.oa_spaces, EXCLUDED.oa_commcode, EXCLUDED.oa_notifyby, EXCLUDED.oa_notified, EXCLUDED.oa_noshow, EXCLUDED.oa_level, EXCLUDED.oa_completed, EXCLUDED.oa_dateadded, EXCLUDED.oa_tablet_req, EXCLUDED.oa_tablet_given, EXCLUDED.oa_verified, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, oa.OaEventID, oa.OaExecID, oa.OaSpaces, oa.OaCommcode, oa.OaNotifyby, oa.OaNotified, oa.OaNoshow, oa.OaLevel, oa.OaCompleted, oa.OaDateadded, oa.OaTabletReq, oa.OaTabletGiven, oa.OaVerified, oa.EquinoxPrn, oa.EquinoxLrn, oa.EquinoxSec)
-	_, err = db.Exec(sqlstr, oa.OaEventID, oa.OaExecID, oa.OaSpaces, oa.OaCommcode, oa.OaNotifyby, oa.OaNotified, oa.OaNoshow, oa.OaLevel, oa.OaCompleted, oa.OaDateadded, oa.OaTabletReq, oa.OaTabletGiven, oa.OaVerified, oa.EquinoxPrn, oa.EquinoxLrn, oa.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	oa._exists = true
-
-	return nil
-}
-
-// Delete deletes the OAttend from the database.
-func (oa *OAttend) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !oa._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if oa._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.o_attend WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, oa.EquinoxLrn)
-	_, err = db.Exec(sqlstr, oa.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	oa._deleted = true
-
-	return nil
 }
 
 // OAttendByEquinoxLrn retrieves a row from 'equinox.o_attend' as a OAttend.
@@ -187,9 +43,7 @@ func OAttendByEquinoxLrn(db XODB, equinoxLrn int64) (*OAttend, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	oa := OAttend{
-		_exists: true,
-	}
+	oa := OAttend{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&oa.OaEventID, &oa.OaExecID, &oa.OaSpaces, &oa.OaCommcode, &oa.OaNotifyby, &oa.OaNotified, &oa.OaNoshow, &oa.OaLevel, &oa.OaCompleted, &oa.OaDateadded, &oa.OaTabletReq, &oa.OaTabletGiven, &oa.OaVerified, &oa.EquinoxPrn, &oa.EquinoxLrn, &oa.EquinoxSec)
 	if err != nil {

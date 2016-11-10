@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type Edspay struct {
 	EquinoxPrn      sql.NullInt64   `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Edspay exists in the database.
-func (e *Edspay) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Edspay has been deleted from the database.
-func (e *Edspay) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Edspay to the database.
-func (e *Edspay) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.edspay (` +
-		`edsppayment, edsppaymentdate, edsppaymenttype, edsppaymenttime, edsppaymentno, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Edsppayment, e.Edsppaymentdate, e.Edsppaymenttype, e.Edsppaymenttime, e.Edsppaymentno, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Edsppayment, e.Edsppaymentdate, e.Edsppaymenttype, e.Edsppaymenttime, e.Edsppaymentno, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Edspay in the database.
-func (e *Edspay) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.edspay SET (` +
-		`edsppayment, edsppaymentdate, edsppaymenttype, edsppaymenttime, edsppaymentno, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, e.Edsppayment, e.Edsppaymentdate, e.Edsppaymenttype, e.Edsppaymenttime, e.Edsppaymentno, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Edsppayment, e.Edsppaymentdate, e.Edsppaymenttype, e.Edsppaymenttime, e.Edsppaymentno, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Edspay to the database.
-func (e *Edspay) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Edspay.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Edspay) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.edspay (` +
-		`edsppayment, edsppaymentdate, edsppaymenttype, edsppaymenttime, edsppaymentno, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`edsppayment, edsppaymentdate, edsppaymenttype, edsppaymenttime, edsppaymentno, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.edsppayment, EXCLUDED.edsppaymentdate, EXCLUDED.edsppaymenttype, EXCLUDED.edsppaymenttime, EXCLUDED.edsppaymentno, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Edsppayment, e.Edsppaymentdate, e.Edsppaymenttype, e.Edsppaymenttime, e.Edsppaymentno, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Edsppayment, e.Edsppaymentdate, e.Edsppaymenttype, e.Edsppaymenttime, e.Edsppaymentno, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Edspay from the database.
-func (e *Edspay) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.edspay WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EdspayByEquinoxLrn retrieves a row from 'equinox.edspay' as a Edspay.
@@ -179,9 +35,7 @@ func EdspayByEquinoxLrn(db XODB, equinoxLrn int64) (*Edspay, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Edspay{
-		_exists: true,
-	}
+	e := Edspay{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Edsppayment, &e.Edsppaymentdate, &e.Edsppaymenttype, &e.Edsppaymenttime, &e.Edsppaymentno, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

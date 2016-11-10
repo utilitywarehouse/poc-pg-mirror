@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -101,149 +100,6 @@ type Cnxbcv struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxbcv exists in the database.
-func (c *Cnxbcv) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxbcv has been deleted from the database.
-func (c *Cnxbcv) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxbcv to the database.
-func (c *Cnxbcv) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxbcv (` +
-		`cnxbcvcli, cnxbcvni, cnxbcvfeature, cnxbcvservicelvl, cnxbcvcable, cnxbcvdatetocs, cnxbcvdatefromcs, cnxbcvdatetoopt, cnxbcvdatefrmopt, cnxbcvserialnum, cnxbcvdateentere, cnxbcvweborder, cnxbcvdatetobill, cnxbcvdateletter, cnxbcventeredby, cnxbcvpackageno, cnxbcvcpspostcod, cnxbcvwlrtype, cnxbcvcsigndate, cnxbcvholddate, cnxbcvbtaccno, cnxbcvholduntil, cnxbcvdeladdr, cnxbcvdeaddref, cnxbcvexdir, cnxbcvnumwithhel, cnxbcvequip, cnxbcvtps, cnxbcvss07, cnxbcvss01, cnxbcvss1a, cnxbcvss08, cnxbcvss06, cnxbcvss09, cnxbcvss02, cnxbcvss05, cnxbcvss14, cnxbcvreqdate, cnxbcvexcd, cnxbcvexname, cnxbcvstatus, cnxbcvorderid, cnxbcvcommandid, cnxbcvstate, cnxbcvoptordnum, cnxbcvstatedate, cnxbcvagreeddate, cnxbcvdonoracc, cnxbcvrejcpde, cnxbcvhmdate, cnxbcvtariff, cnxbcvmobsaver, cnxbcvdatecheck, cnxbcvtermnum, cnxbcvsubtariff, cnxbcvsvctype, cnxbcvordertype, cnxbcvspared1, cnxbcvspared2, cnxbcv50211sent, cnxbcvinstaldate, cnxbcvsparen1, cnxbcvsparen2, cnxbcvsparen3, cnxbcvcontterm, cnxbcvsparel1, cnxbcvsparel2, cnxbcvsparel3, cnxbcvnewprovide, cnxbcvaddserv, cnxbcvss20, cnxbcvtype, cnxbcvinstaltime, cnxbcvengvisit, cnxbcvcontactno, cnxbcvcategory, cnxbcvalk, cnxbcvvaliddate, cnxbcvvalidby, cnxbcvcampaign, cnxbcvported, cnxbcvexactdate, cnxbcvcancelrid, cnxbcvgainingrid, cnxbcvcpwnref, cnxbcvlorn, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxbcvcli, c.Cnxbcvni, c.Cnxbcvfeature, c.Cnxbcvservicelvl, c.Cnxbcvcable, c.Cnxbcvdatetocs, c.Cnxbcvdatefromcs, c.Cnxbcvdatetoopt, c.Cnxbcvdatefrmopt, c.Cnxbcvserialnum, c.Cnxbcvdateentere, c.Cnxbcvweborder, c.Cnxbcvdatetobill, c.Cnxbcvdateletter, c.Cnxbcventeredby, c.Cnxbcvpackageno, c.Cnxbcvcpspostcod, c.Cnxbcvwlrtype, c.Cnxbcvcsigndate, c.Cnxbcvholddate, c.Cnxbcvbtaccno, c.Cnxbcvholduntil, c.Cnxbcvdeladdr, c.Cnxbcvdeaddref, c.Cnxbcvexdir, c.Cnxbcvnumwithhel, c.Cnxbcvequip, c.Cnxbcvtps, c.Cnxbcvss07, c.Cnxbcvss01, c.Cnxbcvss1a, c.Cnxbcvss08, c.Cnxbcvss06, c.Cnxbcvss09, c.Cnxbcvss02, c.Cnxbcvss05, c.Cnxbcvss14, c.Cnxbcvreqdate, c.Cnxbcvexcd, c.Cnxbcvexname, c.Cnxbcvstatus, c.Cnxbcvorderid, c.Cnxbcvcommandid, c.Cnxbcvstate, c.Cnxbcvoptordnum, c.Cnxbcvstatedate, c.Cnxbcvagreeddate, c.Cnxbcvdonoracc, c.Cnxbcvrejcpde, c.Cnxbcvhmdate, c.Cnxbcvtariff, c.Cnxbcvmobsaver, c.Cnxbcvdatecheck, c.Cnxbcvtermnum, c.Cnxbcvsubtariff, c.Cnxbcvsvctype, c.Cnxbcvordertype, c.Cnxbcvspared1, c.Cnxbcvspared2, c.Cnxbcv50211sent, c.Cnxbcvinstaldate, c.Cnxbcvsparen1, c.Cnxbcvsparen2, c.Cnxbcvsparen3, c.Cnxbcvcontterm, c.Cnxbcvsparel1, c.Cnxbcvsparel2, c.Cnxbcvsparel3, c.Cnxbcvnewprovide, c.Cnxbcvaddserv, c.Cnxbcvss20, c.Cnxbcvtype, c.Cnxbcvinstaltime, c.Cnxbcvengvisit, c.Cnxbcvcontactno, c.Cnxbcvcategory, c.Cnxbcvalk, c.Cnxbcvvaliddate, c.Cnxbcvvalidby, c.Cnxbcvcampaign, c.Cnxbcvported, c.Cnxbcvexactdate, c.Cnxbcvcancelrid, c.Cnxbcvgainingrid, c.Cnxbcvcpwnref, c.Cnxbcvlorn, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxbcvcli, c.Cnxbcvni, c.Cnxbcvfeature, c.Cnxbcvservicelvl, c.Cnxbcvcable, c.Cnxbcvdatetocs, c.Cnxbcvdatefromcs, c.Cnxbcvdatetoopt, c.Cnxbcvdatefrmopt, c.Cnxbcvserialnum, c.Cnxbcvdateentere, c.Cnxbcvweborder, c.Cnxbcvdatetobill, c.Cnxbcvdateletter, c.Cnxbcventeredby, c.Cnxbcvpackageno, c.Cnxbcvcpspostcod, c.Cnxbcvwlrtype, c.Cnxbcvcsigndate, c.Cnxbcvholddate, c.Cnxbcvbtaccno, c.Cnxbcvholduntil, c.Cnxbcvdeladdr, c.Cnxbcvdeaddref, c.Cnxbcvexdir, c.Cnxbcvnumwithhel, c.Cnxbcvequip, c.Cnxbcvtps, c.Cnxbcvss07, c.Cnxbcvss01, c.Cnxbcvss1a, c.Cnxbcvss08, c.Cnxbcvss06, c.Cnxbcvss09, c.Cnxbcvss02, c.Cnxbcvss05, c.Cnxbcvss14, c.Cnxbcvreqdate, c.Cnxbcvexcd, c.Cnxbcvexname, c.Cnxbcvstatus, c.Cnxbcvorderid, c.Cnxbcvcommandid, c.Cnxbcvstate, c.Cnxbcvoptordnum, c.Cnxbcvstatedate, c.Cnxbcvagreeddate, c.Cnxbcvdonoracc, c.Cnxbcvrejcpde, c.Cnxbcvhmdate, c.Cnxbcvtariff, c.Cnxbcvmobsaver, c.Cnxbcvdatecheck, c.Cnxbcvtermnum, c.Cnxbcvsubtariff, c.Cnxbcvsvctype, c.Cnxbcvordertype, c.Cnxbcvspared1, c.Cnxbcvspared2, c.Cnxbcv50211sent, c.Cnxbcvinstaldate, c.Cnxbcvsparen1, c.Cnxbcvsparen2, c.Cnxbcvsparen3, c.Cnxbcvcontterm, c.Cnxbcvsparel1, c.Cnxbcvsparel2, c.Cnxbcvsparel3, c.Cnxbcvnewprovide, c.Cnxbcvaddserv, c.Cnxbcvss20, c.Cnxbcvtype, c.Cnxbcvinstaltime, c.Cnxbcvengvisit, c.Cnxbcvcontactno, c.Cnxbcvcategory, c.Cnxbcvalk, c.Cnxbcvvaliddate, c.Cnxbcvvalidby, c.Cnxbcvcampaign, c.Cnxbcvported, c.Cnxbcvexactdate, c.Cnxbcvcancelrid, c.Cnxbcvgainingrid, c.Cnxbcvcpwnref, c.Cnxbcvlorn, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxbcv in the database.
-func (c *Cnxbcv) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxbcv SET (` +
-		`cnxbcvcli, cnxbcvni, cnxbcvfeature, cnxbcvservicelvl, cnxbcvcable, cnxbcvdatetocs, cnxbcvdatefromcs, cnxbcvdatetoopt, cnxbcvdatefrmopt, cnxbcvserialnum, cnxbcvdateentere, cnxbcvweborder, cnxbcvdatetobill, cnxbcvdateletter, cnxbcventeredby, cnxbcvpackageno, cnxbcvcpspostcod, cnxbcvwlrtype, cnxbcvcsigndate, cnxbcvholddate, cnxbcvbtaccno, cnxbcvholduntil, cnxbcvdeladdr, cnxbcvdeaddref, cnxbcvexdir, cnxbcvnumwithhel, cnxbcvequip, cnxbcvtps, cnxbcvss07, cnxbcvss01, cnxbcvss1a, cnxbcvss08, cnxbcvss06, cnxbcvss09, cnxbcvss02, cnxbcvss05, cnxbcvss14, cnxbcvreqdate, cnxbcvexcd, cnxbcvexname, cnxbcvstatus, cnxbcvorderid, cnxbcvcommandid, cnxbcvstate, cnxbcvoptordnum, cnxbcvstatedate, cnxbcvagreeddate, cnxbcvdonoracc, cnxbcvrejcpde, cnxbcvhmdate, cnxbcvtariff, cnxbcvmobsaver, cnxbcvdatecheck, cnxbcvtermnum, cnxbcvsubtariff, cnxbcvsvctype, cnxbcvordertype, cnxbcvspared1, cnxbcvspared2, cnxbcv50211sent, cnxbcvinstaldate, cnxbcvsparen1, cnxbcvsparen2, cnxbcvsparen3, cnxbcvcontterm, cnxbcvsparel1, cnxbcvsparel2, cnxbcvsparel3, cnxbcvnewprovide, cnxbcvaddserv, cnxbcvss20, cnxbcvtype, cnxbcvinstaltime, cnxbcvengvisit, cnxbcvcontactno, cnxbcvcategory, cnxbcvalk, cnxbcvvaliddate, cnxbcvvalidby, cnxbcvcampaign, cnxbcvported, cnxbcvexactdate, cnxbcvcancelrid, cnxbcvgainingrid, cnxbcvcpwnref, cnxbcvlorn, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88` +
-		`) WHERE equinox_lrn = $89`
-
-	// run query
-	XOLog(sqlstr, c.Cnxbcvcli, c.Cnxbcvni, c.Cnxbcvfeature, c.Cnxbcvservicelvl, c.Cnxbcvcable, c.Cnxbcvdatetocs, c.Cnxbcvdatefromcs, c.Cnxbcvdatetoopt, c.Cnxbcvdatefrmopt, c.Cnxbcvserialnum, c.Cnxbcvdateentere, c.Cnxbcvweborder, c.Cnxbcvdatetobill, c.Cnxbcvdateletter, c.Cnxbcventeredby, c.Cnxbcvpackageno, c.Cnxbcvcpspostcod, c.Cnxbcvwlrtype, c.Cnxbcvcsigndate, c.Cnxbcvholddate, c.Cnxbcvbtaccno, c.Cnxbcvholduntil, c.Cnxbcvdeladdr, c.Cnxbcvdeaddref, c.Cnxbcvexdir, c.Cnxbcvnumwithhel, c.Cnxbcvequip, c.Cnxbcvtps, c.Cnxbcvss07, c.Cnxbcvss01, c.Cnxbcvss1a, c.Cnxbcvss08, c.Cnxbcvss06, c.Cnxbcvss09, c.Cnxbcvss02, c.Cnxbcvss05, c.Cnxbcvss14, c.Cnxbcvreqdate, c.Cnxbcvexcd, c.Cnxbcvexname, c.Cnxbcvstatus, c.Cnxbcvorderid, c.Cnxbcvcommandid, c.Cnxbcvstate, c.Cnxbcvoptordnum, c.Cnxbcvstatedate, c.Cnxbcvagreeddate, c.Cnxbcvdonoracc, c.Cnxbcvrejcpde, c.Cnxbcvhmdate, c.Cnxbcvtariff, c.Cnxbcvmobsaver, c.Cnxbcvdatecheck, c.Cnxbcvtermnum, c.Cnxbcvsubtariff, c.Cnxbcvsvctype, c.Cnxbcvordertype, c.Cnxbcvspared1, c.Cnxbcvspared2, c.Cnxbcv50211sent, c.Cnxbcvinstaldate, c.Cnxbcvsparen1, c.Cnxbcvsparen2, c.Cnxbcvsparen3, c.Cnxbcvcontterm, c.Cnxbcvsparel1, c.Cnxbcvsparel2, c.Cnxbcvsparel3, c.Cnxbcvnewprovide, c.Cnxbcvaddserv, c.Cnxbcvss20, c.Cnxbcvtype, c.Cnxbcvinstaltime, c.Cnxbcvengvisit, c.Cnxbcvcontactno, c.Cnxbcvcategory, c.Cnxbcvalk, c.Cnxbcvvaliddate, c.Cnxbcvvalidby, c.Cnxbcvcampaign, c.Cnxbcvported, c.Cnxbcvexactdate, c.Cnxbcvcancelrid, c.Cnxbcvgainingrid, c.Cnxbcvcpwnref, c.Cnxbcvlorn, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxbcvcli, c.Cnxbcvni, c.Cnxbcvfeature, c.Cnxbcvservicelvl, c.Cnxbcvcable, c.Cnxbcvdatetocs, c.Cnxbcvdatefromcs, c.Cnxbcvdatetoopt, c.Cnxbcvdatefrmopt, c.Cnxbcvserialnum, c.Cnxbcvdateentere, c.Cnxbcvweborder, c.Cnxbcvdatetobill, c.Cnxbcvdateletter, c.Cnxbcventeredby, c.Cnxbcvpackageno, c.Cnxbcvcpspostcod, c.Cnxbcvwlrtype, c.Cnxbcvcsigndate, c.Cnxbcvholddate, c.Cnxbcvbtaccno, c.Cnxbcvholduntil, c.Cnxbcvdeladdr, c.Cnxbcvdeaddref, c.Cnxbcvexdir, c.Cnxbcvnumwithhel, c.Cnxbcvequip, c.Cnxbcvtps, c.Cnxbcvss07, c.Cnxbcvss01, c.Cnxbcvss1a, c.Cnxbcvss08, c.Cnxbcvss06, c.Cnxbcvss09, c.Cnxbcvss02, c.Cnxbcvss05, c.Cnxbcvss14, c.Cnxbcvreqdate, c.Cnxbcvexcd, c.Cnxbcvexname, c.Cnxbcvstatus, c.Cnxbcvorderid, c.Cnxbcvcommandid, c.Cnxbcvstate, c.Cnxbcvoptordnum, c.Cnxbcvstatedate, c.Cnxbcvagreeddate, c.Cnxbcvdonoracc, c.Cnxbcvrejcpde, c.Cnxbcvhmdate, c.Cnxbcvtariff, c.Cnxbcvmobsaver, c.Cnxbcvdatecheck, c.Cnxbcvtermnum, c.Cnxbcvsubtariff, c.Cnxbcvsvctype, c.Cnxbcvordertype, c.Cnxbcvspared1, c.Cnxbcvspared2, c.Cnxbcv50211sent, c.Cnxbcvinstaldate, c.Cnxbcvsparen1, c.Cnxbcvsparen2, c.Cnxbcvsparen3, c.Cnxbcvcontterm, c.Cnxbcvsparel1, c.Cnxbcvsparel2, c.Cnxbcvsparel3, c.Cnxbcvnewprovide, c.Cnxbcvaddserv, c.Cnxbcvss20, c.Cnxbcvtype, c.Cnxbcvinstaltime, c.Cnxbcvengvisit, c.Cnxbcvcontactno, c.Cnxbcvcategory, c.Cnxbcvalk, c.Cnxbcvvaliddate, c.Cnxbcvvalidby, c.Cnxbcvcampaign, c.Cnxbcvported, c.Cnxbcvexactdate, c.Cnxbcvcancelrid, c.Cnxbcvgainingrid, c.Cnxbcvcpwnref, c.Cnxbcvlorn, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxbcv to the database.
-func (c *Cnxbcv) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxbcv.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxbcv) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxbcv (` +
-		`cnxbcvcli, cnxbcvni, cnxbcvfeature, cnxbcvservicelvl, cnxbcvcable, cnxbcvdatetocs, cnxbcvdatefromcs, cnxbcvdatetoopt, cnxbcvdatefrmopt, cnxbcvserialnum, cnxbcvdateentere, cnxbcvweborder, cnxbcvdatetobill, cnxbcvdateletter, cnxbcventeredby, cnxbcvpackageno, cnxbcvcpspostcod, cnxbcvwlrtype, cnxbcvcsigndate, cnxbcvholddate, cnxbcvbtaccno, cnxbcvholduntil, cnxbcvdeladdr, cnxbcvdeaddref, cnxbcvexdir, cnxbcvnumwithhel, cnxbcvequip, cnxbcvtps, cnxbcvss07, cnxbcvss01, cnxbcvss1a, cnxbcvss08, cnxbcvss06, cnxbcvss09, cnxbcvss02, cnxbcvss05, cnxbcvss14, cnxbcvreqdate, cnxbcvexcd, cnxbcvexname, cnxbcvstatus, cnxbcvorderid, cnxbcvcommandid, cnxbcvstate, cnxbcvoptordnum, cnxbcvstatedate, cnxbcvagreeddate, cnxbcvdonoracc, cnxbcvrejcpde, cnxbcvhmdate, cnxbcvtariff, cnxbcvmobsaver, cnxbcvdatecheck, cnxbcvtermnum, cnxbcvsubtariff, cnxbcvsvctype, cnxbcvordertype, cnxbcvspared1, cnxbcvspared2, cnxbcv50211sent, cnxbcvinstaldate, cnxbcvsparen1, cnxbcvsparen2, cnxbcvsparen3, cnxbcvcontterm, cnxbcvsparel1, cnxbcvsparel2, cnxbcvsparel3, cnxbcvnewprovide, cnxbcvaddserv, cnxbcvss20, cnxbcvtype, cnxbcvinstaltime, cnxbcvengvisit, cnxbcvcontactno, cnxbcvcategory, cnxbcvalk, cnxbcvvaliddate, cnxbcvvalidby, cnxbcvcampaign, cnxbcvported, cnxbcvexactdate, cnxbcvcancelrid, cnxbcvgainingrid, cnxbcvcpwnref, cnxbcvlorn, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxbcvcli, cnxbcvni, cnxbcvfeature, cnxbcvservicelvl, cnxbcvcable, cnxbcvdatetocs, cnxbcvdatefromcs, cnxbcvdatetoopt, cnxbcvdatefrmopt, cnxbcvserialnum, cnxbcvdateentere, cnxbcvweborder, cnxbcvdatetobill, cnxbcvdateletter, cnxbcventeredby, cnxbcvpackageno, cnxbcvcpspostcod, cnxbcvwlrtype, cnxbcvcsigndate, cnxbcvholddate, cnxbcvbtaccno, cnxbcvholduntil, cnxbcvdeladdr, cnxbcvdeaddref, cnxbcvexdir, cnxbcvnumwithhel, cnxbcvequip, cnxbcvtps, cnxbcvss07, cnxbcvss01, cnxbcvss1a, cnxbcvss08, cnxbcvss06, cnxbcvss09, cnxbcvss02, cnxbcvss05, cnxbcvss14, cnxbcvreqdate, cnxbcvexcd, cnxbcvexname, cnxbcvstatus, cnxbcvorderid, cnxbcvcommandid, cnxbcvstate, cnxbcvoptordnum, cnxbcvstatedate, cnxbcvagreeddate, cnxbcvdonoracc, cnxbcvrejcpde, cnxbcvhmdate, cnxbcvtariff, cnxbcvmobsaver, cnxbcvdatecheck, cnxbcvtermnum, cnxbcvsubtariff, cnxbcvsvctype, cnxbcvordertype, cnxbcvspared1, cnxbcvspared2, cnxbcv50211sent, cnxbcvinstaldate, cnxbcvsparen1, cnxbcvsparen2, cnxbcvsparen3, cnxbcvcontterm, cnxbcvsparel1, cnxbcvsparel2, cnxbcvsparel3, cnxbcvnewprovide, cnxbcvaddserv, cnxbcvss20, cnxbcvtype, cnxbcvinstaltime, cnxbcvengvisit, cnxbcvcontactno, cnxbcvcategory, cnxbcvalk, cnxbcvvaliddate, cnxbcvvalidby, cnxbcvcampaign, cnxbcvported, cnxbcvexactdate, cnxbcvcancelrid, cnxbcvgainingrid, cnxbcvcpwnref, cnxbcvlorn, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxbcvcli, EXCLUDED.cnxbcvni, EXCLUDED.cnxbcvfeature, EXCLUDED.cnxbcvservicelvl, EXCLUDED.cnxbcvcable, EXCLUDED.cnxbcvdatetocs, EXCLUDED.cnxbcvdatefromcs, EXCLUDED.cnxbcvdatetoopt, EXCLUDED.cnxbcvdatefrmopt, EXCLUDED.cnxbcvserialnum, EXCLUDED.cnxbcvdateentere, EXCLUDED.cnxbcvweborder, EXCLUDED.cnxbcvdatetobill, EXCLUDED.cnxbcvdateletter, EXCLUDED.cnxbcventeredby, EXCLUDED.cnxbcvpackageno, EXCLUDED.cnxbcvcpspostcod, EXCLUDED.cnxbcvwlrtype, EXCLUDED.cnxbcvcsigndate, EXCLUDED.cnxbcvholddate, EXCLUDED.cnxbcvbtaccno, EXCLUDED.cnxbcvholduntil, EXCLUDED.cnxbcvdeladdr, EXCLUDED.cnxbcvdeaddref, EXCLUDED.cnxbcvexdir, EXCLUDED.cnxbcvnumwithhel, EXCLUDED.cnxbcvequip, EXCLUDED.cnxbcvtps, EXCLUDED.cnxbcvss07, EXCLUDED.cnxbcvss01, EXCLUDED.cnxbcvss1a, EXCLUDED.cnxbcvss08, EXCLUDED.cnxbcvss06, EXCLUDED.cnxbcvss09, EXCLUDED.cnxbcvss02, EXCLUDED.cnxbcvss05, EXCLUDED.cnxbcvss14, EXCLUDED.cnxbcvreqdate, EXCLUDED.cnxbcvexcd, EXCLUDED.cnxbcvexname, EXCLUDED.cnxbcvstatus, EXCLUDED.cnxbcvorderid, EXCLUDED.cnxbcvcommandid, EXCLUDED.cnxbcvstate, EXCLUDED.cnxbcvoptordnum, EXCLUDED.cnxbcvstatedate, EXCLUDED.cnxbcvagreeddate, EXCLUDED.cnxbcvdonoracc, EXCLUDED.cnxbcvrejcpde, EXCLUDED.cnxbcvhmdate, EXCLUDED.cnxbcvtariff, EXCLUDED.cnxbcvmobsaver, EXCLUDED.cnxbcvdatecheck, EXCLUDED.cnxbcvtermnum, EXCLUDED.cnxbcvsubtariff, EXCLUDED.cnxbcvsvctype, EXCLUDED.cnxbcvordertype, EXCLUDED.cnxbcvspared1, EXCLUDED.cnxbcvspared2, EXCLUDED.cnxbcv50211sent, EXCLUDED.cnxbcvinstaldate, EXCLUDED.cnxbcvsparen1, EXCLUDED.cnxbcvsparen2, EXCLUDED.cnxbcvsparen3, EXCLUDED.cnxbcvcontterm, EXCLUDED.cnxbcvsparel1, EXCLUDED.cnxbcvsparel2, EXCLUDED.cnxbcvsparel3, EXCLUDED.cnxbcvnewprovide, EXCLUDED.cnxbcvaddserv, EXCLUDED.cnxbcvss20, EXCLUDED.cnxbcvtype, EXCLUDED.cnxbcvinstaltime, EXCLUDED.cnxbcvengvisit, EXCLUDED.cnxbcvcontactno, EXCLUDED.cnxbcvcategory, EXCLUDED.cnxbcvalk, EXCLUDED.cnxbcvvaliddate, EXCLUDED.cnxbcvvalidby, EXCLUDED.cnxbcvcampaign, EXCLUDED.cnxbcvported, EXCLUDED.cnxbcvexactdate, EXCLUDED.cnxbcvcancelrid, EXCLUDED.cnxbcvgainingrid, EXCLUDED.cnxbcvcpwnref, EXCLUDED.cnxbcvlorn, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxbcvcli, c.Cnxbcvni, c.Cnxbcvfeature, c.Cnxbcvservicelvl, c.Cnxbcvcable, c.Cnxbcvdatetocs, c.Cnxbcvdatefromcs, c.Cnxbcvdatetoopt, c.Cnxbcvdatefrmopt, c.Cnxbcvserialnum, c.Cnxbcvdateentere, c.Cnxbcvweborder, c.Cnxbcvdatetobill, c.Cnxbcvdateletter, c.Cnxbcventeredby, c.Cnxbcvpackageno, c.Cnxbcvcpspostcod, c.Cnxbcvwlrtype, c.Cnxbcvcsigndate, c.Cnxbcvholddate, c.Cnxbcvbtaccno, c.Cnxbcvholduntil, c.Cnxbcvdeladdr, c.Cnxbcvdeaddref, c.Cnxbcvexdir, c.Cnxbcvnumwithhel, c.Cnxbcvequip, c.Cnxbcvtps, c.Cnxbcvss07, c.Cnxbcvss01, c.Cnxbcvss1a, c.Cnxbcvss08, c.Cnxbcvss06, c.Cnxbcvss09, c.Cnxbcvss02, c.Cnxbcvss05, c.Cnxbcvss14, c.Cnxbcvreqdate, c.Cnxbcvexcd, c.Cnxbcvexname, c.Cnxbcvstatus, c.Cnxbcvorderid, c.Cnxbcvcommandid, c.Cnxbcvstate, c.Cnxbcvoptordnum, c.Cnxbcvstatedate, c.Cnxbcvagreeddate, c.Cnxbcvdonoracc, c.Cnxbcvrejcpde, c.Cnxbcvhmdate, c.Cnxbcvtariff, c.Cnxbcvmobsaver, c.Cnxbcvdatecheck, c.Cnxbcvtermnum, c.Cnxbcvsubtariff, c.Cnxbcvsvctype, c.Cnxbcvordertype, c.Cnxbcvspared1, c.Cnxbcvspared2, c.Cnxbcv50211sent, c.Cnxbcvinstaldate, c.Cnxbcvsparen1, c.Cnxbcvsparen2, c.Cnxbcvsparen3, c.Cnxbcvcontterm, c.Cnxbcvsparel1, c.Cnxbcvsparel2, c.Cnxbcvsparel3, c.Cnxbcvnewprovide, c.Cnxbcvaddserv, c.Cnxbcvss20, c.Cnxbcvtype, c.Cnxbcvinstaltime, c.Cnxbcvengvisit, c.Cnxbcvcontactno, c.Cnxbcvcategory, c.Cnxbcvalk, c.Cnxbcvvaliddate, c.Cnxbcvvalidby, c.Cnxbcvcampaign, c.Cnxbcvported, c.Cnxbcvexactdate, c.Cnxbcvcancelrid, c.Cnxbcvgainingrid, c.Cnxbcvcpwnref, c.Cnxbcvlorn, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxbcvcli, c.Cnxbcvni, c.Cnxbcvfeature, c.Cnxbcvservicelvl, c.Cnxbcvcable, c.Cnxbcvdatetocs, c.Cnxbcvdatefromcs, c.Cnxbcvdatetoopt, c.Cnxbcvdatefrmopt, c.Cnxbcvserialnum, c.Cnxbcvdateentere, c.Cnxbcvweborder, c.Cnxbcvdatetobill, c.Cnxbcvdateletter, c.Cnxbcventeredby, c.Cnxbcvpackageno, c.Cnxbcvcpspostcod, c.Cnxbcvwlrtype, c.Cnxbcvcsigndate, c.Cnxbcvholddate, c.Cnxbcvbtaccno, c.Cnxbcvholduntil, c.Cnxbcvdeladdr, c.Cnxbcvdeaddref, c.Cnxbcvexdir, c.Cnxbcvnumwithhel, c.Cnxbcvequip, c.Cnxbcvtps, c.Cnxbcvss07, c.Cnxbcvss01, c.Cnxbcvss1a, c.Cnxbcvss08, c.Cnxbcvss06, c.Cnxbcvss09, c.Cnxbcvss02, c.Cnxbcvss05, c.Cnxbcvss14, c.Cnxbcvreqdate, c.Cnxbcvexcd, c.Cnxbcvexname, c.Cnxbcvstatus, c.Cnxbcvorderid, c.Cnxbcvcommandid, c.Cnxbcvstate, c.Cnxbcvoptordnum, c.Cnxbcvstatedate, c.Cnxbcvagreeddate, c.Cnxbcvdonoracc, c.Cnxbcvrejcpde, c.Cnxbcvhmdate, c.Cnxbcvtariff, c.Cnxbcvmobsaver, c.Cnxbcvdatecheck, c.Cnxbcvtermnum, c.Cnxbcvsubtariff, c.Cnxbcvsvctype, c.Cnxbcvordertype, c.Cnxbcvspared1, c.Cnxbcvspared2, c.Cnxbcv50211sent, c.Cnxbcvinstaldate, c.Cnxbcvsparen1, c.Cnxbcvsparen2, c.Cnxbcvsparen3, c.Cnxbcvcontterm, c.Cnxbcvsparel1, c.Cnxbcvsparel2, c.Cnxbcvsparel3, c.Cnxbcvnewprovide, c.Cnxbcvaddserv, c.Cnxbcvss20, c.Cnxbcvtype, c.Cnxbcvinstaltime, c.Cnxbcvengvisit, c.Cnxbcvcontactno, c.Cnxbcvcategory, c.Cnxbcvalk, c.Cnxbcvvaliddate, c.Cnxbcvvalidby, c.Cnxbcvcampaign, c.Cnxbcvported, c.Cnxbcvexactdate, c.Cnxbcvcancelrid, c.Cnxbcvgainingrid, c.Cnxbcvcpwnref, c.Cnxbcvlorn, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxbcv from the database.
-func (c *Cnxbcv) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxbcv WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxbcvByEquinoxLrn retrieves a row from 'equinox.cnxbcv' as a Cnxbcv.
@@ -260,9 +116,7 @@ func CnxbcvByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxbcv, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxbcv{
-		_exists: true,
-	}
+	c := Cnxbcv{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxbcvcli, &c.Cnxbcvni, &c.Cnxbcvfeature, &c.Cnxbcvservicelvl, &c.Cnxbcvcable, &c.Cnxbcvdatetocs, &c.Cnxbcvdatefromcs, &c.Cnxbcvdatetoopt, &c.Cnxbcvdatefrmopt, &c.Cnxbcvserialnum, &c.Cnxbcvdateentere, &c.Cnxbcvweborder, &c.Cnxbcvdatetobill, &c.Cnxbcvdateletter, &c.Cnxbcventeredby, &c.Cnxbcvpackageno, &c.Cnxbcvcpspostcod, &c.Cnxbcvwlrtype, &c.Cnxbcvcsigndate, &c.Cnxbcvholddate, &c.Cnxbcvbtaccno, &c.Cnxbcvholduntil, &c.Cnxbcvdeladdr, &c.Cnxbcvdeaddref, &c.Cnxbcvexdir, &c.Cnxbcvnumwithhel, &c.Cnxbcvequip, &c.Cnxbcvtps, &c.Cnxbcvss07, &c.Cnxbcvss01, &c.Cnxbcvss1a, &c.Cnxbcvss08, &c.Cnxbcvss06, &c.Cnxbcvss09, &c.Cnxbcvss02, &c.Cnxbcvss05, &c.Cnxbcvss14, &c.Cnxbcvreqdate, &c.Cnxbcvexcd, &c.Cnxbcvexname, &c.Cnxbcvstatus, &c.Cnxbcvorderid, &c.Cnxbcvcommandid, &c.Cnxbcvstate, &c.Cnxbcvoptordnum, &c.Cnxbcvstatedate, &c.Cnxbcvagreeddate, &c.Cnxbcvdonoracc, &c.Cnxbcvrejcpde, &c.Cnxbcvhmdate, &c.Cnxbcvtariff, &c.Cnxbcvmobsaver, &c.Cnxbcvdatecheck, &c.Cnxbcvtermnum, &c.Cnxbcvsubtariff, &c.Cnxbcvsvctype, &c.Cnxbcvordertype, &c.Cnxbcvspared1, &c.Cnxbcvspared2, &c.Cnxbcv50211sent, &c.Cnxbcvinstaldate, &c.Cnxbcvsparen1, &c.Cnxbcvsparen2, &c.Cnxbcvsparen3, &c.Cnxbcvcontterm, &c.Cnxbcvsparel1, &c.Cnxbcvsparel2, &c.Cnxbcvsparel3, &c.Cnxbcvnewprovide, &c.Cnxbcvaddserv, &c.Cnxbcvss20, &c.Cnxbcvtype, &c.Cnxbcvinstaltime, &c.Cnxbcvengvisit, &c.Cnxbcvcontactno, &c.Cnxbcvcategory, &c.Cnxbcvalk, &c.Cnxbcvvaliddate, &c.Cnxbcvvalidby, &c.Cnxbcvcampaign, &c.Cnxbcvported, &c.Cnxbcvexactdate, &c.Cnxbcvcancelrid, &c.Cnxbcvgainingrid, &c.Cnxbcvcpwnref, &c.Cnxbcvlorn, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -33,149 +32,6 @@ type Rmoption struct {
 	Rmcommisadjust   sql.NullFloat64 `json:"rmcommisadjust"`   // rmcommisadjust
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Rmoption exists in the database.
-func (r *Rmoption) Exists() bool {
-	return r._exists
-}
-
-// Deleted provides information if the Rmoption has been deleted from the database.
-func (r *Rmoption) Deleted() bool {
-	return r._deleted
-}
-
-// Insert inserts the Rmoption to the database.
-func (r *Rmoption) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.rmoption (` +
-		`rmoptid, rmscreendesc, rmbilldesc, rmoneoffdesc, rmcomments, rmsetup, rmmonthly, rmdaily, rmmonthorday, rmfreemins, rmproratastart, rmprorataend, rmmonthsadv, rmcommissionrate, rmcomcodeid, rmpaytpcommis, rmvalidfrom, rmvalidto, rmcommisadjust, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, r.Rmoptid, r.Rmscreendesc, r.Rmbilldesc, r.Rmoneoffdesc, r.Rmcomments, r.Rmsetup, r.Rmmonthly, r.Rmdaily, r.Rmmonthorday, r.Rmfreemins, r.Rmproratastart, r.Rmprorataend, r.Rmmonthsadv, r.Rmcommissionrate, r.Rmcomcodeid, r.Rmpaytpcommis, r.Rmvalidfrom, r.Rmvalidto, r.Rmcommisadjust, r.EquinoxSec)
-	err = db.QueryRow(sqlstr, r.Rmoptid, r.Rmscreendesc, r.Rmbilldesc, r.Rmoneoffdesc, r.Rmcomments, r.Rmsetup, r.Rmmonthly, r.Rmdaily, r.Rmmonthorday, r.Rmfreemins, r.Rmproratastart, r.Rmprorataend, r.Rmmonthsadv, r.Rmcommissionrate, r.Rmcomcodeid, r.Rmpaytpcommis, r.Rmvalidfrom, r.Rmvalidto, r.Rmcommisadjust, r.EquinoxSec).Scan(&r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Update updates the Rmoption in the database.
-func (r *Rmoption) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.rmoption SET (` +
-		`rmoptid, rmscreendesc, rmbilldesc, rmoneoffdesc, rmcomments, rmsetup, rmmonthly, rmdaily, rmmonthorday, rmfreemins, rmproratastart, rmprorataend, rmmonthsadv, rmcommissionrate, rmcomcodeid, rmpaytpcommis, rmvalidfrom, rmvalidto, rmcommisadjust, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) WHERE equinox_lrn = $21`
-
-	// run query
-	XOLog(sqlstr, r.Rmoptid, r.Rmscreendesc, r.Rmbilldesc, r.Rmoneoffdesc, r.Rmcomments, r.Rmsetup, r.Rmmonthly, r.Rmdaily, r.Rmmonthorday, r.Rmfreemins, r.Rmproratastart, r.Rmprorataend, r.Rmmonthsadv, r.Rmcommissionrate, r.Rmcomcodeid, r.Rmpaytpcommis, r.Rmvalidfrom, r.Rmvalidto, r.Rmcommisadjust, r.EquinoxSec, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.Rmoptid, r.Rmscreendesc, r.Rmbilldesc, r.Rmoneoffdesc, r.Rmcomments, r.Rmsetup, r.Rmmonthly, r.Rmdaily, r.Rmmonthorday, r.Rmfreemins, r.Rmproratastart, r.Rmprorataend, r.Rmmonthsadv, r.Rmcommissionrate, r.Rmcomcodeid, r.Rmpaytpcommis, r.Rmvalidfrom, r.Rmvalidto, r.Rmcommisadjust, r.EquinoxSec, r.EquinoxLrn)
-	return err
-}
-
-// Save saves the Rmoption to the database.
-func (r *Rmoption) Save(db XODB) error {
-	if r.Exists() {
-		return r.Update(db)
-	}
-
-	return r.Insert(db)
-}
-
-// Upsert performs an upsert for Rmoption.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (r *Rmoption) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.rmoption (` +
-		`rmoptid, rmscreendesc, rmbilldesc, rmoneoffdesc, rmcomments, rmsetup, rmmonthly, rmdaily, rmmonthorday, rmfreemins, rmproratastart, rmprorataend, rmmonthsadv, rmcommissionrate, rmcomcodeid, rmpaytpcommis, rmvalidfrom, rmvalidto, rmcommisadjust, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`rmoptid, rmscreendesc, rmbilldesc, rmoneoffdesc, rmcomments, rmsetup, rmmonthly, rmdaily, rmmonthorday, rmfreemins, rmproratastart, rmprorataend, rmmonthsadv, rmcommissionrate, rmcomcodeid, rmpaytpcommis, rmvalidfrom, rmvalidto, rmcommisadjust, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.rmoptid, EXCLUDED.rmscreendesc, EXCLUDED.rmbilldesc, EXCLUDED.rmoneoffdesc, EXCLUDED.rmcomments, EXCLUDED.rmsetup, EXCLUDED.rmmonthly, EXCLUDED.rmdaily, EXCLUDED.rmmonthorday, EXCLUDED.rmfreemins, EXCLUDED.rmproratastart, EXCLUDED.rmprorataend, EXCLUDED.rmmonthsadv, EXCLUDED.rmcommissionrate, EXCLUDED.rmcomcodeid, EXCLUDED.rmpaytpcommis, EXCLUDED.rmvalidfrom, EXCLUDED.rmvalidto, EXCLUDED.rmcommisadjust, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, r.Rmoptid, r.Rmscreendesc, r.Rmbilldesc, r.Rmoneoffdesc, r.Rmcomments, r.Rmsetup, r.Rmmonthly, r.Rmdaily, r.Rmmonthorday, r.Rmfreemins, r.Rmproratastart, r.Rmprorataend, r.Rmmonthsadv, r.Rmcommissionrate, r.Rmcomcodeid, r.Rmpaytpcommis, r.Rmvalidfrom, r.Rmvalidto, r.Rmcommisadjust, r.EquinoxLrn, r.EquinoxSec)
-	_, err = db.Exec(sqlstr, r.Rmoptid, r.Rmscreendesc, r.Rmbilldesc, r.Rmoneoffdesc, r.Rmcomments, r.Rmsetup, r.Rmmonthly, r.Rmdaily, r.Rmmonthorday, r.Rmfreemins, r.Rmproratastart, r.Rmprorataend, r.Rmmonthsadv, r.Rmcommissionrate, r.Rmcomcodeid, r.Rmpaytpcommis, r.Rmvalidfrom, r.Rmvalidto, r.Rmcommisadjust, r.EquinoxLrn, r.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Delete deletes the Rmoption from the database.
-func (r *Rmoption) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.rmoption WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	r._deleted = true
-
-	return nil
 }
 
 // RmoptionByEquinoxLrn retrieves a row from 'equinox.rmoption' as a Rmoption.
@@ -192,9 +48,7 @@ func RmoptionByEquinoxLrn(db XODB, equinoxLrn int64) (*Rmoption, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	r := Rmoption{
-		_exists: true,
-	}
+	r := Rmoption{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&r.Rmoptid, &r.Rmscreendesc, &r.Rmbilldesc, &r.Rmoneoffdesc, &r.Rmcomments, &r.Rmsetup, &r.Rmmonthly, &r.Rmdaily, &r.Rmmonthorday, &r.Rmfreemins, &r.Rmproratastart, &r.Rmprorataend, &r.Rmmonthsadv, &r.Rmcommissionrate, &r.Rmcomcodeid, &r.Rmpaytpcommis, &r.Rmvalidfrom, &r.Rmvalidto, &r.Rmcommisadjust, &r.EquinoxLrn, &r.EquinoxSec)
 	if err != nil {

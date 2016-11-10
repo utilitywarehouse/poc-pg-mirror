@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type Cgbpcli struct {
 	EquinoxPrn      sql.NullInt64  `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cgbpcli exists in the database.
-func (c *Cgbpcli) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cgbpcli has been deleted from the database.
-func (c *Cgbpcli) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cgbpcli to the database.
-func (c *Cgbpcli) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cgbpcli (` +
-		`cgbpclinumber, cgbppayable, cgbpcustenddate, cgbpcustdebt, cgbpclienddate, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cgbpclinumber, c.Cgbppayable, c.Cgbpcustenddate, c.Cgbpcustdebt, c.Cgbpclienddate, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cgbpclinumber, c.Cgbppayable, c.Cgbpcustenddate, c.Cgbpcustdebt, c.Cgbpclienddate, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cgbpcli in the database.
-func (c *Cgbpcli) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cgbpcli SET (` +
-		`cgbpclinumber, cgbppayable, cgbpcustenddate, cgbpcustdebt, cgbpclienddate, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, c.Cgbpclinumber, c.Cgbppayable, c.Cgbpcustenddate, c.Cgbpcustdebt, c.Cgbpclienddate, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cgbpclinumber, c.Cgbppayable, c.Cgbpcustenddate, c.Cgbpcustdebt, c.Cgbpclienddate, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cgbpcli to the database.
-func (c *Cgbpcli) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cgbpcli.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cgbpcli) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cgbpcli (` +
-		`cgbpclinumber, cgbppayable, cgbpcustenddate, cgbpcustdebt, cgbpclienddate, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cgbpclinumber, cgbppayable, cgbpcustenddate, cgbpcustdebt, cgbpclienddate, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cgbpclinumber, EXCLUDED.cgbppayable, EXCLUDED.cgbpcustenddate, EXCLUDED.cgbpcustdebt, EXCLUDED.cgbpclienddate, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cgbpclinumber, c.Cgbppayable, c.Cgbpcustenddate, c.Cgbpcustdebt, c.Cgbpclienddate, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cgbpclinumber, c.Cgbppayable, c.Cgbpcustenddate, c.Cgbpcustdebt, c.Cgbpclienddate, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cgbpcli from the database.
-func (c *Cgbpcli) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cgbpcli WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CgbpcliByEquinoxLrn retrieves a row from 'equinox.cgbpcli' as a Cgbpcli.
@@ -179,9 +35,7 @@ func CgbpcliByEquinoxLrn(db XODB, equinoxLrn int64) (*Cgbpcli, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cgbpcli{
-		_exists: true,
-	}
+	c := Cgbpcli{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cgbpclinumber, &c.Cgbppayable, &c.Cgbpcustenddate, &c.Cgbpcustdebt, &c.Cgbpclienddate, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

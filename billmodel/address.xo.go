@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -33,149 +32,6 @@ type Address struct {
 	Addline3        sql.NullString `json:"addline3"`        // addline3
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Address exists in the database.
-func (a *Address) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Address has been deleted from the database.
-func (a *Address) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Address to the database.
-func (a *Address) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.address (` +
-		`addpostcode, addroadnumber, addsubpremises, addroadname, addlocality, addposttown, addcounty, addalk, addmpr, addmpan, addcli, addaccountno, addlastupdate, addlastuptime, addlastupdateby, addnotes, addline1, addline2, addline3, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Addpostcode, a.Addroadnumber, a.Addsubpremises, a.Addroadname, a.Addlocality, a.Addposttown, a.Addcounty, a.Addalk, a.Addmpr, a.Addmpan, a.Addcli, a.Addaccountno, a.Addlastupdate, a.Addlastuptime, a.Addlastupdateby, a.Addnotes, a.Addline1, a.Addline2, a.Addline3, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Addpostcode, a.Addroadnumber, a.Addsubpremises, a.Addroadname, a.Addlocality, a.Addposttown, a.Addcounty, a.Addalk, a.Addmpr, a.Addmpan, a.Addcli, a.Addaccountno, a.Addlastupdate, a.Addlastuptime, a.Addlastupdateby, a.Addnotes, a.Addline1, a.Addline2, a.Addline3, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Address in the database.
-func (a *Address) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.address SET (` +
-		`addpostcode, addroadnumber, addsubpremises, addroadname, addlocality, addposttown, addcounty, addalk, addmpr, addmpan, addcli, addaccountno, addlastupdate, addlastuptime, addlastupdateby, addnotes, addline1, addline2, addline3, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) WHERE equinox_lrn = $21`
-
-	// run query
-	XOLog(sqlstr, a.Addpostcode, a.Addroadnumber, a.Addsubpremises, a.Addroadname, a.Addlocality, a.Addposttown, a.Addcounty, a.Addalk, a.Addmpr, a.Addmpan, a.Addcli, a.Addaccountno, a.Addlastupdate, a.Addlastuptime, a.Addlastupdateby, a.Addnotes, a.Addline1, a.Addline2, a.Addline3, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Addpostcode, a.Addroadnumber, a.Addsubpremises, a.Addroadname, a.Addlocality, a.Addposttown, a.Addcounty, a.Addalk, a.Addmpr, a.Addmpan, a.Addcli, a.Addaccountno, a.Addlastupdate, a.Addlastuptime, a.Addlastupdateby, a.Addnotes, a.Addline1, a.Addline2, a.Addline3, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Address to the database.
-func (a *Address) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Address.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Address) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.address (` +
-		`addpostcode, addroadnumber, addsubpremises, addroadname, addlocality, addposttown, addcounty, addalk, addmpr, addmpan, addcli, addaccountno, addlastupdate, addlastuptime, addlastupdateby, addnotes, addline1, addline2, addline3, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`addpostcode, addroadnumber, addsubpremises, addroadname, addlocality, addposttown, addcounty, addalk, addmpr, addmpan, addcli, addaccountno, addlastupdate, addlastuptime, addlastupdateby, addnotes, addline1, addline2, addline3, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.addpostcode, EXCLUDED.addroadnumber, EXCLUDED.addsubpremises, EXCLUDED.addroadname, EXCLUDED.addlocality, EXCLUDED.addposttown, EXCLUDED.addcounty, EXCLUDED.addalk, EXCLUDED.addmpr, EXCLUDED.addmpan, EXCLUDED.addcli, EXCLUDED.addaccountno, EXCLUDED.addlastupdate, EXCLUDED.addlastuptime, EXCLUDED.addlastupdateby, EXCLUDED.addnotes, EXCLUDED.addline1, EXCLUDED.addline2, EXCLUDED.addline3, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Addpostcode, a.Addroadnumber, a.Addsubpremises, a.Addroadname, a.Addlocality, a.Addposttown, a.Addcounty, a.Addalk, a.Addmpr, a.Addmpan, a.Addcli, a.Addaccountno, a.Addlastupdate, a.Addlastuptime, a.Addlastupdateby, a.Addnotes, a.Addline1, a.Addline2, a.Addline3, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Addpostcode, a.Addroadnumber, a.Addsubpremises, a.Addroadname, a.Addlocality, a.Addposttown, a.Addcounty, a.Addalk, a.Addmpr, a.Addmpan, a.Addcli, a.Addaccountno, a.Addlastupdate, a.Addlastuptime, a.Addlastupdateby, a.Addnotes, a.Addline1, a.Addline2, a.Addline3, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Address from the database.
-func (a *Address) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.address WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AddressByEquinoxLrn retrieves a row from 'equinox.address' as a Address.
@@ -192,9 +48,7 @@ func AddressByEquinoxLrn(db XODB, equinoxLrn int64) (*Address, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Address{
-		_exists: true,
-	}
+	a := Address{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Addpostcode, &a.Addroadnumber, &a.Addsubpremises, &a.Addroadname, &a.Addlocality, &a.Addposttown, &a.Addcounty, &a.Addalk, &a.Addmpr, &a.Addmpan, &a.Addcli, &a.Addaccountno, &a.Addlastupdate, &a.Addlastuptime, &a.Addlastupdateby, &a.Addnotes, &a.Addline1, &a.Addline2, &a.Addline3, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

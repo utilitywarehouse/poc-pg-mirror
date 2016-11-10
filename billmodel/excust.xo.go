@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Excust struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Excust exists in the database.
-func (e *Excust) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Excust has been deleted from the database.
-func (e *Excust) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Excust to the database.
-func (e *Excust) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.excusts (` +
-		`excustscustacnt, excustsamount, excuststype, excustscstbilno, excustsdate, excustsnum1, excustsdate1, excustsservices, excustscommcode, excustsprocessed, excustscvcrate, excustshighin, excustssparec1, excustssparen1, excustsspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Excustscustacnt, e.Excustsamount, e.Excuststype, e.Excustscstbilno, e.Excustsdate, e.Excustsnum1, e.Excustsdate1, e.Excustsservices, e.Excustscommcode, e.Excustsprocessed, e.Excustscvcrate, e.Excustshighin, e.Excustssparec1, e.Excustssparen1, e.Excustsspared1, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Excustscustacnt, e.Excustsamount, e.Excuststype, e.Excustscstbilno, e.Excustsdate, e.Excustsnum1, e.Excustsdate1, e.Excustsservices, e.Excustscommcode, e.Excustsprocessed, e.Excustscvcrate, e.Excustshighin, e.Excustssparec1, e.Excustssparen1, e.Excustsspared1, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Excust in the database.
-func (e *Excust) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.excusts SET (` +
-		`excustscustacnt, excustsamount, excuststype, excustscstbilno, excustsdate, excustsnum1, excustsdate1, excustsservices, excustscommcode, excustsprocessed, excustscvcrate, excustshighin, excustssparec1, excustssparen1, excustsspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, e.Excustscustacnt, e.Excustsamount, e.Excuststype, e.Excustscstbilno, e.Excustsdate, e.Excustsnum1, e.Excustsdate1, e.Excustsservices, e.Excustscommcode, e.Excustsprocessed, e.Excustscvcrate, e.Excustshighin, e.Excustssparec1, e.Excustssparen1, e.Excustsspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Excustscustacnt, e.Excustsamount, e.Excuststype, e.Excustscstbilno, e.Excustsdate, e.Excustsnum1, e.Excustsdate1, e.Excustsservices, e.Excustscommcode, e.Excustsprocessed, e.Excustscvcrate, e.Excustshighin, e.Excustssparec1, e.Excustssparen1, e.Excustsspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Excust to the database.
-func (e *Excust) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Excust.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Excust) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.excusts (` +
-		`excustscustacnt, excustsamount, excuststype, excustscstbilno, excustsdate, excustsnum1, excustsdate1, excustsservices, excustscommcode, excustsprocessed, excustscvcrate, excustshighin, excustssparec1, excustssparen1, excustsspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`excustscustacnt, excustsamount, excuststype, excustscstbilno, excustsdate, excustsnum1, excustsdate1, excustsservices, excustscommcode, excustsprocessed, excustscvcrate, excustshighin, excustssparec1, excustssparen1, excustsspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.excustscustacnt, EXCLUDED.excustsamount, EXCLUDED.excuststype, EXCLUDED.excustscstbilno, EXCLUDED.excustsdate, EXCLUDED.excustsnum1, EXCLUDED.excustsdate1, EXCLUDED.excustsservices, EXCLUDED.excustscommcode, EXCLUDED.excustsprocessed, EXCLUDED.excustscvcrate, EXCLUDED.excustshighin, EXCLUDED.excustssparec1, EXCLUDED.excustssparen1, EXCLUDED.excustsspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Excustscustacnt, e.Excustsamount, e.Excuststype, e.Excustscstbilno, e.Excustsdate, e.Excustsnum1, e.Excustsdate1, e.Excustsservices, e.Excustscommcode, e.Excustsprocessed, e.Excustscvcrate, e.Excustshighin, e.Excustssparec1, e.Excustssparen1, e.Excustsspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Excustscustacnt, e.Excustsamount, e.Excuststype, e.Excustscstbilno, e.Excustsdate, e.Excustsnum1, e.Excustsdate1, e.Excustsservices, e.Excustscommcode, e.Excustsprocessed, e.Excustscvcrate, e.Excustshighin, e.Excustssparec1, e.Excustssparen1, e.Excustsspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Excust from the database.
-func (e *Excust) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.excusts WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExcustByEquinoxLrn retrieves a row from 'equinox.excusts' as a Excust.
@@ -189,9 +45,7 @@ func ExcustByEquinoxLrn(db XODB, equinoxLrn int64) (*Excust, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Excust{
-		_exists: true,
-	}
+	e := Excust{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Excustscustacnt, &e.Excustsamount, &e.Excuststype, &e.Excustscstbilno, &e.Excustsdate, &e.Excustsnum1, &e.Excustsdate1, &e.Excustsservices, &e.Excustscommcode, &e.Excustsprocessed, &e.Excustscvcrate, &e.Excustshighin, &e.Excustssparec1, &e.Excustssparen1, &e.Excustsspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

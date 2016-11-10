@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -77,149 +76,6 @@ type Ctregion struct {
 	Ctregd2         pq.NullTime     `json:"ctregd2"`         // ctregd2
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ctregion exists in the database.
-func (c *Ctregion) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Ctregion has been deleted from the database.
-func (c *Ctregion) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Ctregion to the database.
-func (c *Ctregion) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ctregion (` +
-		`ctregdate, ctregionname, ctregaq, ctreggdeac, ctrege7eac, ctrege7eac1, ctrege7eac2, ctregtpgas, ctregtpgd, ctregtpe7, ctregrevgas, ctregrevgasb, ctregrevgasdb, ctregrevelec, ctregrevelecb, ctregrevelecdb, ctregreve7, ctregreve7b, ctregreve7db, ctregtotalrev, ctregtotalrevb, ctregtotalrevdb, ctregaql, ctregaqb, ctregaqdb, ctregnumaql, ctregnumaqb, ctregnumaqdb, ctregaqs, ctregnumaqs, ctregaqh, ctregnumaqh, ctregeacl, ctregeacb, ctregeacdb, ctregnumeacl, ctregnumeacb, ctregnumeacdb, ctregeacs, ctregnumeacs, ctregeach, ctregnumeach, ctregeac1l, ctregeac1b, ctregeac1db, ctregeac2l, ctregeac2b, ctregeac2db, ctregnume7l, ctregnume7b, ctregnume7db, ctregeac1s, ctregeac2s, ctregnume7s, ctregeac1h, ctregeac2h, ctregnume7h, ctregn1, ctregn2, ctregchar1, ctregchar2, ctregd1, ctregd2, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Ctregdate, c.Ctregionname, c.Ctregaq, c.Ctreggdeac, c.Ctrege7eac, c.Ctrege7eac1, c.Ctrege7eac2, c.Ctregtpgas, c.Ctregtpgd, c.Ctregtpe7, c.Ctregrevgas, c.Ctregrevgasb, c.Ctregrevgasdb, c.Ctregrevelec, c.Ctregrevelecb, c.Ctregrevelecdb, c.Ctregreve7, c.Ctregreve7b, c.Ctregreve7db, c.Ctregtotalrev, c.Ctregtotalrevb, c.Ctregtotalrevdb, c.Ctregaql, c.Ctregaqb, c.Ctregaqdb, c.Ctregnumaql, c.Ctregnumaqb, c.Ctregnumaqdb, c.Ctregaqs, c.Ctregnumaqs, c.Ctregaqh, c.Ctregnumaqh, c.Ctregeacl, c.Ctregeacb, c.Ctregeacdb, c.Ctregnumeacl, c.Ctregnumeacb, c.Ctregnumeacdb, c.Ctregeacs, c.Ctregnumeacs, c.Ctregeach, c.Ctregnumeach, c.Ctregeac1l, c.Ctregeac1b, c.Ctregeac1db, c.Ctregeac2l, c.Ctregeac2b, c.Ctregeac2db, c.Ctregnume7l, c.Ctregnume7b, c.Ctregnume7db, c.Ctregeac1s, c.Ctregeac2s, c.Ctregnume7s, c.Ctregeac1h, c.Ctregeac2h, c.Ctregnume7h, c.Ctregn1, c.Ctregn2, c.Ctregchar1, c.Ctregchar2, c.Ctregd1, c.Ctregd2, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Ctregdate, c.Ctregionname, c.Ctregaq, c.Ctreggdeac, c.Ctrege7eac, c.Ctrege7eac1, c.Ctrege7eac2, c.Ctregtpgas, c.Ctregtpgd, c.Ctregtpe7, c.Ctregrevgas, c.Ctregrevgasb, c.Ctregrevgasdb, c.Ctregrevelec, c.Ctregrevelecb, c.Ctregrevelecdb, c.Ctregreve7, c.Ctregreve7b, c.Ctregreve7db, c.Ctregtotalrev, c.Ctregtotalrevb, c.Ctregtotalrevdb, c.Ctregaql, c.Ctregaqb, c.Ctregaqdb, c.Ctregnumaql, c.Ctregnumaqb, c.Ctregnumaqdb, c.Ctregaqs, c.Ctregnumaqs, c.Ctregaqh, c.Ctregnumaqh, c.Ctregeacl, c.Ctregeacb, c.Ctregeacdb, c.Ctregnumeacl, c.Ctregnumeacb, c.Ctregnumeacdb, c.Ctregeacs, c.Ctregnumeacs, c.Ctregeach, c.Ctregnumeach, c.Ctregeac1l, c.Ctregeac1b, c.Ctregeac1db, c.Ctregeac2l, c.Ctregeac2b, c.Ctregeac2db, c.Ctregnume7l, c.Ctregnume7b, c.Ctregnume7db, c.Ctregeac1s, c.Ctregeac2s, c.Ctregnume7s, c.Ctregeac1h, c.Ctregeac2h, c.Ctregnume7h, c.Ctregn1, c.Ctregn2, c.Ctregchar1, c.Ctregchar2, c.Ctregd1, c.Ctregd2, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Ctregion in the database.
-func (c *Ctregion) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ctregion SET (` +
-		`ctregdate, ctregionname, ctregaq, ctreggdeac, ctrege7eac, ctrege7eac1, ctrege7eac2, ctregtpgas, ctregtpgd, ctregtpe7, ctregrevgas, ctregrevgasb, ctregrevgasdb, ctregrevelec, ctregrevelecb, ctregrevelecdb, ctregreve7, ctregreve7b, ctregreve7db, ctregtotalrev, ctregtotalrevb, ctregtotalrevdb, ctregaql, ctregaqb, ctregaqdb, ctregnumaql, ctregnumaqb, ctregnumaqdb, ctregaqs, ctregnumaqs, ctregaqh, ctregnumaqh, ctregeacl, ctregeacb, ctregeacdb, ctregnumeacl, ctregnumeacb, ctregnumeacdb, ctregeacs, ctregnumeacs, ctregeach, ctregnumeach, ctregeac1l, ctregeac1b, ctregeac1db, ctregeac2l, ctregeac2b, ctregeac2db, ctregnume7l, ctregnume7b, ctregnume7db, ctregeac1s, ctregeac2s, ctregnume7s, ctregeac1h, ctregeac2h, ctregnume7h, ctregn1, ctregn2, ctregchar1, ctregchar2, ctregd1, ctregd2, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64` +
-		`) WHERE equinox_lrn = $65`
-
-	// run query
-	XOLog(sqlstr, c.Ctregdate, c.Ctregionname, c.Ctregaq, c.Ctreggdeac, c.Ctrege7eac, c.Ctrege7eac1, c.Ctrege7eac2, c.Ctregtpgas, c.Ctregtpgd, c.Ctregtpe7, c.Ctregrevgas, c.Ctregrevgasb, c.Ctregrevgasdb, c.Ctregrevelec, c.Ctregrevelecb, c.Ctregrevelecdb, c.Ctregreve7, c.Ctregreve7b, c.Ctregreve7db, c.Ctregtotalrev, c.Ctregtotalrevb, c.Ctregtotalrevdb, c.Ctregaql, c.Ctregaqb, c.Ctregaqdb, c.Ctregnumaql, c.Ctregnumaqb, c.Ctregnumaqdb, c.Ctregaqs, c.Ctregnumaqs, c.Ctregaqh, c.Ctregnumaqh, c.Ctregeacl, c.Ctregeacb, c.Ctregeacdb, c.Ctregnumeacl, c.Ctregnumeacb, c.Ctregnumeacdb, c.Ctregeacs, c.Ctregnumeacs, c.Ctregeach, c.Ctregnumeach, c.Ctregeac1l, c.Ctregeac1b, c.Ctregeac1db, c.Ctregeac2l, c.Ctregeac2b, c.Ctregeac2db, c.Ctregnume7l, c.Ctregnume7b, c.Ctregnume7db, c.Ctregeac1s, c.Ctregeac2s, c.Ctregnume7s, c.Ctregeac1h, c.Ctregeac2h, c.Ctregnume7h, c.Ctregn1, c.Ctregn2, c.Ctregchar1, c.Ctregchar2, c.Ctregd1, c.Ctregd2, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Ctregdate, c.Ctregionname, c.Ctregaq, c.Ctreggdeac, c.Ctrege7eac, c.Ctrege7eac1, c.Ctrege7eac2, c.Ctregtpgas, c.Ctregtpgd, c.Ctregtpe7, c.Ctregrevgas, c.Ctregrevgasb, c.Ctregrevgasdb, c.Ctregrevelec, c.Ctregrevelecb, c.Ctregrevelecdb, c.Ctregreve7, c.Ctregreve7b, c.Ctregreve7db, c.Ctregtotalrev, c.Ctregtotalrevb, c.Ctregtotalrevdb, c.Ctregaql, c.Ctregaqb, c.Ctregaqdb, c.Ctregnumaql, c.Ctregnumaqb, c.Ctregnumaqdb, c.Ctregaqs, c.Ctregnumaqs, c.Ctregaqh, c.Ctregnumaqh, c.Ctregeacl, c.Ctregeacb, c.Ctregeacdb, c.Ctregnumeacl, c.Ctregnumeacb, c.Ctregnumeacdb, c.Ctregeacs, c.Ctregnumeacs, c.Ctregeach, c.Ctregnumeach, c.Ctregeac1l, c.Ctregeac1b, c.Ctregeac1db, c.Ctregeac2l, c.Ctregeac2b, c.Ctregeac2db, c.Ctregnume7l, c.Ctregnume7b, c.Ctregnume7db, c.Ctregeac1s, c.Ctregeac2s, c.Ctregnume7s, c.Ctregeac1h, c.Ctregeac2h, c.Ctregnume7h, c.Ctregn1, c.Ctregn2, c.Ctregchar1, c.Ctregchar2, c.Ctregd1, c.Ctregd2, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ctregion to the database.
-func (c *Ctregion) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Ctregion.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Ctregion) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ctregion (` +
-		`ctregdate, ctregionname, ctregaq, ctreggdeac, ctrege7eac, ctrege7eac1, ctrege7eac2, ctregtpgas, ctregtpgd, ctregtpe7, ctregrevgas, ctregrevgasb, ctregrevgasdb, ctregrevelec, ctregrevelecb, ctregrevelecdb, ctregreve7, ctregreve7b, ctregreve7db, ctregtotalrev, ctregtotalrevb, ctregtotalrevdb, ctregaql, ctregaqb, ctregaqdb, ctregnumaql, ctregnumaqb, ctregnumaqdb, ctregaqs, ctregnumaqs, ctregaqh, ctregnumaqh, ctregeacl, ctregeacb, ctregeacdb, ctregnumeacl, ctregnumeacb, ctregnumeacdb, ctregeacs, ctregnumeacs, ctregeach, ctregnumeach, ctregeac1l, ctregeac1b, ctregeac1db, ctregeac2l, ctregeac2b, ctregeac2db, ctregnume7l, ctregnume7b, ctregnume7db, ctregeac1s, ctregeac2s, ctregnume7s, ctregeac1h, ctregeac2h, ctregnume7h, ctregn1, ctregn2, ctregchar1, ctregchar2, ctregd1, ctregd2, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ctregdate, ctregionname, ctregaq, ctreggdeac, ctrege7eac, ctrege7eac1, ctrege7eac2, ctregtpgas, ctregtpgd, ctregtpe7, ctregrevgas, ctregrevgasb, ctregrevgasdb, ctregrevelec, ctregrevelecb, ctregrevelecdb, ctregreve7, ctregreve7b, ctregreve7db, ctregtotalrev, ctregtotalrevb, ctregtotalrevdb, ctregaql, ctregaqb, ctregaqdb, ctregnumaql, ctregnumaqb, ctregnumaqdb, ctregaqs, ctregnumaqs, ctregaqh, ctregnumaqh, ctregeacl, ctregeacb, ctregeacdb, ctregnumeacl, ctregnumeacb, ctregnumeacdb, ctregeacs, ctregnumeacs, ctregeach, ctregnumeach, ctregeac1l, ctregeac1b, ctregeac1db, ctregeac2l, ctregeac2b, ctregeac2db, ctregnume7l, ctregnume7b, ctregnume7db, ctregeac1s, ctregeac2s, ctregnume7s, ctregeac1h, ctregeac2h, ctregnume7h, ctregn1, ctregn2, ctregchar1, ctregchar2, ctregd1, ctregd2, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ctregdate, EXCLUDED.ctregionname, EXCLUDED.ctregaq, EXCLUDED.ctreggdeac, EXCLUDED.ctrege7eac, EXCLUDED.ctrege7eac1, EXCLUDED.ctrege7eac2, EXCLUDED.ctregtpgas, EXCLUDED.ctregtpgd, EXCLUDED.ctregtpe7, EXCLUDED.ctregrevgas, EXCLUDED.ctregrevgasb, EXCLUDED.ctregrevgasdb, EXCLUDED.ctregrevelec, EXCLUDED.ctregrevelecb, EXCLUDED.ctregrevelecdb, EXCLUDED.ctregreve7, EXCLUDED.ctregreve7b, EXCLUDED.ctregreve7db, EXCLUDED.ctregtotalrev, EXCLUDED.ctregtotalrevb, EXCLUDED.ctregtotalrevdb, EXCLUDED.ctregaql, EXCLUDED.ctregaqb, EXCLUDED.ctregaqdb, EXCLUDED.ctregnumaql, EXCLUDED.ctregnumaqb, EXCLUDED.ctregnumaqdb, EXCLUDED.ctregaqs, EXCLUDED.ctregnumaqs, EXCLUDED.ctregaqh, EXCLUDED.ctregnumaqh, EXCLUDED.ctregeacl, EXCLUDED.ctregeacb, EXCLUDED.ctregeacdb, EXCLUDED.ctregnumeacl, EXCLUDED.ctregnumeacb, EXCLUDED.ctregnumeacdb, EXCLUDED.ctregeacs, EXCLUDED.ctregnumeacs, EXCLUDED.ctregeach, EXCLUDED.ctregnumeach, EXCLUDED.ctregeac1l, EXCLUDED.ctregeac1b, EXCLUDED.ctregeac1db, EXCLUDED.ctregeac2l, EXCLUDED.ctregeac2b, EXCLUDED.ctregeac2db, EXCLUDED.ctregnume7l, EXCLUDED.ctregnume7b, EXCLUDED.ctregnume7db, EXCLUDED.ctregeac1s, EXCLUDED.ctregeac2s, EXCLUDED.ctregnume7s, EXCLUDED.ctregeac1h, EXCLUDED.ctregeac2h, EXCLUDED.ctregnume7h, EXCLUDED.ctregn1, EXCLUDED.ctregn2, EXCLUDED.ctregchar1, EXCLUDED.ctregchar2, EXCLUDED.ctregd1, EXCLUDED.ctregd2, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Ctregdate, c.Ctregionname, c.Ctregaq, c.Ctreggdeac, c.Ctrege7eac, c.Ctrege7eac1, c.Ctrege7eac2, c.Ctregtpgas, c.Ctregtpgd, c.Ctregtpe7, c.Ctregrevgas, c.Ctregrevgasb, c.Ctregrevgasdb, c.Ctregrevelec, c.Ctregrevelecb, c.Ctregrevelecdb, c.Ctregreve7, c.Ctregreve7b, c.Ctregreve7db, c.Ctregtotalrev, c.Ctregtotalrevb, c.Ctregtotalrevdb, c.Ctregaql, c.Ctregaqb, c.Ctregaqdb, c.Ctregnumaql, c.Ctregnumaqb, c.Ctregnumaqdb, c.Ctregaqs, c.Ctregnumaqs, c.Ctregaqh, c.Ctregnumaqh, c.Ctregeacl, c.Ctregeacb, c.Ctregeacdb, c.Ctregnumeacl, c.Ctregnumeacb, c.Ctregnumeacdb, c.Ctregeacs, c.Ctregnumeacs, c.Ctregeach, c.Ctregnumeach, c.Ctregeac1l, c.Ctregeac1b, c.Ctregeac1db, c.Ctregeac2l, c.Ctregeac2b, c.Ctregeac2db, c.Ctregnume7l, c.Ctregnume7b, c.Ctregnume7db, c.Ctregeac1s, c.Ctregeac2s, c.Ctregnume7s, c.Ctregeac1h, c.Ctregeac2h, c.Ctregnume7h, c.Ctregn1, c.Ctregn2, c.Ctregchar1, c.Ctregchar2, c.Ctregd1, c.Ctregd2, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Ctregdate, c.Ctregionname, c.Ctregaq, c.Ctreggdeac, c.Ctrege7eac, c.Ctrege7eac1, c.Ctrege7eac2, c.Ctregtpgas, c.Ctregtpgd, c.Ctregtpe7, c.Ctregrevgas, c.Ctregrevgasb, c.Ctregrevgasdb, c.Ctregrevelec, c.Ctregrevelecb, c.Ctregrevelecdb, c.Ctregreve7, c.Ctregreve7b, c.Ctregreve7db, c.Ctregtotalrev, c.Ctregtotalrevb, c.Ctregtotalrevdb, c.Ctregaql, c.Ctregaqb, c.Ctregaqdb, c.Ctregnumaql, c.Ctregnumaqb, c.Ctregnumaqdb, c.Ctregaqs, c.Ctregnumaqs, c.Ctregaqh, c.Ctregnumaqh, c.Ctregeacl, c.Ctregeacb, c.Ctregeacdb, c.Ctregnumeacl, c.Ctregnumeacb, c.Ctregnumeacdb, c.Ctregeacs, c.Ctregnumeacs, c.Ctregeach, c.Ctregnumeach, c.Ctregeac1l, c.Ctregeac1b, c.Ctregeac1db, c.Ctregeac2l, c.Ctregeac2b, c.Ctregeac2db, c.Ctregnume7l, c.Ctregnume7b, c.Ctregnume7db, c.Ctregeac1s, c.Ctregeac2s, c.Ctregnume7s, c.Ctregeac1h, c.Ctregeac2h, c.Ctregnume7h, c.Ctregn1, c.Ctregn2, c.Ctregchar1, c.Ctregchar2, c.Ctregd1, c.Ctregd2, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ctregion from the database.
-func (c *Ctregion) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ctregion WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CtregionByEquinoxLrn retrieves a row from 'equinox.ctregion' as a Ctregion.
@@ -236,9 +92,7 @@ func CtregionByEquinoxLrn(db XODB, equinoxLrn int64) (*Ctregion, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Ctregion{
-		_exists: true,
-	}
+	c := Ctregion{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Ctregdate, &c.Ctregionname, &c.Ctregaq, &c.Ctreggdeac, &c.Ctrege7eac, &c.Ctrege7eac1, &c.Ctrege7eac2, &c.Ctregtpgas, &c.Ctregtpgd, &c.Ctregtpe7, &c.Ctregrevgas, &c.Ctregrevgasb, &c.Ctregrevgasdb, &c.Ctregrevelec, &c.Ctregrevelecb, &c.Ctregrevelecdb, &c.Ctregreve7, &c.Ctregreve7b, &c.Ctregreve7db, &c.Ctregtotalrev, &c.Ctregtotalrevb, &c.Ctregtotalrevdb, &c.Ctregaql, &c.Ctregaqb, &c.Ctregaqdb, &c.Ctregnumaql, &c.Ctregnumaqb, &c.Ctregnumaqdb, &c.Ctregaqs, &c.Ctregnumaqs, &c.Ctregaqh, &c.Ctregnumaqh, &c.Ctregeacl, &c.Ctregeacb, &c.Ctregeacdb, &c.Ctregnumeacl, &c.Ctregnumeacb, &c.Ctregnumeacdb, &c.Ctregeacs, &c.Ctregnumeacs, &c.Ctregeach, &c.Ctregnumeach, &c.Ctregeac1l, &c.Ctregeac1b, &c.Ctregeac1db, &c.Ctregeac2l, &c.Ctregeac2b, &c.Ctregeac2db, &c.Ctregnume7l, &c.Ctregnume7b, &c.Ctregnume7db, &c.Ctregeac1s, &c.Ctregeac2s, &c.Ctregnume7s, &c.Ctregeac1h, &c.Ctregeac2h, &c.Ctregnume7h, &c.Ctregn1, &c.Ctregn2, &c.Ctregchar1, &c.Ctregchar2, &c.Ctregd1, &c.Ctregd2, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

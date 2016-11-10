@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type Deposit struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Deposit exists in the database.
-func (d *Deposit) Exists() bool {
-	return d._exists
-}
-
-// Deleted provides information if the Deposit has been deleted from the database.
-func (d *Deposit) Deleted() bool {
-	return d._deleted
-}
-
-// Insert inserts the Deposit to the database.
-func (d *Deposit) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if d._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.deposits (` +
-		`deposituniquesys, depositdate, deposittime, deposittotal, deposittype, depositourref, depositcomments, depositbilldate, depositbillno, depositholduntil, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, d.Deposituniquesys, d.Depositdate, d.Deposittime, d.Deposittotal, d.Deposittype, d.Depositourref, d.Depositcomments, d.Depositbilldate, d.Depositbillno, d.Depositholduntil, d.EquinoxPrn, d.EquinoxSec)
-	err = db.QueryRow(sqlstr, d.Deposituniquesys, d.Depositdate, d.Deposittime, d.Deposittotal, d.Deposittype, d.Depositourref, d.Depositcomments, d.Depositbilldate, d.Depositbillno, d.Depositholduntil, d.EquinoxPrn, d.EquinoxSec).Scan(&d.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	d._exists = true
-
-	return nil
-}
-
-// Update updates the Deposit in the database.
-func (d *Deposit) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !d._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if d._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.deposits SET (` +
-		`deposituniquesys, depositdate, deposittime, deposittotal, deposittype, depositourref, depositcomments, depositbilldate, depositbillno, depositholduntil, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, d.Deposituniquesys, d.Depositdate, d.Deposittime, d.Deposittotal, d.Deposittype, d.Depositourref, d.Depositcomments, d.Depositbilldate, d.Depositbillno, d.Depositholduntil, d.EquinoxPrn, d.EquinoxSec, d.EquinoxLrn)
-	_, err = db.Exec(sqlstr, d.Deposituniquesys, d.Depositdate, d.Deposittime, d.Deposittotal, d.Deposittype, d.Depositourref, d.Depositcomments, d.Depositbilldate, d.Depositbillno, d.Depositholduntil, d.EquinoxPrn, d.EquinoxSec, d.EquinoxLrn)
-	return err
-}
-
-// Save saves the Deposit to the database.
-func (d *Deposit) Save(db XODB) error {
-	if d.Exists() {
-		return d.Update(db)
-	}
-
-	return d.Insert(db)
-}
-
-// Upsert performs an upsert for Deposit.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (d *Deposit) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if d._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.deposits (` +
-		`deposituniquesys, depositdate, deposittime, deposittotal, deposittype, depositourref, depositcomments, depositbilldate, depositbillno, depositholduntil, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`deposituniquesys, depositdate, deposittime, deposittotal, deposittype, depositourref, depositcomments, depositbilldate, depositbillno, depositholduntil, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.deposituniquesys, EXCLUDED.depositdate, EXCLUDED.deposittime, EXCLUDED.deposittotal, EXCLUDED.deposittype, EXCLUDED.depositourref, EXCLUDED.depositcomments, EXCLUDED.depositbilldate, EXCLUDED.depositbillno, EXCLUDED.depositholduntil, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, d.Deposituniquesys, d.Depositdate, d.Deposittime, d.Deposittotal, d.Deposittype, d.Depositourref, d.Depositcomments, d.Depositbilldate, d.Depositbillno, d.Depositholduntil, d.EquinoxPrn, d.EquinoxLrn, d.EquinoxSec)
-	_, err = db.Exec(sqlstr, d.Deposituniquesys, d.Depositdate, d.Deposittime, d.Deposittotal, d.Deposittype, d.Depositourref, d.Depositcomments, d.Depositbilldate, d.Depositbillno, d.Depositholduntil, d.EquinoxPrn, d.EquinoxLrn, d.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	d._exists = true
-
-	return nil
-}
-
-// Delete deletes the Deposit from the database.
-func (d *Deposit) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !d._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if d._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.deposits WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, d.EquinoxLrn)
-	_, err = db.Exec(sqlstr, d.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	d._deleted = true
-
-	return nil
 }
 
 // DepositByEquinoxLrn retrieves a row from 'equinox.deposits' as a Deposit.
@@ -184,9 +40,7 @@ func DepositByEquinoxLrn(db XODB, equinoxLrn int64) (*Deposit, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	d := Deposit{
-		_exists: true,
-	}
+	d := Deposit{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&d.Deposituniquesys, &d.Depositdate, &d.Deposittime, &d.Deposittotal, &d.Deposittype, &d.Depositourref, &d.Depositcomments, &d.Depositbilldate, &d.Depositbillno, &d.Depositholduntil, &d.EquinoxPrn, &d.EquinoxLrn, &d.EquinoxSec)
 	if err != nil {

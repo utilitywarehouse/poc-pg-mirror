@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type Exfast struct {
 	EquinoxPrn      sql.NullInt64  `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exfast exists in the database.
-func (e *Exfast) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exfast has been deleted from the database.
-func (e *Exfast) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exfast to the database.
-func (e *Exfast) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exfast (` +
-		`exfspromo, exfsstartdate, exfsenddate, exfslivedate, exfscompleted, exfsgscustsgath, exfsgscustslive, exfscustsgath, exfscustslive, exfspaid, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Exfspromo, e.Exfsstartdate, e.Exfsenddate, e.Exfslivedate, e.Exfscompleted, e.Exfsgscustsgath, e.Exfsgscustslive, e.Exfscustsgath, e.Exfscustslive, e.Exfspaid, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Exfspromo, e.Exfsstartdate, e.Exfsenddate, e.Exfslivedate, e.Exfscompleted, e.Exfsgscustsgath, e.Exfsgscustslive, e.Exfscustsgath, e.Exfscustslive, e.Exfspaid, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exfast in the database.
-func (e *Exfast) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exfast SET (` +
-		`exfspromo, exfsstartdate, exfsenddate, exfslivedate, exfscompleted, exfsgscustsgath, exfsgscustslive, exfscustsgath, exfscustslive, exfspaid, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, e.Exfspromo, e.Exfsstartdate, e.Exfsenddate, e.Exfslivedate, e.Exfscompleted, e.Exfsgscustsgath, e.Exfsgscustslive, e.Exfscustsgath, e.Exfscustslive, e.Exfspaid, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Exfspromo, e.Exfsstartdate, e.Exfsenddate, e.Exfslivedate, e.Exfscompleted, e.Exfsgscustsgath, e.Exfsgscustslive, e.Exfscustsgath, e.Exfscustslive, e.Exfspaid, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exfast to the database.
-func (e *Exfast) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exfast.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exfast) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exfast (` +
-		`exfspromo, exfsstartdate, exfsenddate, exfslivedate, exfscompleted, exfsgscustsgath, exfsgscustslive, exfscustsgath, exfscustslive, exfspaid, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`exfspromo, exfsstartdate, exfsenddate, exfslivedate, exfscompleted, exfsgscustsgath, exfsgscustslive, exfscustsgath, exfscustslive, exfspaid, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.exfspromo, EXCLUDED.exfsstartdate, EXCLUDED.exfsenddate, EXCLUDED.exfslivedate, EXCLUDED.exfscompleted, EXCLUDED.exfsgscustsgath, EXCLUDED.exfsgscustslive, EXCLUDED.exfscustsgath, EXCLUDED.exfscustslive, EXCLUDED.exfspaid, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Exfspromo, e.Exfsstartdate, e.Exfsenddate, e.Exfslivedate, e.Exfscompleted, e.Exfsgscustsgath, e.Exfsgscustslive, e.Exfscustsgath, e.Exfscustslive, e.Exfspaid, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Exfspromo, e.Exfsstartdate, e.Exfsenddate, e.Exfslivedate, e.Exfscompleted, e.Exfsgscustsgath, e.Exfsgscustslive, e.Exfscustsgath, e.Exfscustslive, e.Exfspaid, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exfast from the database.
-func (e *Exfast) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exfast WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExfastByEquinoxLrn retrieves a row from 'equinox.exfast' as a Exfast.
@@ -184,9 +40,7 @@ func ExfastByEquinoxLrn(db XODB, equinoxLrn int64) (*Exfast, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exfast{
-		_exists: true,
-	}
+	e := Exfast{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Exfspromo, &e.Exfsstartdate, &e.Exfsenddate, &e.Exfslivedate, &e.Exfscompleted, &e.Exfsgscustsgath, &e.Exfsgscustslive, &e.Exfscustsgath, &e.Exfscustslive, &e.Exfspaid, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

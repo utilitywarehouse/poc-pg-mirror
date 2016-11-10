@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Ecofftak struct {
 	EquinoxPrn sql.NullInt64   `json:"equinox_prn"` // equinox_prn
 	EquinoxLrn int64           `json:"equinox_lrn"` // equinox_lrn
 	EquinoxSec sql.NullInt64   `json:"equinox_sec"` // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ecofftak exists in the database.
-func (e *Ecofftak) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Ecofftak has been deleted from the database.
-func (e *Ecofftak) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Ecofftak to the database.
-func (e *Ecofftak) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ecofftak (` +
-		`ecodate, ecoea10, ecoem11, econe12, econo13, econt14, econw15, ecosc16, ecose17, ecoso18, ecosw19, ecowm20, ecown21, ecows22, ecoun23, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Ecodate, e.Ecoea10, e.Ecoem11, e.Econe12, e.Econo13, e.Econt14, e.Econw15, e.Ecosc16, e.Ecose17, e.Ecoso18, e.Ecosw19, e.Ecowm20, e.Ecown21, e.Ecows22, e.Ecoun23, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Ecodate, e.Ecoea10, e.Ecoem11, e.Econe12, e.Econo13, e.Econt14, e.Econw15, e.Ecosc16, e.Ecose17, e.Ecoso18, e.Ecosw19, e.Ecowm20, e.Ecown21, e.Ecows22, e.Ecoun23, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Ecofftak in the database.
-func (e *Ecofftak) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ecofftak SET (` +
-		`ecodate, ecoea10, ecoem11, econe12, econo13, econt14, econw15, ecosc16, ecose17, ecoso18, ecosw19, ecowm20, ecown21, ecows22, ecoun23, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, e.Ecodate, e.Ecoea10, e.Ecoem11, e.Econe12, e.Econo13, e.Econt14, e.Econw15, e.Ecosc16, e.Ecose17, e.Ecoso18, e.Ecosw19, e.Ecowm20, e.Ecown21, e.Ecows22, e.Ecoun23, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Ecodate, e.Ecoea10, e.Ecoem11, e.Econe12, e.Econo13, e.Econt14, e.Econw15, e.Ecosc16, e.Ecose17, e.Ecoso18, e.Ecosw19, e.Ecowm20, e.Ecown21, e.Ecows22, e.Ecoun23, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ecofftak to the database.
-func (e *Ecofftak) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Ecofftak.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Ecofftak) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ecofftak (` +
-		`ecodate, ecoea10, ecoem11, econe12, econo13, econt14, econw15, ecosc16, ecose17, ecoso18, ecosw19, ecowm20, ecown21, ecows22, ecoun23, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ecodate, ecoea10, ecoem11, econe12, econo13, econt14, econw15, ecosc16, ecose17, ecoso18, ecosw19, ecowm20, ecown21, ecows22, ecoun23, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ecodate, EXCLUDED.ecoea10, EXCLUDED.ecoem11, EXCLUDED.econe12, EXCLUDED.econo13, EXCLUDED.econt14, EXCLUDED.econw15, EXCLUDED.ecosc16, EXCLUDED.ecose17, EXCLUDED.ecoso18, EXCLUDED.ecosw19, EXCLUDED.ecowm20, EXCLUDED.ecown21, EXCLUDED.ecows22, EXCLUDED.ecoun23, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Ecodate, e.Ecoea10, e.Ecoem11, e.Econe12, e.Econo13, e.Econt14, e.Econw15, e.Ecosc16, e.Ecose17, e.Ecoso18, e.Ecosw19, e.Ecowm20, e.Ecown21, e.Ecows22, e.Ecoun23, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Ecodate, e.Ecoea10, e.Ecoem11, e.Econe12, e.Econo13, e.Econt14, e.Econw15, e.Ecosc16, e.Ecose17, e.Ecoso18, e.Ecosw19, e.Ecowm20, e.Ecown21, e.Ecows22, e.Ecoun23, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ecofftak from the database.
-func (e *Ecofftak) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ecofftak WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EcofftakByEquinoxLrn retrieves a row from 'equinox.ecofftak' as a Ecofftak.
@@ -189,9 +45,7 @@ func EcofftakByEquinoxLrn(db XODB, equinoxLrn int64) (*Ecofftak, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Ecofftak{
-		_exists: true,
-	}
+	e := Ecofftak{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Ecodate, &e.Ecoea10, &e.Ecoem11, &e.Econe12, &e.Econo13, &e.Econt14, &e.Econw15, &e.Ecosc16, &e.Ecose17, &e.Ecoso18, &e.Ecosw19, &e.Ecowm20, &e.Ecown21, &e.Ecows22, &e.Ecoun23, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

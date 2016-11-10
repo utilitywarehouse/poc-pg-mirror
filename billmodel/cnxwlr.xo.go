@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -56,149 +55,6 @@ type Cnxwlr struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxwlr exists in the database.
-func (c *Cnxwlr) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxwlr has been deleted from the database.
-func (c *Cnxwlr) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxwlr to the database.
-func (c *Cnxwlr) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxwlr (` +
-		`cnxwlorref, cnxwlclinumber, cnxwlcliuniquesy, cnxwllivedate, cnxwlordertype, cnxwlorderstatus, cnxwlengineervi, cnxwlcontactno, cnxwlwlrtype, cnxwlservicelvl, cnxwlcontterm, cnxwlcallbundle, cnxwlservicereq, cnxwlequipment, cnxwldateentered, cnxwlenteredby, cnxwlchangedate, cnxwlchangetime, cnxwlchangedby, cnxwlcpsreq, cnxwlpromocd, cnxwltariff, cnxwlsubtarrif, cnxwlport, cnxwltps, cnxwlwelclett, cnxwlordernotes, cnxwlinstprice, cnxwlexdir, cnxwldeladdr, cnxwlmobsaver, cnxwlbttermend, cnxwlpostcode, cnxwldiscband, cnxwlinstalladdr, cnxwlapptdate, cnxwlfilters, cnxwlreqdate, cnxwlrdonotllu, cnxwlrcampaign, cnxwldeladdref, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxwlorref, c.Cnxwlclinumber, c.Cnxwlcliuniquesy, c.Cnxwllivedate, c.Cnxwlordertype, c.Cnxwlorderstatus, c.Cnxwlengineervi, c.Cnxwlcontactno, c.Cnxwlwlrtype, c.Cnxwlservicelvl, c.Cnxwlcontterm, c.Cnxwlcallbundle, c.Cnxwlservicereq, c.Cnxwlequipment, c.Cnxwldateentered, c.Cnxwlenteredby, c.Cnxwlchangedate, c.Cnxwlchangetime, c.Cnxwlchangedby, c.Cnxwlcpsreq, c.Cnxwlpromocd, c.Cnxwltariff, c.Cnxwlsubtarrif, c.Cnxwlport, c.Cnxwltps, c.Cnxwlwelclett, c.Cnxwlordernotes, c.Cnxwlinstprice, c.Cnxwlexdir, c.Cnxwldeladdr, c.Cnxwlmobsaver, c.Cnxwlbttermend, c.Cnxwlpostcode, c.Cnxwldiscband, c.Cnxwlinstalladdr, c.Cnxwlapptdate, c.Cnxwlfilters, c.Cnxwlreqdate, c.Cnxwlrdonotllu, c.Cnxwlrcampaign, c.Cnxwldeladdref, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxwlorref, c.Cnxwlclinumber, c.Cnxwlcliuniquesy, c.Cnxwllivedate, c.Cnxwlordertype, c.Cnxwlorderstatus, c.Cnxwlengineervi, c.Cnxwlcontactno, c.Cnxwlwlrtype, c.Cnxwlservicelvl, c.Cnxwlcontterm, c.Cnxwlcallbundle, c.Cnxwlservicereq, c.Cnxwlequipment, c.Cnxwldateentered, c.Cnxwlenteredby, c.Cnxwlchangedate, c.Cnxwlchangetime, c.Cnxwlchangedby, c.Cnxwlcpsreq, c.Cnxwlpromocd, c.Cnxwltariff, c.Cnxwlsubtarrif, c.Cnxwlport, c.Cnxwltps, c.Cnxwlwelclett, c.Cnxwlordernotes, c.Cnxwlinstprice, c.Cnxwlexdir, c.Cnxwldeladdr, c.Cnxwlmobsaver, c.Cnxwlbttermend, c.Cnxwlpostcode, c.Cnxwldiscband, c.Cnxwlinstalladdr, c.Cnxwlapptdate, c.Cnxwlfilters, c.Cnxwlreqdate, c.Cnxwlrdonotllu, c.Cnxwlrcampaign, c.Cnxwldeladdref, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxwlr in the database.
-func (c *Cnxwlr) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxwlr SET (` +
-		`cnxwlorref, cnxwlclinumber, cnxwlcliuniquesy, cnxwllivedate, cnxwlordertype, cnxwlorderstatus, cnxwlengineervi, cnxwlcontactno, cnxwlwlrtype, cnxwlservicelvl, cnxwlcontterm, cnxwlcallbundle, cnxwlservicereq, cnxwlequipment, cnxwldateentered, cnxwlenteredby, cnxwlchangedate, cnxwlchangetime, cnxwlchangedby, cnxwlcpsreq, cnxwlpromocd, cnxwltariff, cnxwlsubtarrif, cnxwlport, cnxwltps, cnxwlwelclett, cnxwlordernotes, cnxwlinstprice, cnxwlexdir, cnxwldeladdr, cnxwlmobsaver, cnxwlbttermend, cnxwlpostcode, cnxwldiscband, cnxwlinstalladdr, cnxwlapptdate, cnxwlfilters, cnxwlreqdate, cnxwlrdonotllu, cnxwlrcampaign, cnxwldeladdref, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43` +
-		`) WHERE equinox_lrn = $44`
-
-	// run query
-	XOLog(sqlstr, c.Cnxwlorref, c.Cnxwlclinumber, c.Cnxwlcliuniquesy, c.Cnxwllivedate, c.Cnxwlordertype, c.Cnxwlorderstatus, c.Cnxwlengineervi, c.Cnxwlcontactno, c.Cnxwlwlrtype, c.Cnxwlservicelvl, c.Cnxwlcontterm, c.Cnxwlcallbundle, c.Cnxwlservicereq, c.Cnxwlequipment, c.Cnxwldateentered, c.Cnxwlenteredby, c.Cnxwlchangedate, c.Cnxwlchangetime, c.Cnxwlchangedby, c.Cnxwlcpsreq, c.Cnxwlpromocd, c.Cnxwltariff, c.Cnxwlsubtarrif, c.Cnxwlport, c.Cnxwltps, c.Cnxwlwelclett, c.Cnxwlordernotes, c.Cnxwlinstprice, c.Cnxwlexdir, c.Cnxwldeladdr, c.Cnxwlmobsaver, c.Cnxwlbttermend, c.Cnxwlpostcode, c.Cnxwldiscband, c.Cnxwlinstalladdr, c.Cnxwlapptdate, c.Cnxwlfilters, c.Cnxwlreqdate, c.Cnxwlrdonotllu, c.Cnxwlrcampaign, c.Cnxwldeladdref, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxwlorref, c.Cnxwlclinumber, c.Cnxwlcliuniquesy, c.Cnxwllivedate, c.Cnxwlordertype, c.Cnxwlorderstatus, c.Cnxwlengineervi, c.Cnxwlcontactno, c.Cnxwlwlrtype, c.Cnxwlservicelvl, c.Cnxwlcontterm, c.Cnxwlcallbundle, c.Cnxwlservicereq, c.Cnxwlequipment, c.Cnxwldateentered, c.Cnxwlenteredby, c.Cnxwlchangedate, c.Cnxwlchangetime, c.Cnxwlchangedby, c.Cnxwlcpsreq, c.Cnxwlpromocd, c.Cnxwltariff, c.Cnxwlsubtarrif, c.Cnxwlport, c.Cnxwltps, c.Cnxwlwelclett, c.Cnxwlordernotes, c.Cnxwlinstprice, c.Cnxwlexdir, c.Cnxwldeladdr, c.Cnxwlmobsaver, c.Cnxwlbttermend, c.Cnxwlpostcode, c.Cnxwldiscband, c.Cnxwlinstalladdr, c.Cnxwlapptdate, c.Cnxwlfilters, c.Cnxwlreqdate, c.Cnxwlrdonotllu, c.Cnxwlrcampaign, c.Cnxwldeladdref, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxwlr to the database.
-func (c *Cnxwlr) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxwlr.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxwlr) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxwlr (` +
-		`cnxwlorref, cnxwlclinumber, cnxwlcliuniquesy, cnxwllivedate, cnxwlordertype, cnxwlorderstatus, cnxwlengineervi, cnxwlcontactno, cnxwlwlrtype, cnxwlservicelvl, cnxwlcontterm, cnxwlcallbundle, cnxwlservicereq, cnxwlequipment, cnxwldateentered, cnxwlenteredby, cnxwlchangedate, cnxwlchangetime, cnxwlchangedby, cnxwlcpsreq, cnxwlpromocd, cnxwltariff, cnxwlsubtarrif, cnxwlport, cnxwltps, cnxwlwelclett, cnxwlordernotes, cnxwlinstprice, cnxwlexdir, cnxwldeladdr, cnxwlmobsaver, cnxwlbttermend, cnxwlpostcode, cnxwldiscband, cnxwlinstalladdr, cnxwlapptdate, cnxwlfilters, cnxwlreqdate, cnxwlrdonotllu, cnxwlrcampaign, cnxwldeladdref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxwlorref, cnxwlclinumber, cnxwlcliuniquesy, cnxwllivedate, cnxwlordertype, cnxwlorderstatus, cnxwlengineervi, cnxwlcontactno, cnxwlwlrtype, cnxwlservicelvl, cnxwlcontterm, cnxwlcallbundle, cnxwlservicereq, cnxwlequipment, cnxwldateentered, cnxwlenteredby, cnxwlchangedate, cnxwlchangetime, cnxwlchangedby, cnxwlcpsreq, cnxwlpromocd, cnxwltariff, cnxwlsubtarrif, cnxwlport, cnxwltps, cnxwlwelclett, cnxwlordernotes, cnxwlinstprice, cnxwlexdir, cnxwldeladdr, cnxwlmobsaver, cnxwlbttermend, cnxwlpostcode, cnxwldiscband, cnxwlinstalladdr, cnxwlapptdate, cnxwlfilters, cnxwlreqdate, cnxwlrdonotllu, cnxwlrcampaign, cnxwldeladdref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxwlorref, EXCLUDED.cnxwlclinumber, EXCLUDED.cnxwlcliuniquesy, EXCLUDED.cnxwllivedate, EXCLUDED.cnxwlordertype, EXCLUDED.cnxwlorderstatus, EXCLUDED.cnxwlengineervi, EXCLUDED.cnxwlcontactno, EXCLUDED.cnxwlwlrtype, EXCLUDED.cnxwlservicelvl, EXCLUDED.cnxwlcontterm, EXCLUDED.cnxwlcallbundle, EXCLUDED.cnxwlservicereq, EXCLUDED.cnxwlequipment, EXCLUDED.cnxwldateentered, EXCLUDED.cnxwlenteredby, EXCLUDED.cnxwlchangedate, EXCLUDED.cnxwlchangetime, EXCLUDED.cnxwlchangedby, EXCLUDED.cnxwlcpsreq, EXCLUDED.cnxwlpromocd, EXCLUDED.cnxwltariff, EXCLUDED.cnxwlsubtarrif, EXCLUDED.cnxwlport, EXCLUDED.cnxwltps, EXCLUDED.cnxwlwelclett, EXCLUDED.cnxwlordernotes, EXCLUDED.cnxwlinstprice, EXCLUDED.cnxwlexdir, EXCLUDED.cnxwldeladdr, EXCLUDED.cnxwlmobsaver, EXCLUDED.cnxwlbttermend, EXCLUDED.cnxwlpostcode, EXCLUDED.cnxwldiscband, EXCLUDED.cnxwlinstalladdr, EXCLUDED.cnxwlapptdate, EXCLUDED.cnxwlfilters, EXCLUDED.cnxwlreqdate, EXCLUDED.cnxwlrdonotllu, EXCLUDED.cnxwlrcampaign, EXCLUDED.cnxwldeladdref, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxwlorref, c.Cnxwlclinumber, c.Cnxwlcliuniquesy, c.Cnxwllivedate, c.Cnxwlordertype, c.Cnxwlorderstatus, c.Cnxwlengineervi, c.Cnxwlcontactno, c.Cnxwlwlrtype, c.Cnxwlservicelvl, c.Cnxwlcontterm, c.Cnxwlcallbundle, c.Cnxwlservicereq, c.Cnxwlequipment, c.Cnxwldateentered, c.Cnxwlenteredby, c.Cnxwlchangedate, c.Cnxwlchangetime, c.Cnxwlchangedby, c.Cnxwlcpsreq, c.Cnxwlpromocd, c.Cnxwltariff, c.Cnxwlsubtarrif, c.Cnxwlport, c.Cnxwltps, c.Cnxwlwelclett, c.Cnxwlordernotes, c.Cnxwlinstprice, c.Cnxwlexdir, c.Cnxwldeladdr, c.Cnxwlmobsaver, c.Cnxwlbttermend, c.Cnxwlpostcode, c.Cnxwldiscband, c.Cnxwlinstalladdr, c.Cnxwlapptdate, c.Cnxwlfilters, c.Cnxwlreqdate, c.Cnxwlrdonotllu, c.Cnxwlrcampaign, c.Cnxwldeladdref, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxwlorref, c.Cnxwlclinumber, c.Cnxwlcliuniquesy, c.Cnxwllivedate, c.Cnxwlordertype, c.Cnxwlorderstatus, c.Cnxwlengineervi, c.Cnxwlcontactno, c.Cnxwlwlrtype, c.Cnxwlservicelvl, c.Cnxwlcontterm, c.Cnxwlcallbundle, c.Cnxwlservicereq, c.Cnxwlequipment, c.Cnxwldateentered, c.Cnxwlenteredby, c.Cnxwlchangedate, c.Cnxwlchangetime, c.Cnxwlchangedby, c.Cnxwlcpsreq, c.Cnxwlpromocd, c.Cnxwltariff, c.Cnxwlsubtarrif, c.Cnxwlport, c.Cnxwltps, c.Cnxwlwelclett, c.Cnxwlordernotes, c.Cnxwlinstprice, c.Cnxwlexdir, c.Cnxwldeladdr, c.Cnxwlmobsaver, c.Cnxwlbttermend, c.Cnxwlpostcode, c.Cnxwldiscband, c.Cnxwlinstalladdr, c.Cnxwlapptdate, c.Cnxwlfilters, c.Cnxwlreqdate, c.Cnxwlrdonotllu, c.Cnxwlrcampaign, c.Cnxwldeladdref, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxwlr from the database.
-func (c *Cnxwlr) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxwlr WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxwlrByEquinoxLrn retrieves a row from 'equinox.cnxwlr' as a Cnxwlr.
@@ -215,9 +71,7 @@ func CnxwlrByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxwlr, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxwlr{
-		_exists: true,
-	}
+	c := Cnxwlr{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxwlorref, &c.Cnxwlclinumber, &c.Cnxwlcliuniquesy, &c.Cnxwllivedate, &c.Cnxwlordertype, &c.Cnxwlorderstatus, &c.Cnxwlengineervi, &c.Cnxwlcontactno, &c.Cnxwlwlrtype, &c.Cnxwlservicelvl, &c.Cnxwlcontterm, &c.Cnxwlcallbundle, &c.Cnxwlservicereq, &c.Cnxwlequipment, &c.Cnxwldateentered, &c.Cnxwlenteredby, &c.Cnxwlchangedate, &c.Cnxwlchangetime, &c.Cnxwlchangedby, &c.Cnxwlcpsreq, &c.Cnxwlpromocd, &c.Cnxwltariff, &c.Cnxwlsubtarrif, &c.Cnxwlport, &c.Cnxwltps, &c.Cnxwlwelclett, &c.Cnxwlordernotes, &c.Cnxwlinstprice, &c.Cnxwlexdir, &c.Cnxwldeladdr, &c.Cnxwlmobsaver, &c.Cnxwlbttermend, &c.Cnxwlpostcode, &c.Cnxwldiscband, &c.Cnxwlinstalladdr, &c.Cnxwlapptdate, &c.Cnxwlfilters, &c.Cnxwlreqdate, &c.Cnxwlrdonotllu, &c.Cnxwlrcampaign, &c.Cnxwldeladdref, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -22,149 +21,6 @@ type Setting struct {
 	Notes            sql.NullInt64  `json:"notes"`            // notes
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Setting exists in the database.
-func (s *Setting) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Setting has been deleted from the database.
-func (s *Setting) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Setting to the database.
-func (s *Setting) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.settings (` +
-		`slookupkey, svaluelive, svaluetest, lastmodifieddate, lastmodifiedtime, lastmodifiedby, svalueliveprev, notes, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Slookupkey, s.Svaluelive, s.Svaluetest, s.Lastmodifieddate, s.Lastmodifiedtime, s.Lastmodifiedby, s.Svalueliveprev, s.Notes, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Slookupkey, s.Svaluelive, s.Svaluetest, s.Lastmodifieddate, s.Lastmodifiedtime, s.Lastmodifiedby, s.Svalueliveprev, s.Notes, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Setting in the database.
-func (s *Setting) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.settings SET (` +
-		`slookupkey, svaluelive, svaluetest, lastmodifieddate, lastmodifiedtime, lastmodifiedby, svalueliveprev, notes, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) WHERE equinox_lrn = $10`
-
-	// run query
-	XOLog(sqlstr, s.Slookupkey, s.Svaluelive, s.Svaluetest, s.Lastmodifieddate, s.Lastmodifiedtime, s.Lastmodifiedby, s.Svalueliveprev, s.Notes, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Slookupkey, s.Svaluelive, s.Svaluetest, s.Lastmodifieddate, s.Lastmodifiedtime, s.Lastmodifiedby, s.Svalueliveprev, s.Notes, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Setting to the database.
-func (s *Setting) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Setting.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Setting) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.settings (` +
-		`slookupkey, svaluelive, svaluetest, lastmodifieddate, lastmodifiedtime, lastmodifiedby, svalueliveprev, notes, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`slookupkey, svaluelive, svaluetest, lastmodifieddate, lastmodifiedtime, lastmodifiedby, svalueliveprev, notes, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.slookupkey, EXCLUDED.svaluelive, EXCLUDED.svaluetest, EXCLUDED.lastmodifieddate, EXCLUDED.lastmodifiedtime, EXCLUDED.lastmodifiedby, EXCLUDED.svalueliveprev, EXCLUDED.notes, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Slookupkey, s.Svaluelive, s.Svaluetest, s.Lastmodifieddate, s.Lastmodifiedtime, s.Lastmodifiedby, s.Svalueliveprev, s.Notes, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Slookupkey, s.Svaluelive, s.Svaluetest, s.Lastmodifieddate, s.Lastmodifiedtime, s.Lastmodifiedby, s.Svalueliveprev, s.Notes, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Setting from the database.
-func (s *Setting) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.settings WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SettingByEquinoxLrn retrieves a row from 'equinox.settings' as a Setting.
@@ -181,9 +37,7 @@ func SettingByEquinoxLrn(db XODB, equinoxLrn int64) (*Setting, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Setting{
-		_exists: true,
-	}
+	s := Setting{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Slookupkey, &s.Svaluelive, &s.Svaluetest, &s.Lastmodifieddate, &s.Lastmodifiedtime, &s.Lastmodifiedby, &s.Svalueliveprev, &s.Notes, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

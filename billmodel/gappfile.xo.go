@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type Gappfile struct {
 	EquinoxPrn      sql.NullInt64  `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gappfile exists in the database.
-func (g *Gappfile) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gappfile has been deleted from the database.
-func (g *Gappfile) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gappfile to the database.
-func (g *Gappfile) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gappfile (` +
-		`gappfiledate, gappfilename, gappfileresp, gappfilerejcode, gappnn1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gappfiledate, g.Gappfilename, g.Gappfileresp, g.Gappfilerejcode, g.Gappnn1, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gappfiledate, g.Gappfilename, g.Gappfileresp, g.Gappfilerejcode, g.Gappnn1, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gappfile in the database.
-func (g *Gappfile) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gappfile SET (` +
-		`gappfiledate, gappfilename, gappfileresp, gappfilerejcode, gappnn1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, g.Gappfiledate, g.Gappfilename, g.Gappfileresp, g.Gappfilerejcode, g.Gappnn1, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gappfiledate, g.Gappfilename, g.Gappfileresp, g.Gappfilerejcode, g.Gappnn1, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gappfile to the database.
-func (g *Gappfile) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gappfile.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gappfile) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gappfile (` +
-		`gappfiledate, gappfilename, gappfileresp, gappfilerejcode, gappnn1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gappfiledate, gappfilename, gappfileresp, gappfilerejcode, gappnn1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gappfiledate, EXCLUDED.gappfilename, EXCLUDED.gappfileresp, EXCLUDED.gappfilerejcode, EXCLUDED.gappnn1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gappfiledate, g.Gappfilename, g.Gappfileresp, g.Gappfilerejcode, g.Gappnn1, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gappfiledate, g.Gappfilename, g.Gappfileresp, g.Gappfilerejcode, g.Gappnn1, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gappfile from the database.
-func (g *Gappfile) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gappfile WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GappfileByEquinoxLrn retrieves a row from 'equinox.gappfile' as a Gappfile.
@@ -179,9 +35,7 @@ func GappfileByEquinoxLrn(db XODB, equinoxLrn int64) (*Gappfile, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gappfile{
-		_exists: true,
-	}
+	g := Gappfile{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gappfiledate, &g.Gappfilename, &g.Gappfileresp, &g.Gappfilerejcode, &g.Gappnn1, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

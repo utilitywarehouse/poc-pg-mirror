@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Acbufile struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Acbufile exists in the database.
-func (a *Acbufile) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Acbufile has been deleted from the database.
-func (a *Acbufile) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Acbufile to the database.
-func (a *Acbufile) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.acbufile (` +
-		`gacbutranstype, gacbushiprsortcd, gacbuadjfromdate, gacbuadjtodate, gacbureasoncode, gacbuadjusttype, gacbudataitemchg, gacbuvalue, gacburvdvolorgun, gacbureasnremrks, gacbudatecreated, gacbutimecreated, gacbufilecreated, gacbureadrefrnce, gacbuapprovaltxt, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Gacbutranstype, a.Gacbushiprsortcd, a.Gacbuadjfromdate, a.Gacbuadjtodate, a.Gacbureasoncode, a.Gacbuadjusttype, a.Gacbudataitemchg, a.Gacbuvalue, a.Gacburvdvolorgun, a.Gacbureasnremrks, a.Gacbudatecreated, a.Gacbutimecreated, a.Gacbufilecreated, a.Gacbureadrefrnce, a.Gacbuapprovaltxt, a.EquinoxPrn, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Gacbutranstype, a.Gacbushiprsortcd, a.Gacbuadjfromdate, a.Gacbuadjtodate, a.Gacbureasoncode, a.Gacbuadjusttype, a.Gacbudataitemchg, a.Gacbuvalue, a.Gacburvdvolorgun, a.Gacbureasnremrks, a.Gacbudatecreated, a.Gacbutimecreated, a.Gacbufilecreated, a.Gacbureadrefrnce, a.Gacbuapprovaltxt, a.EquinoxPrn, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Acbufile in the database.
-func (a *Acbufile) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.acbufile SET (` +
-		`gacbutranstype, gacbushiprsortcd, gacbuadjfromdate, gacbuadjtodate, gacbureasoncode, gacbuadjusttype, gacbudataitemchg, gacbuvalue, gacburvdvolorgun, gacbureasnremrks, gacbudatecreated, gacbutimecreated, gacbufilecreated, gacbureadrefrnce, gacbuapprovaltxt, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, a.Gacbutranstype, a.Gacbushiprsortcd, a.Gacbuadjfromdate, a.Gacbuadjtodate, a.Gacbureasoncode, a.Gacbuadjusttype, a.Gacbudataitemchg, a.Gacbuvalue, a.Gacburvdvolorgun, a.Gacbureasnremrks, a.Gacbudatecreated, a.Gacbutimecreated, a.Gacbufilecreated, a.Gacbureadrefrnce, a.Gacbuapprovaltxt, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Gacbutranstype, a.Gacbushiprsortcd, a.Gacbuadjfromdate, a.Gacbuadjtodate, a.Gacbureasoncode, a.Gacbuadjusttype, a.Gacbudataitemchg, a.Gacbuvalue, a.Gacburvdvolorgun, a.Gacbureasnremrks, a.Gacbudatecreated, a.Gacbutimecreated, a.Gacbufilecreated, a.Gacbureadrefrnce, a.Gacbuapprovaltxt, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Acbufile to the database.
-func (a *Acbufile) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Acbufile.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Acbufile) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.acbufile (` +
-		`gacbutranstype, gacbushiprsortcd, gacbuadjfromdate, gacbuadjtodate, gacbureasoncode, gacbuadjusttype, gacbudataitemchg, gacbuvalue, gacburvdvolorgun, gacbureasnremrks, gacbudatecreated, gacbutimecreated, gacbufilecreated, gacbureadrefrnce, gacbuapprovaltxt, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gacbutranstype, gacbushiprsortcd, gacbuadjfromdate, gacbuadjtodate, gacbureasoncode, gacbuadjusttype, gacbudataitemchg, gacbuvalue, gacburvdvolorgun, gacbureasnremrks, gacbudatecreated, gacbutimecreated, gacbufilecreated, gacbureadrefrnce, gacbuapprovaltxt, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gacbutranstype, EXCLUDED.gacbushiprsortcd, EXCLUDED.gacbuadjfromdate, EXCLUDED.gacbuadjtodate, EXCLUDED.gacbureasoncode, EXCLUDED.gacbuadjusttype, EXCLUDED.gacbudataitemchg, EXCLUDED.gacbuvalue, EXCLUDED.gacburvdvolorgun, EXCLUDED.gacbureasnremrks, EXCLUDED.gacbudatecreated, EXCLUDED.gacbutimecreated, EXCLUDED.gacbufilecreated, EXCLUDED.gacbureadrefrnce, EXCLUDED.gacbuapprovaltxt, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Gacbutranstype, a.Gacbushiprsortcd, a.Gacbuadjfromdate, a.Gacbuadjtodate, a.Gacbureasoncode, a.Gacbuadjusttype, a.Gacbudataitemchg, a.Gacbuvalue, a.Gacburvdvolorgun, a.Gacbureasnremrks, a.Gacbudatecreated, a.Gacbutimecreated, a.Gacbufilecreated, a.Gacbureadrefrnce, a.Gacbuapprovaltxt, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Gacbutranstype, a.Gacbushiprsortcd, a.Gacbuadjfromdate, a.Gacbuadjtodate, a.Gacbureasoncode, a.Gacbuadjusttype, a.Gacbudataitemchg, a.Gacbuvalue, a.Gacburvdvolorgun, a.Gacbureasnremrks, a.Gacbudatecreated, a.Gacbutimecreated, a.Gacbufilecreated, a.Gacbureadrefrnce, a.Gacbuapprovaltxt, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Acbufile from the database.
-func (a *Acbufile) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.acbufile WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AcbufileByEquinoxLrn retrieves a row from 'equinox.acbufile' as a Acbufile.
@@ -189,9 +45,7 @@ func AcbufileByEquinoxLrn(db XODB, equinoxLrn int64) (*Acbufile, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Acbufile{
-		_exists: true,
-	}
+	a := Acbufile{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Gacbutranstype, &a.Gacbushiprsortcd, &a.Gacbuadjfromdate, &a.Gacbuadjtodate, &a.Gacbureasoncode, &a.Gacbuadjusttype, &a.Gacbudataitemchg, &a.Gacbuvalue, &a.Gacburvdvolorgun, &a.Gacbureasnremrks, &a.Gacbudatecreated, &a.Gacbutimecreated, &a.Gacbufilecreated, &a.Gacbureadrefrnce, &a.Gacbuapprovaltxt, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

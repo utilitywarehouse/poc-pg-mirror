@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Cnxpitem struct {
 	EquinoxPrn    sql.NullInt64   `json:"equinox_prn"`   // equinox_prn
 	EquinoxLrn    int64           `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxpitem exists in the database.
-func (c *Cnxpitem) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxpitem has been deleted from the database.
-func (c *Cnxpitem) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxpitem to the database.
-func (c *Cnxpitem) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxpitem (` +
-		`cnxpicode, cnxpiitemdesc, cnxpiqty, cnxpinet, cnxpivat, cnxpitotal, cnxpisparec1, cnxpisparec2, cnxpisparen1, cnxpisparen2, cnxpisparen3, cnxpispared1, cnxpispared2, cnxpisparem1, cnxpisparel1, cnxpisparet1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxpicode, c.Cnxpiitemdesc, c.Cnxpiqty, c.Cnxpinet, c.Cnxpivat, c.Cnxpitotal, c.Cnxpisparec1, c.Cnxpisparec2, c.Cnxpisparen1, c.Cnxpisparen2, c.Cnxpisparen3, c.Cnxpispared1, c.Cnxpispared2, c.Cnxpisparem1, c.Cnxpisparel1, c.Cnxpisparet1, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxpicode, c.Cnxpiitemdesc, c.Cnxpiqty, c.Cnxpinet, c.Cnxpivat, c.Cnxpitotal, c.Cnxpisparec1, c.Cnxpisparec2, c.Cnxpisparen1, c.Cnxpisparen2, c.Cnxpisparen3, c.Cnxpispared1, c.Cnxpispared2, c.Cnxpisparem1, c.Cnxpisparel1, c.Cnxpisparet1, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxpitem in the database.
-func (c *Cnxpitem) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxpitem SET (` +
-		`cnxpicode, cnxpiitemdesc, cnxpiqty, cnxpinet, cnxpivat, cnxpitotal, cnxpisparec1, cnxpisparec2, cnxpisparen1, cnxpisparen2, cnxpisparen3, cnxpispared1, cnxpispared2, cnxpisparem1, cnxpisparel1, cnxpisparet1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, c.Cnxpicode, c.Cnxpiitemdesc, c.Cnxpiqty, c.Cnxpinet, c.Cnxpivat, c.Cnxpitotal, c.Cnxpisparec1, c.Cnxpisparec2, c.Cnxpisparen1, c.Cnxpisparen2, c.Cnxpisparen3, c.Cnxpispared1, c.Cnxpispared2, c.Cnxpisparem1, c.Cnxpisparel1, c.Cnxpisparet1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxpicode, c.Cnxpiitemdesc, c.Cnxpiqty, c.Cnxpinet, c.Cnxpivat, c.Cnxpitotal, c.Cnxpisparec1, c.Cnxpisparec2, c.Cnxpisparen1, c.Cnxpisparen2, c.Cnxpisparen3, c.Cnxpispared1, c.Cnxpispared2, c.Cnxpisparem1, c.Cnxpisparel1, c.Cnxpisparet1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxpitem to the database.
-func (c *Cnxpitem) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxpitem.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxpitem) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxpitem (` +
-		`cnxpicode, cnxpiitemdesc, cnxpiqty, cnxpinet, cnxpivat, cnxpitotal, cnxpisparec1, cnxpisparec2, cnxpisparen1, cnxpisparen2, cnxpisparen3, cnxpispared1, cnxpispared2, cnxpisparem1, cnxpisparel1, cnxpisparet1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxpicode, cnxpiitemdesc, cnxpiqty, cnxpinet, cnxpivat, cnxpitotal, cnxpisparec1, cnxpisparec2, cnxpisparen1, cnxpisparen2, cnxpisparen3, cnxpispared1, cnxpispared2, cnxpisparem1, cnxpisparel1, cnxpisparet1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxpicode, EXCLUDED.cnxpiitemdesc, EXCLUDED.cnxpiqty, EXCLUDED.cnxpinet, EXCLUDED.cnxpivat, EXCLUDED.cnxpitotal, EXCLUDED.cnxpisparec1, EXCLUDED.cnxpisparec2, EXCLUDED.cnxpisparen1, EXCLUDED.cnxpisparen2, EXCLUDED.cnxpisparen3, EXCLUDED.cnxpispared1, EXCLUDED.cnxpispared2, EXCLUDED.cnxpisparem1, EXCLUDED.cnxpisparel1, EXCLUDED.cnxpisparet1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxpicode, c.Cnxpiitemdesc, c.Cnxpiqty, c.Cnxpinet, c.Cnxpivat, c.Cnxpitotal, c.Cnxpisparec1, c.Cnxpisparec2, c.Cnxpisparen1, c.Cnxpisparen2, c.Cnxpisparen3, c.Cnxpispared1, c.Cnxpispared2, c.Cnxpisparem1, c.Cnxpisparel1, c.Cnxpisparet1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxpicode, c.Cnxpiitemdesc, c.Cnxpiqty, c.Cnxpinet, c.Cnxpivat, c.Cnxpitotal, c.Cnxpisparec1, c.Cnxpisparec2, c.Cnxpisparen1, c.Cnxpisparen2, c.Cnxpisparen3, c.Cnxpispared1, c.Cnxpispared2, c.Cnxpisparem1, c.Cnxpisparel1, c.Cnxpisparet1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxpitem from the database.
-func (c *Cnxpitem) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxpitem WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxpitemByEquinoxLrn retrieves a row from 'equinox.cnxpitem' as a Cnxpitem.
@@ -190,9 +46,7 @@ func CnxpitemByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxpitem, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxpitem{
-		_exists: true,
-	}
+	c := Cnxpitem{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxpicode, &c.Cnxpiitemdesc, &c.Cnxpiqty, &c.Cnxpinet, &c.Cnxpivat, &c.Cnxpitotal, &c.Cnxpisparec1, &c.Cnxpisparec2, &c.Cnxpisparen1, &c.Cnxpisparen2, &c.Cnxpisparen3, &c.Cnxpispared1, &c.Cnxpispared2, &c.Cnxpisparem1, &c.Cnxpisparel1, &c.Cnxpisparet1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

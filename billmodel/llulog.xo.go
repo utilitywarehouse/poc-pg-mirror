@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -29,149 +28,6 @@ type Llulog struct {
 	Llucsparen3   sql.NullInt64  `json:"llucsparen3"`   // llucsparen3
 	EquinoxLrn    int64          `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Llulog exists in the database.
-func (l *Llulog) Exists() bool {
-	return l._exists
-}
-
-// Deleted provides information if the Llulog has been deleted from the database.
-func (l *Llulog) Deleted() bool {
-	return l._deleted
-}
-
-// Insert inserts the Llulog to the database.
-func (l *Llulog) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.llulog (` +
-		`llucsource, lluccli, lluccheckdate, llucchecktime, llucstatus, llucexchange, llucsparec1, llucsparec2, llucsparec3, llucspared1, llucspared2, llucspared3, llucsparen1, llucsparen2, llucsparen3, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, l.Llucsource, l.Lluccli, l.Lluccheckdate, l.Llucchecktime, l.Llucstatus, l.Llucexchange, l.Llucsparec1, l.Llucsparec2, l.Llucsparec3, l.Llucspared1, l.Llucspared2, l.Llucspared3, l.Llucsparen1, l.Llucsparen2, l.Llucsparen3, l.EquinoxSec)
-	err = db.QueryRow(sqlstr, l.Llucsource, l.Lluccli, l.Lluccheckdate, l.Llucchecktime, l.Llucstatus, l.Llucexchange, l.Llucsparec1, l.Llucsparec2, l.Llucsparec3, l.Llucspared1, l.Llucspared2, l.Llucspared3, l.Llucsparen1, l.Llucsparen2, l.Llucsparen3, l.EquinoxSec).Scan(&l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Update updates the Llulog in the database.
-func (l *Llulog) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.llulog SET (` +
-		`llucsource, lluccli, lluccheckdate, llucchecktime, llucstatus, llucexchange, llucsparec1, llucsparec2, llucsparec3, llucspared1, llucspared2, llucspared3, llucsparen1, llucsparen2, llucsparen3, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) WHERE equinox_lrn = $17`
-
-	// run query
-	XOLog(sqlstr, l.Llucsource, l.Lluccli, l.Lluccheckdate, l.Llucchecktime, l.Llucstatus, l.Llucexchange, l.Llucsparec1, l.Llucsparec2, l.Llucsparec3, l.Llucspared1, l.Llucspared2, l.Llucspared3, l.Llucsparen1, l.Llucsparen2, l.Llucsparen3, l.EquinoxSec, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.Llucsource, l.Lluccli, l.Lluccheckdate, l.Llucchecktime, l.Llucstatus, l.Llucexchange, l.Llucsparec1, l.Llucsparec2, l.Llucsparec3, l.Llucspared1, l.Llucspared2, l.Llucspared3, l.Llucsparen1, l.Llucsparen2, l.Llucsparen3, l.EquinoxSec, l.EquinoxLrn)
-	return err
-}
-
-// Save saves the Llulog to the database.
-func (l *Llulog) Save(db XODB) error {
-	if l.Exists() {
-		return l.Update(db)
-	}
-
-	return l.Insert(db)
-}
-
-// Upsert performs an upsert for Llulog.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (l *Llulog) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.llulog (` +
-		`llucsource, lluccli, lluccheckdate, llucchecktime, llucstatus, llucexchange, llucsparec1, llucsparec2, llucsparec3, llucspared1, llucspared2, llucspared3, llucsparen1, llucsparen2, llucsparen3, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`llucsource, lluccli, lluccheckdate, llucchecktime, llucstatus, llucexchange, llucsparec1, llucsparec2, llucsparec3, llucspared1, llucspared2, llucspared3, llucsparen1, llucsparen2, llucsparen3, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.llucsource, EXCLUDED.lluccli, EXCLUDED.lluccheckdate, EXCLUDED.llucchecktime, EXCLUDED.llucstatus, EXCLUDED.llucexchange, EXCLUDED.llucsparec1, EXCLUDED.llucsparec2, EXCLUDED.llucsparec3, EXCLUDED.llucspared1, EXCLUDED.llucspared2, EXCLUDED.llucspared3, EXCLUDED.llucsparen1, EXCLUDED.llucsparen2, EXCLUDED.llucsparen3, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, l.Llucsource, l.Lluccli, l.Lluccheckdate, l.Llucchecktime, l.Llucstatus, l.Llucexchange, l.Llucsparec1, l.Llucsparec2, l.Llucsparec3, l.Llucspared1, l.Llucspared2, l.Llucspared3, l.Llucsparen1, l.Llucsparen2, l.Llucsparen3, l.EquinoxLrn, l.EquinoxSec)
-	_, err = db.Exec(sqlstr, l.Llucsource, l.Lluccli, l.Lluccheckdate, l.Llucchecktime, l.Llucstatus, l.Llucexchange, l.Llucsparec1, l.Llucsparec2, l.Llucsparec3, l.Llucspared1, l.Llucspared2, l.Llucspared3, l.Llucsparen1, l.Llucsparen2, l.Llucsparen3, l.EquinoxLrn, l.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Delete deletes the Llulog from the database.
-func (l *Llulog) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.llulog WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	l._deleted = true
-
-	return nil
 }
 
 // LlulogByEquinoxLrn retrieves a row from 'equinox.llulog' as a Llulog.
@@ -188,9 +44,7 @@ func LlulogByEquinoxLrn(db XODB, equinoxLrn int64) (*Llulog, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	l := Llulog{
-		_exists: true,
-	}
+	l := Llulog{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&l.Llucsource, &l.Lluccli, &l.Lluccheckdate, &l.Llucchecktime, &l.Llucstatus, &l.Llucexchange, &l.Llucsparec1, &l.Llucsparec2, &l.Llucsparec3, &l.Llucspared1, &l.Llucspared2, &l.Llucspared3, &l.Llucsparen1, &l.Llucsparen2, &l.Llucsparen3, &l.EquinoxLrn, &l.EquinoxSec)
 	if err != nil {

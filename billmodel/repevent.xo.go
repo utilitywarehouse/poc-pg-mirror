@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type Repevent struct {
 	Repoutpath   sql.NullString  `json:"repoutpath"`   // repoutpath
 	EquinoxLrn   int64           `json:"equinox_lrn"`  // equinox_lrn
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Repevent exists in the database.
-func (r *Repevent) Exists() bool {
-	return r._exists
-}
-
-// Deleted provides information if the Repevent has been deleted from the database.
-func (r *Repevent) Deleted() bool {
-	return r._deleted
-}
-
-// Insert inserts the Repevent to the database.
-func (r *Repevent) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.repevent (` +
-		`repname, repowner, repcat, repkey, repnavname, repdescr, repid, repfreq, repfirstused, replastused, repoutpath, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, r.Repname, r.Repowner, r.Repcat, r.Repkey, r.Repnavname, r.Repdescr, r.Repid, r.Repfreq, r.Repfirstused, r.Replastused, r.Repoutpath, r.EquinoxSec)
-	err = db.QueryRow(sqlstr, r.Repname, r.Repowner, r.Repcat, r.Repkey, r.Repnavname, r.Repdescr, r.Repid, r.Repfreq, r.Repfirstused, r.Replastused, r.Repoutpath, r.EquinoxSec).Scan(&r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Update updates the Repevent in the database.
-func (r *Repevent) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.repevent SET (` +
-		`repname, repowner, repcat, repkey, repnavname, repdescr, repid, repfreq, repfirstused, replastused, repoutpath, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, r.Repname, r.Repowner, r.Repcat, r.Repkey, r.Repnavname, r.Repdescr, r.Repid, r.Repfreq, r.Repfirstused, r.Replastused, r.Repoutpath, r.EquinoxSec, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.Repname, r.Repowner, r.Repcat, r.Repkey, r.Repnavname, r.Repdescr, r.Repid, r.Repfreq, r.Repfirstused, r.Replastused, r.Repoutpath, r.EquinoxSec, r.EquinoxLrn)
-	return err
-}
-
-// Save saves the Repevent to the database.
-func (r *Repevent) Save(db XODB) error {
-	if r.Exists() {
-		return r.Update(db)
-	}
-
-	return r.Insert(db)
-}
-
-// Upsert performs an upsert for Repevent.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (r *Repevent) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.repevent (` +
-		`repname, repowner, repcat, repkey, repnavname, repdescr, repid, repfreq, repfirstused, replastused, repoutpath, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`repname, repowner, repcat, repkey, repnavname, repdescr, repid, repfreq, repfirstused, replastused, repoutpath, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.repname, EXCLUDED.repowner, EXCLUDED.repcat, EXCLUDED.repkey, EXCLUDED.repnavname, EXCLUDED.repdescr, EXCLUDED.repid, EXCLUDED.repfreq, EXCLUDED.repfirstused, EXCLUDED.replastused, EXCLUDED.repoutpath, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, r.Repname, r.Repowner, r.Repcat, r.Repkey, r.Repnavname, r.Repdescr, r.Repid, r.Repfreq, r.Repfirstused, r.Replastused, r.Repoutpath, r.EquinoxLrn, r.EquinoxSec)
-	_, err = db.Exec(sqlstr, r.Repname, r.Repowner, r.Repcat, r.Repkey, r.Repnavname, r.Repdescr, r.Repid, r.Repfreq, r.Repfirstused, r.Replastused, r.Repoutpath, r.EquinoxLrn, r.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Delete deletes the Repevent from the database.
-func (r *Repevent) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.repevent WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	r._deleted = true
-
-	return nil
 }
 
 // RepeventByEquinoxLrn retrieves a row from 'equinox.repevent' as a Repevent.
@@ -184,9 +40,7 @@ func RepeventByEquinoxLrn(db XODB, equinoxLrn int64) (*Repevent, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	r := Repevent{
-		_exists: true,
-	}
+	r := Repevent{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&r.Repname, &r.Repowner, &r.Repcat, &r.Repkey, &r.Repnavname, &r.Repdescr, &r.Repid, &r.Repfreq, &r.Repfirstused, &r.Replastused, &r.Repoutpath, &r.EquinoxLrn, &r.EquinoxSec)
 	if err != nil {

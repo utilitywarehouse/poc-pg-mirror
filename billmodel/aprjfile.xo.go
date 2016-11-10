@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type Aprjfile struct {
 	EquinoxPrn     sql.NullInt64  `json:"equinox_prn"`    // equinox_prn
 	EquinoxLrn     int64          `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Aprjfile exists in the database.
-func (a *Aprjfile) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Aprjfile has been deleted from the database.
-func (a *Aprjfile) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Aprjfile to the database.
-func (a *Aprjfile) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.aprjfile (` +
-		`gaprjtranstype, gaprjrejreason, gaprjfileread, gaprjdateread, gaprjtimeread, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Gaprjtranstype, a.Gaprjrejreason, a.Gaprjfileread, a.Gaprjdateread, a.Gaprjtimeread, a.EquinoxPrn, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Gaprjtranstype, a.Gaprjrejreason, a.Gaprjfileread, a.Gaprjdateread, a.Gaprjtimeread, a.EquinoxPrn, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Aprjfile in the database.
-func (a *Aprjfile) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.aprjfile SET (` +
-		`gaprjtranstype, gaprjrejreason, gaprjfileread, gaprjdateread, gaprjtimeread, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, a.Gaprjtranstype, a.Gaprjrejreason, a.Gaprjfileread, a.Gaprjdateread, a.Gaprjtimeread, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Gaprjtranstype, a.Gaprjrejreason, a.Gaprjfileread, a.Gaprjdateread, a.Gaprjtimeread, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Aprjfile to the database.
-func (a *Aprjfile) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Aprjfile.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Aprjfile) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.aprjfile (` +
-		`gaprjtranstype, gaprjrejreason, gaprjfileread, gaprjdateread, gaprjtimeread, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gaprjtranstype, gaprjrejreason, gaprjfileread, gaprjdateread, gaprjtimeread, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gaprjtranstype, EXCLUDED.gaprjrejreason, EXCLUDED.gaprjfileread, EXCLUDED.gaprjdateread, EXCLUDED.gaprjtimeread, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Gaprjtranstype, a.Gaprjrejreason, a.Gaprjfileread, a.Gaprjdateread, a.Gaprjtimeread, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Gaprjtranstype, a.Gaprjrejreason, a.Gaprjfileread, a.Gaprjdateread, a.Gaprjtimeread, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Aprjfile from the database.
-func (a *Aprjfile) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.aprjfile WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AprjfileByEquinoxLrn retrieves a row from 'equinox.aprjfile' as a Aprjfile.
@@ -179,9 +35,7 @@ func AprjfileByEquinoxLrn(db XODB, equinoxLrn int64) (*Aprjfile, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Aprjfile{
-		_exists: true,
-	}
+	a := Aprjfile{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Gaprjtranstype, &a.Gaprjrejreason, &a.Gaprjfileread, &a.Gaprjdateread, &a.Gaprjtimeread, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

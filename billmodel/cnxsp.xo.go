@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -76,149 +75,6 @@ type Cnxsp struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxsp exists in the database.
-func (c *Cnxsp) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxsp has been deleted from the database.
-func (c *Cnxsp) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxsp to the database.
-func (c *Cnxsp) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxsp (` +
-		`cnxspcli, cnxspboxes, cnxspfeature, cnxspcable, cnxspni, cnxspservicelvl, cnxspdatetocs, cnxspdatefromc1, cnxspdatefromc2, cnxspdatetoopt, cnxspdatefromopt, cnxspoptordnum, cnxspserialnum, cnxspdateentered, cnxspweborder, cnxspdatetobill, cnxspdateletter, cnxspprepayment, cnxspdateprepay, cnxspenteredby, cnxspfreebox, cnxsppromocd, cnxspprice, cnxsppackageno, cnxspsubtarrif, cnxspcpspostcode, cnxspdatecps, cnxspcpsreqd, cnxspoptimalplan, cnxspcpsstrikes, cnxspcpsdstrke1, cnxspcpsdstrke2, cnxspcpsdstrke3, cnxspcpscarrier, cnxspextras, cnxspwlrtype, cnxspcpscancel, cnxspmaccode, cnxspordtype, cnxsptariff, cnxspsparen1, cnxspsparen2, cnxspcontterm, cnxspcsigndate, cnxspspared3, cnxspcnf, cnxspdonoracc, cnxspdoncliuni, cnxspdiscband, cnxspholduntil, cnxspbtaccountno, cnxsptps, cnxsphmdate, cnxspbttermend, cnxsplinewithbt, cnxspwelclett, cnxspaddserv, cnxspcallbundle, cnxspvaiddate, cnxspvalidby, cnxspcampaign, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxspcli, c.Cnxspboxes, c.Cnxspfeature, c.Cnxspcable, c.Cnxspni, c.Cnxspservicelvl, c.Cnxspdatetocs, c.Cnxspdatefromc1, c.Cnxspdatefromc2, c.Cnxspdatetoopt, c.Cnxspdatefromopt, c.Cnxspoptordnum, c.Cnxspserialnum, c.Cnxspdateentered, c.Cnxspweborder, c.Cnxspdatetobill, c.Cnxspdateletter, c.Cnxspprepayment, c.Cnxspdateprepay, c.Cnxspenteredby, c.Cnxspfreebox, c.Cnxsppromocd, c.Cnxspprice, c.Cnxsppackageno, c.Cnxspsubtarrif, c.Cnxspcpspostcode, c.Cnxspdatecps, c.Cnxspcpsreqd, c.Cnxspoptimalplan, c.Cnxspcpsstrikes, c.Cnxspcpsdstrke1, c.Cnxspcpsdstrke2, c.Cnxspcpsdstrke3, c.Cnxspcpscarrier, c.Cnxspextras, c.Cnxspwlrtype, c.Cnxspcpscancel, c.Cnxspmaccode, c.Cnxspordtype, c.Cnxsptariff, c.Cnxspsparen1, c.Cnxspsparen2, c.Cnxspcontterm, c.Cnxspcsigndate, c.Cnxspspared3, c.Cnxspcnf, c.Cnxspdonoracc, c.Cnxspdoncliuni, c.Cnxspdiscband, c.Cnxspholduntil, c.Cnxspbtaccountno, c.Cnxsptps, c.Cnxsphmdate, c.Cnxspbttermend, c.Cnxsplinewithbt, c.Cnxspwelclett, c.Cnxspaddserv, c.Cnxspcallbundle, c.Cnxspvaiddate, c.Cnxspvalidby, c.Cnxspcampaign, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxspcli, c.Cnxspboxes, c.Cnxspfeature, c.Cnxspcable, c.Cnxspni, c.Cnxspservicelvl, c.Cnxspdatetocs, c.Cnxspdatefromc1, c.Cnxspdatefromc2, c.Cnxspdatetoopt, c.Cnxspdatefromopt, c.Cnxspoptordnum, c.Cnxspserialnum, c.Cnxspdateentered, c.Cnxspweborder, c.Cnxspdatetobill, c.Cnxspdateletter, c.Cnxspprepayment, c.Cnxspdateprepay, c.Cnxspenteredby, c.Cnxspfreebox, c.Cnxsppromocd, c.Cnxspprice, c.Cnxsppackageno, c.Cnxspsubtarrif, c.Cnxspcpspostcode, c.Cnxspdatecps, c.Cnxspcpsreqd, c.Cnxspoptimalplan, c.Cnxspcpsstrikes, c.Cnxspcpsdstrke1, c.Cnxspcpsdstrke2, c.Cnxspcpsdstrke3, c.Cnxspcpscarrier, c.Cnxspextras, c.Cnxspwlrtype, c.Cnxspcpscancel, c.Cnxspmaccode, c.Cnxspordtype, c.Cnxsptariff, c.Cnxspsparen1, c.Cnxspsparen2, c.Cnxspcontterm, c.Cnxspcsigndate, c.Cnxspspared3, c.Cnxspcnf, c.Cnxspdonoracc, c.Cnxspdoncliuni, c.Cnxspdiscband, c.Cnxspholduntil, c.Cnxspbtaccountno, c.Cnxsptps, c.Cnxsphmdate, c.Cnxspbttermend, c.Cnxsplinewithbt, c.Cnxspwelclett, c.Cnxspaddserv, c.Cnxspcallbundle, c.Cnxspvaiddate, c.Cnxspvalidby, c.Cnxspcampaign, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxsp in the database.
-func (c *Cnxsp) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxsp SET (` +
-		`cnxspcli, cnxspboxes, cnxspfeature, cnxspcable, cnxspni, cnxspservicelvl, cnxspdatetocs, cnxspdatefromc1, cnxspdatefromc2, cnxspdatetoopt, cnxspdatefromopt, cnxspoptordnum, cnxspserialnum, cnxspdateentered, cnxspweborder, cnxspdatetobill, cnxspdateletter, cnxspprepayment, cnxspdateprepay, cnxspenteredby, cnxspfreebox, cnxsppromocd, cnxspprice, cnxsppackageno, cnxspsubtarrif, cnxspcpspostcode, cnxspdatecps, cnxspcpsreqd, cnxspoptimalplan, cnxspcpsstrikes, cnxspcpsdstrke1, cnxspcpsdstrke2, cnxspcpsdstrke3, cnxspcpscarrier, cnxspextras, cnxspwlrtype, cnxspcpscancel, cnxspmaccode, cnxspordtype, cnxsptariff, cnxspsparen1, cnxspsparen2, cnxspcontterm, cnxspcsigndate, cnxspspared3, cnxspcnf, cnxspdonoracc, cnxspdoncliuni, cnxspdiscband, cnxspholduntil, cnxspbtaccountno, cnxsptps, cnxsphmdate, cnxspbttermend, cnxsplinewithbt, cnxspwelclett, cnxspaddserv, cnxspcallbundle, cnxspvaiddate, cnxspvalidby, cnxspcampaign, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63` +
-		`) WHERE equinox_lrn = $64`
-
-	// run query
-	XOLog(sqlstr, c.Cnxspcli, c.Cnxspboxes, c.Cnxspfeature, c.Cnxspcable, c.Cnxspni, c.Cnxspservicelvl, c.Cnxspdatetocs, c.Cnxspdatefromc1, c.Cnxspdatefromc2, c.Cnxspdatetoopt, c.Cnxspdatefromopt, c.Cnxspoptordnum, c.Cnxspserialnum, c.Cnxspdateentered, c.Cnxspweborder, c.Cnxspdatetobill, c.Cnxspdateletter, c.Cnxspprepayment, c.Cnxspdateprepay, c.Cnxspenteredby, c.Cnxspfreebox, c.Cnxsppromocd, c.Cnxspprice, c.Cnxsppackageno, c.Cnxspsubtarrif, c.Cnxspcpspostcode, c.Cnxspdatecps, c.Cnxspcpsreqd, c.Cnxspoptimalplan, c.Cnxspcpsstrikes, c.Cnxspcpsdstrke1, c.Cnxspcpsdstrke2, c.Cnxspcpsdstrke3, c.Cnxspcpscarrier, c.Cnxspextras, c.Cnxspwlrtype, c.Cnxspcpscancel, c.Cnxspmaccode, c.Cnxspordtype, c.Cnxsptariff, c.Cnxspsparen1, c.Cnxspsparen2, c.Cnxspcontterm, c.Cnxspcsigndate, c.Cnxspspared3, c.Cnxspcnf, c.Cnxspdonoracc, c.Cnxspdoncliuni, c.Cnxspdiscband, c.Cnxspholduntil, c.Cnxspbtaccountno, c.Cnxsptps, c.Cnxsphmdate, c.Cnxspbttermend, c.Cnxsplinewithbt, c.Cnxspwelclett, c.Cnxspaddserv, c.Cnxspcallbundle, c.Cnxspvaiddate, c.Cnxspvalidby, c.Cnxspcampaign, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxspcli, c.Cnxspboxes, c.Cnxspfeature, c.Cnxspcable, c.Cnxspni, c.Cnxspservicelvl, c.Cnxspdatetocs, c.Cnxspdatefromc1, c.Cnxspdatefromc2, c.Cnxspdatetoopt, c.Cnxspdatefromopt, c.Cnxspoptordnum, c.Cnxspserialnum, c.Cnxspdateentered, c.Cnxspweborder, c.Cnxspdatetobill, c.Cnxspdateletter, c.Cnxspprepayment, c.Cnxspdateprepay, c.Cnxspenteredby, c.Cnxspfreebox, c.Cnxsppromocd, c.Cnxspprice, c.Cnxsppackageno, c.Cnxspsubtarrif, c.Cnxspcpspostcode, c.Cnxspdatecps, c.Cnxspcpsreqd, c.Cnxspoptimalplan, c.Cnxspcpsstrikes, c.Cnxspcpsdstrke1, c.Cnxspcpsdstrke2, c.Cnxspcpsdstrke3, c.Cnxspcpscarrier, c.Cnxspextras, c.Cnxspwlrtype, c.Cnxspcpscancel, c.Cnxspmaccode, c.Cnxspordtype, c.Cnxsptariff, c.Cnxspsparen1, c.Cnxspsparen2, c.Cnxspcontterm, c.Cnxspcsigndate, c.Cnxspspared3, c.Cnxspcnf, c.Cnxspdonoracc, c.Cnxspdoncliuni, c.Cnxspdiscband, c.Cnxspholduntil, c.Cnxspbtaccountno, c.Cnxsptps, c.Cnxsphmdate, c.Cnxspbttermend, c.Cnxsplinewithbt, c.Cnxspwelclett, c.Cnxspaddserv, c.Cnxspcallbundle, c.Cnxspvaiddate, c.Cnxspvalidby, c.Cnxspcampaign, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxsp to the database.
-func (c *Cnxsp) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxsp.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxsp) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxsp (` +
-		`cnxspcli, cnxspboxes, cnxspfeature, cnxspcable, cnxspni, cnxspservicelvl, cnxspdatetocs, cnxspdatefromc1, cnxspdatefromc2, cnxspdatetoopt, cnxspdatefromopt, cnxspoptordnum, cnxspserialnum, cnxspdateentered, cnxspweborder, cnxspdatetobill, cnxspdateletter, cnxspprepayment, cnxspdateprepay, cnxspenteredby, cnxspfreebox, cnxsppromocd, cnxspprice, cnxsppackageno, cnxspsubtarrif, cnxspcpspostcode, cnxspdatecps, cnxspcpsreqd, cnxspoptimalplan, cnxspcpsstrikes, cnxspcpsdstrke1, cnxspcpsdstrke2, cnxspcpsdstrke3, cnxspcpscarrier, cnxspextras, cnxspwlrtype, cnxspcpscancel, cnxspmaccode, cnxspordtype, cnxsptariff, cnxspsparen1, cnxspsparen2, cnxspcontterm, cnxspcsigndate, cnxspspared3, cnxspcnf, cnxspdonoracc, cnxspdoncliuni, cnxspdiscband, cnxspholduntil, cnxspbtaccountno, cnxsptps, cnxsphmdate, cnxspbttermend, cnxsplinewithbt, cnxspwelclett, cnxspaddserv, cnxspcallbundle, cnxspvaiddate, cnxspvalidby, cnxspcampaign, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxspcli, cnxspboxes, cnxspfeature, cnxspcable, cnxspni, cnxspservicelvl, cnxspdatetocs, cnxspdatefromc1, cnxspdatefromc2, cnxspdatetoopt, cnxspdatefromopt, cnxspoptordnum, cnxspserialnum, cnxspdateentered, cnxspweborder, cnxspdatetobill, cnxspdateletter, cnxspprepayment, cnxspdateprepay, cnxspenteredby, cnxspfreebox, cnxsppromocd, cnxspprice, cnxsppackageno, cnxspsubtarrif, cnxspcpspostcode, cnxspdatecps, cnxspcpsreqd, cnxspoptimalplan, cnxspcpsstrikes, cnxspcpsdstrke1, cnxspcpsdstrke2, cnxspcpsdstrke3, cnxspcpscarrier, cnxspextras, cnxspwlrtype, cnxspcpscancel, cnxspmaccode, cnxspordtype, cnxsptariff, cnxspsparen1, cnxspsparen2, cnxspcontterm, cnxspcsigndate, cnxspspared3, cnxspcnf, cnxspdonoracc, cnxspdoncliuni, cnxspdiscband, cnxspholduntil, cnxspbtaccountno, cnxsptps, cnxsphmdate, cnxspbttermend, cnxsplinewithbt, cnxspwelclett, cnxspaddserv, cnxspcallbundle, cnxspvaiddate, cnxspvalidby, cnxspcampaign, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxspcli, EXCLUDED.cnxspboxes, EXCLUDED.cnxspfeature, EXCLUDED.cnxspcable, EXCLUDED.cnxspni, EXCLUDED.cnxspservicelvl, EXCLUDED.cnxspdatetocs, EXCLUDED.cnxspdatefromc1, EXCLUDED.cnxspdatefromc2, EXCLUDED.cnxspdatetoopt, EXCLUDED.cnxspdatefromopt, EXCLUDED.cnxspoptordnum, EXCLUDED.cnxspserialnum, EXCLUDED.cnxspdateentered, EXCLUDED.cnxspweborder, EXCLUDED.cnxspdatetobill, EXCLUDED.cnxspdateletter, EXCLUDED.cnxspprepayment, EXCLUDED.cnxspdateprepay, EXCLUDED.cnxspenteredby, EXCLUDED.cnxspfreebox, EXCLUDED.cnxsppromocd, EXCLUDED.cnxspprice, EXCLUDED.cnxsppackageno, EXCLUDED.cnxspsubtarrif, EXCLUDED.cnxspcpspostcode, EXCLUDED.cnxspdatecps, EXCLUDED.cnxspcpsreqd, EXCLUDED.cnxspoptimalplan, EXCLUDED.cnxspcpsstrikes, EXCLUDED.cnxspcpsdstrke1, EXCLUDED.cnxspcpsdstrke2, EXCLUDED.cnxspcpsdstrke3, EXCLUDED.cnxspcpscarrier, EXCLUDED.cnxspextras, EXCLUDED.cnxspwlrtype, EXCLUDED.cnxspcpscancel, EXCLUDED.cnxspmaccode, EXCLUDED.cnxspordtype, EXCLUDED.cnxsptariff, EXCLUDED.cnxspsparen1, EXCLUDED.cnxspsparen2, EXCLUDED.cnxspcontterm, EXCLUDED.cnxspcsigndate, EXCLUDED.cnxspspared3, EXCLUDED.cnxspcnf, EXCLUDED.cnxspdonoracc, EXCLUDED.cnxspdoncliuni, EXCLUDED.cnxspdiscband, EXCLUDED.cnxspholduntil, EXCLUDED.cnxspbtaccountno, EXCLUDED.cnxsptps, EXCLUDED.cnxsphmdate, EXCLUDED.cnxspbttermend, EXCLUDED.cnxsplinewithbt, EXCLUDED.cnxspwelclett, EXCLUDED.cnxspaddserv, EXCLUDED.cnxspcallbundle, EXCLUDED.cnxspvaiddate, EXCLUDED.cnxspvalidby, EXCLUDED.cnxspcampaign, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxspcli, c.Cnxspboxes, c.Cnxspfeature, c.Cnxspcable, c.Cnxspni, c.Cnxspservicelvl, c.Cnxspdatetocs, c.Cnxspdatefromc1, c.Cnxspdatefromc2, c.Cnxspdatetoopt, c.Cnxspdatefromopt, c.Cnxspoptordnum, c.Cnxspserialnum, c.Cnxspdateentered, c.Cnxspweborder, c.Cnxspdatetobill, c.Cnxspdateletter, c.Cnxspprepayment, c.Cnxspdateprepay, c.Cnxspenteredby, c.Cnxspfreebox, c.Cnxsppromocd, c.Cnxspprice, c.Cnxsppackageno, c.Cnxspsubtarrif, c.Cnxspcpspostcode, c.Cnxspdatecps, c.Cnxspcpsreqd, c.Cnxspoptimalplan, c.Cnxspcpsstrikes, c.Cnxspcpsdstrke1, c.Cnxspcpsdstrke2, c.Cnxspcpsdstrke3, c.Cnxspcpscarrier, c.Cnxspextras, c.Cnxspwlrtype, c.Cnxspcpscancel, c.Cnxspmaccode, c.Cnxspordtype, c.Cnxsptariff, c.Cnxspsparen1, c.Cnxspsparen2, c.Cnxspcontterm, c.Cnxspcsigndate, c.Cnxspspared3, c.Cnxspcnf, c.Cnxspdonoracc, c.Cnxspdoncliuni, c.Cnxspdiscband, c.Cnxspholduntil, c.Cnxspbtaccountno, c.Cnxsptps, c.Cnxsphmdate, c.Cnxspbttermend, c.Cnxsplinewithbt, c.Cnxspwelclett, c.Cnxspaddserv, c.Cnxspcallbundle, c.Cnxspvaiddate, c.Cnxspvalidby, c.Cnxspcampaign, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxspcli, c.Cnxspboxes, c.Cnxspfeature, c.Cnxspcable, c.Cnxspni, c.Cnxspservicelvl, c.Cnxspdatetocs, c.Cnxspdatefromc1, c.Cnxspdatefromc2, c.Cnxspdatetoopt, c.Cnxspdatefromopt, c.Cnxspoptordnum, c.Cnxspserialnum, c.Cnxspdateentered, c.Cnxspweborder, c.Cnxspdatetobill, c.Cnxspdateletter, c.Cnxspprepayment, c.Cnxspdateprepay, c.Cnxspenteredby, c.Cnxspfreebox, c.Cnxsppromocd, c.Cnxspprice, c.Cnxsppackageno, c.Cnxspsubtarrif, c.Cnxspcpspostcode, c.Cnxspdatecps, c.Cnxspcpsreqd, c.Cnxspoptimalplan, c.Cnxspcpsstrikes, c.Cnxspcpsdstrke1, c.Cnxspcpsdstrke2, c.Cnxspcpsdstrke3, c.Cnxspcpscarrier, c.Cnxspextras, c.Cnxspwlrtype, c.Cnxspcpscancel, c.Cnxspmaccode, c.Cnxspordtype, c.Cnxsptariff, c.Cnxspsparen1, c.Cnxspsparen2, c.Cnxspcontterm, c.Cnxspcsigndate, c.Cnxspspared3, c.Cnxspcnf, c.Cnxspdonoracc, c.Cnxspdoncliuni, c.Cnxspdiscband, c.Cnxspholduntil, c.Cnxspbtaccountno, c.Cnxsptps, c.Cnxsphmdate, c.Cnxspbttermend, c.Cnxsplinewithbt, c.Cnxspwelclett, c.Cnxspaddserv, c.Cnxspcallbundle, c.Cnxspvaiddate, c.Cnxspvalidby, c.Cnxspcampaign, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxsp from the database.
-func (c *Cnxsp) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxsp WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxspByEquinoxLrn retrieves a row from 'equinox.cnxsp' as a Cnxsp.
@@ -235,9 +91,7 @@ func CnxspByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxsp, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxsp{
-		_exists: true,
-	}
+	c := Cnxsp{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxspcli, &c.Cnxspboxes, &c.Cnxspfeature, &c.Cnxspcable, &c.Cnxspni, &c.Cnxspservicelvl, &c.Cnxspdatetocs, &c.Cnxspdatefromc1, &c.Cnxspdatefromc2, &c.Cnxspdatetoopt, &c.Cnxspdatefromopt, &c.Cnxspoptordnum, &c.Cnxspserialnum, &c.Cnxspdateentered, &c.Cnxspweborder, &c.Cnxspdatetobill, &c.Cnxspdateletter, &c.Cnxspprepayment, &c.Cnxspdateprepay, &c.Cnxspenteredby, &c.Cnxspfreebox, &c.Cnxsppromocd, &c.Cnxspprice, &c.Cnxsppackageno, &c.Cnxspsubtarrif, &c.Cnxspcpspostcode, &c.Cnxspdatecps, &c.Cnxspcpsreqd, &c.Cnxspoptimalplan, &c.Cnxspcpsstrikes, &c.Cnxspcpsdstrke1, &c.Cnxspcpsdstrke2, &c.Cnxspcpsdstrke3, &c.Cnxspcpscarrier, &c.Cnxspextras, &c.Cnxspwlrtype, &c.Cnxspcpscancel, &c.Cnxspmaccode, &c.Cnxspordtype, &c.Cnxsptariff, &c.Cnxspsparen1, &c.Cnxspsparen2, &c.Cnxspcontterm, &c.Cnxspcsigndate, &c.Cnxspspared3, &c.Cnxspcnf, &c.Cnxspdonoracc, &c.Cnxspdoncliuni, &c.Cnxspdiscband, &c.Cnxspholduntil, &c.Cnxspbtaccountno, &c.Cnxsptps, &c.Cnxsphmdate, &c.Cnxspbttermend, &c.Cnxsplinewithbt, &c.Cnxspwelclett, &c.Cnxspaddserv, &c.Cnxspcallbundle, &c.Cnxspvaiddate, &c.Cnxspvalidby, &c.Cnxspcampaign, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

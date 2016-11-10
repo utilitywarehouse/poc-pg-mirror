@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -75,149 +74,6 @@ type Connect struct {
 	Cnxelectoral     sql.NullString  `json:"cnxelectoral"`     // cnxelectoral
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Connect exists in the database.
-func (c *Connect) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Connect has been deleted from the database.
-func (c *Connect) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Connect to the database.
-func (c *Connect) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.connect (` +
-		`cnxaccountno, cnxbtbillsupp, cnxletterflag, cnxactpending, cnxspmp, cnxcomment, cnxcomment2, cnxcomment3, cnxconnqueries, cnxaddrcheck, cnxappform, cnxcbccreditcard, cnxcontacttel, cnxcoudatetobill, cnxreferral, cnxownerortenant, cnxinitservices, cnxexpress, cnxeligablecust, cnxappformno, cnxrequestservs, cnxdatetolr, cnxtenancyend, cnxcbcbarred, cnxversion, cnxprotectorlvl, cnxcreditscore, cnxexorder, cnxsurname2, cnxtitle2, cnxfirstname2, cnxrelationship, cnxcreditcheck, cnxchecking, cnxvaliddate, cnxvalidby, cnxappsource, cnxcampaign, cnxeligablesrvs, cnxgiftsettled, cnxservicelvl, cnxapptype, cnxbusnature, cnxcomregno, cnxyrstrading, cnxcomcredscore, cnxsiccode, cnxcompanypos, cnxownerfirst, cnxownerlast, cnxownertitle, cnxownerdob, cnxowneradd1, cnxowneradd2, cnxowneradd3, cnxownercity, cnxownercnty, cnxownerpcod, cnxowneraddver, cnxidcheck, cnxelectoral, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxaccountno, c.Cnxbtbillsupp, c.Cnxletterflag, c.Cnxactpending, c.Cnxspmp, c.Cnxcomment, c.Cnxcomment2, c.Cnxcomment3, c.Cnxconnqueries, c.Cnxaddrcheck, c.Cnxappform, c.Cnxcbccreditcard, c.Cnxcontacttel, c.Cnxcoudatetobill, c.Cnxreferral, c.Cnxownerortenant, c.Cnxinitservices, c.Cnxexpress, c.Cnxeligablecust, c.Cnxappformno, c.Cnxrequestservs, c.Cnxdatetolr, c.Cnxtenancyend, c.Cnxcbcbarred, c.Cnxversion, c.Cnxprotectorlvl, c.Cnxcreditscore, c.Cnxexorder, c.Cnxsurname2, c.Cnxtitle2, c.Cnxfirstname2, c.Cnxrelationship, c.Cnxcreditcheck, c.Cnxchecking, c.Cnxvaliddate, c.Cnxvalidby, c.Cnxappsource, c.Cnxcampaign, c.Cnxeligablesrvs, c.Cnxgiftsettled, c.Cnxservicelvl, c.Cnxapptype, c.Cnxbusnature, c.Cnxcomregno, c.Cnxyrstrading, c.Cnxcomcredscore, c.Cnxsiccode, c.Cnxcompanypos, c.Cnxownerfirst, c.Cnxownerlast, c.Cnxownertitle, c.Cnxownerdob, c.Cnxowneradd1, c.Cnxowneradd2, c.Cnxowneradd3, c.Cnxownercity, c.Cnxownercnty, c.Cnxownerpcod, c.Cnxowneraddver, c.Cnxidcheck, c.Cnxelectoral, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxaccountno, c.Cnxbtbillsupp, c.Cnxletterflag, c.Cnxactpending, c.Cnxspmp, c.Cnxcomment, c.Cnxcomment2, c.Cnxcomment3, c.Cnxconnqueries, c.Cnxaddrcheck, c.Cnxappform, c.Cnxcbccreditcard, c.Cnxcontacttel, c.Cnxcoudatetobill, c.Cnxreferral, c.Cnxownerortenant, c.Cnxinitservices, c.Cnxexpress, c.Cnxeligablecust, c.Cnxappformno, c.Cnxrequestservs, c.Cnxdatetolr, c.Cnxtenancyend, c.Cnxcbcbarred, c.Cnxversion, c.Cnxprotectorlvl, c.Cnxcreditscore, c.Cnxexorder, c.Cnxsurname2, c.Cnxtitle2, c.Cnxfirstname2, c.Cnxrelationship, c.Cnxcreditcheck, c.Cnxchecking, c.Cnxvaliddate, c.Cnxvalidby, c.Cnxappsource, c.Cnxcampaign, c.Cnxeligablesrvs, c.Cnxgiftsettled, c.Cnxservicelvl, c.Cnxapptype, c.Cnxbusnature, c.Cnxcomregno, c.Cnxyrstrading, c.Cnxcomcredscore, c.Cnxsiccode, c.Cnxcompanypos, c.Cnxownerfirst, c.Cnxownerlast, c.Cnxownertitle, c.Cnxownerdob, c.Cnxowneradd1, c.Cnxowneradd2, c.Cnxowneradd3, c.Cnxownercity, c.Cnxownercnty, c.Cnxownerpcod, c.Cnxowneraddver, c.Cnxidcheck, c.Cnxelectoral, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Connect in the database.
-func (c *Connect) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.connect SET (` +
-		`cnxaccountno, cnxbtbillsupp, cnxletterflag, cnxactpending, cnxspmp, cnxcomment, cnxcomment2, cnxcomment3, cnxconnqueries, cnxaddrcheck, cnxappform, cnxcbccreditcard, cnxcontacttel, cnxcoudatetobill, cnxreferral, cnxownerortenant, cnxinitservices, cnxexpress, cnxeligablecust, cnxappformno, cnxrequestservs, cnxdatetolr, cnxtenancyend, cnxcbcbarred, cnxversion, cnxprotectorlvl, cnxcreditscore, cnxexorder, cnxsurname2, cnxtitle2, cnxfirstname2, cnxrelationship, cnxcreditcheck, cnxchecking, cnxvaliddate, cnxvalidby, cnxappsource, cnxcampaign, cnxeligablesrvs, cnxgiftsettled, cnxservicelvl, cnxapptype, cnxbusnature, cnxcomregno, cnxyrstrading, cnxcomcredscore, cnxsiccode, cnxcompanypos, cnxownerfirst, cnxownerlast, cnxownertitle, cnxownerdob, cnxowneradd1, cnxowneradd2, cnxowneradd3, cnxownercity, cnxownercnty, cnxownerpcod, cnxowneraddver, cnxidcheck, cnxelectoral, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62` +
-		`) WHERE equinox_lrn = $63`
-
-	// run query
-	XOLog(sqlstr, c.Cnxaccountno, c.Cnxbtbillsupp, c.Cnxletterflag, c.Cnxactpending, c.Cnxspmp, c.Cnxcomment, c.Cnxcomment2, c.Cnxcomment3, c.Cnxconnqueries, c.Cnxaddrcheck, c.Cnxappform, c.Cnxcbccreditcard, c.Cnxcontacttel, c.Cnxcoudatetobill, c.Cnxreferral, c.Cnxownerortenant, c.Cnxinitservices, c.Cnxexpress, c.Cnxeligablecust, c.Cnxappformno, c.Cnxrequestservs, c.Cnxdatetolr, c.Cnxtenancyend, c.Cnxcbcbarred, c.Cnxversion, c.Cnxprotectorlvl, c.Cnxcreditscore, c.Cnxexorder, c.Cnxsurname2, c.Cnxtitle2, c.Cnxfirstname2, c.Cnxrelationship, c.Cnxcreditcheck, c.Cnxchecking, c.Cnxvaliddate, c.Cnxvalidby, c.Cnxappsource, c.Cnxcampaign, c.Cnxeligablesrvs, c.Cnxgiftsettled, c.Cnxservicelvl, c.Cnxapptype, c.Cnxbusnature, c.Cnxcomregno, c.Cnxyrstrading, c.Cnxcomcredscore, c.Cnxsiccode, c.Cnxcompanypos, c.Cnxownerfirst, c.Cnxownerlast, c.Cnxownertitle, c.Cnxownerdob, c.Cnxowneradd1, c.Cnxowneradd2, c.Cnxowneradd3, c.Cnxownercity, c.Cnxownercnty, c.Cnxownerpcod, c.Cnxowneraddver, c.Cnxidcheck, c.Cnxelectoral, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxaccountno, c.Cnxbtbillsupp, c.Cnxletterflag, c.Cnxactpending, c.Cnxspmp, c.Cnxcomment, c.Cnxcomment2, c.Cnxcomment3, c.Cnxconnqueries, c.Cnxaddrcheck, c.Cnxappform, c.Cnxcbccreditcard, c.Cnxcontacttel, c.Cnxcoudatetobill, c.Cnxreferral, c.Cnxownerortenant, c.Cnxinitservices, c.Cnxexpress, c.Cnxeligablecust, c.Cnxappformno, c.Cnxrequestservs, c.Cnxdatetolr, c.Cnxtenancyend, c.Cnxcbcbarred, c.Cnxversion, c.Cnxprotectorlvl, c.Cnxcreditscore, c.Cnxexorder, c.Cnxsurname2, c.Cnxtitle2, c.Cnxfirstname2, c.Cnxrelationship, c.Cnxcreditcheck, c.Cnxchecking, c.Cnxvaliddate, c.Cnxvalidby, c.Cnxappsource, c.Cnxcampaign, c.Cnxeligablesrvs, c.Cnxgiftsettled, c.Cnxservicelvl, c.Cnxapptype, c.Cnxbusnature, c.Cnxcomregno, c.Cnxyrstrading, c.Cnxcomcredscore, c.Cnxsiccode, c.Cnxcompanypos, c.Cnxownerfirst, c.Cnxownerlast, c.Cnxownertitle, c.Cnxownerdob, c.Cnxowneradd1, c.Cnxowneradd2, c.Cnxowneradd3, c.Cnxownercity, c.Cnxownercnty, c.Cnxownerpcod, c.Cnxowneraddver, c.Cnxidcheck, c.Cnxelectoral, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Connect to the database.
-func (c *Connect) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Connect.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Connect) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.connect (` +
-		`cnxaccountno, cnxbtbillsupp, cnxletterflag, cnxactpending, cnxspmp, cnxcomment, cnxcomment2, cnxcomment3, cnxconnqueries, cnxaddrcheck, cnxappform, cnxcbccreditcard, cnxcontacttel, cnxcoudatetobill, cnxreferral, cnxownerortenant, cnxinitservices, cnxexpress, cnxeligablecust, cnxappformno, cnxrequestservs, cnxdatetolr, cnxtenancyend, cnxcbcbarred, cnxversion, cnxprotectorlvl, cnxcreditscore, cnxexorder, cnxsurname2, cnxtitle2, cnxfirstname2, cnxrelationship, cnxcreditcheck, cnxchecking, cnxvaliddate, cnxvalidby, cnxappsource, cnxcampaign, cnxeligablesrvs, cnxgiftsettled, cnxservicelvl, cnxapptype, cnxbusnature, cnxcomregno, cnxyrstrading, cnxcomcredscore, cnxsiccode, cnxcompanypos, cnxownerfirst, cnxownerlast, cnxownertitle, cnxownerdob, cnxowneradd1, cnxowneradd2, cnxowneradd3, cnxownercity, cnxownercnty, cnxownerpcod, cnxowneraddver, cnxidcheck, cnxelectoral, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxaccountno, cnxbtbillsupp, cnxletterflag, cnxactpending, cnxspmp, cnxcomment, cnxcomment2, cnxcomment3, cnxconnqueries, cnxaddrcheck, cnxappform, cnxcbccreditcard, cnxcontacttel, cnxcoudatetobill, cnxreferral, cnxownerortenant, cnxinitservices, cnxexpress, cnxeligablecust, cnxappformno, cnxrequestservs, cnxdatetolr, cnxtenancyend, cnxcbcbarred, cnxversion, cnxprotectorlvl, cnxcreditscore, cnxexorder, cnxsurname2, cnxtitle2, cnxfirstname2, cnxrelationship, cnxcreditcheck, cnxchecking, cnxvaliddate, cnxvalidby, cnxappsource, cnxcampaign, cnxeligablesrvs, cnxgiftsettled, cnxservicelvl, cnxapptype, cnxbusnature, cnxcomregno, cnxyrstrading, cnxcomcredscore, cnxsiccode, cnxcompanypos, cnxownerfirst, cnxownerlast, cnxownertitle, cnxownerdob, cnxowneradd1, cnxowneradd2, cnxowneradd3, cnxownercity, cnxownercnty, cnxownerpcod, cnxowneraddver, cnxidcheck, cnxelectoral, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxaccountno, EXCLUDED.cnxbtbillsupp, EXCLUDED.cnxletterflag, EXCLUDED.cnxactpending, EXCLUDED.cnxspmp, EXCLUDED.cnxcomment, EXCLUDED.cnxcomment2, EXCLUDED.cnxcomment3, EXCLUDED.cnxconnqueries, EXCLUDED.cnxaddrcheck, EXCLUDED.cnxappform, EXCLUDED.cnxcbccreditcard, EXCLUDED.cnxcontacttel, EXCLUDED.cnxcoudatetobill, EXCLUDED.cnxreferral, EXCLUDED.cnxownerortenant, EXCLUDED.cnxinitservices, EXCLUDED.cnxexpress, EXCLUDED.cnxeligablecust, EXCLUDED.cnxappformno, EXCLUDED.cnxrequestservs, EXCLUDED.cnxdatetolr, EXCLUDED.cnxtenancyend, EXCLUDED.cnxcbcbarred, EXCLUDED.cnxversion, EXCLUDED.cnxprotectorlvl, EXCLUDED.cnxcreditscore, EXCLUDED.cnxexorder, EXCLUDED.cnxsurname2, EXCLUDED.cnxtitle2, EXCLUDED.cnxfirstname2, EXCLUDED.cnxrelationship, EXCLUDED.cnxcreditcheck, EXCLUDED.cnxchecking, EXCLUDED.cnxvaliddate, EXCLUDED.cnxvalidby, EXCLUDED.cnxappsource, EXCLUDED.cnxcampaign, EXCLUDED.cnxeligablesrvs, EXCLUDED.cnxgiftsettled, EXCLUDED.cnxservicelvl, EXCLUDED.cnxapptype, EXCLUDED.cnxbusnature, EXCLUDED.cnxcomregno, EXCLUDED.cnxyrstrading, EXCLUDED.cnxcomcredscore, EXCLUDED.cnxsiccode, EXCLUDED.cnxcompanypos, EXCLUDED.cnxownerfirst, EXCLUDED.cnxownerlast, EXCLUDED.cnxownertitle, EXCLUDED.cnxownerdob, EXCLUDED.cnxowneradd1, EXCLUDED.cnxowneradd2, EXCLUDED.cnxowneradd3, EXCLUDED.cnxownercity, EXCLUDED.cnxownercnty, EXCLUDED.cnxownerpcod, EXCLUDED.cnxowneraddver, EXCLUDED.cnxidcheck, EXCLUDED.cnxelectoral, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxaccountno, c.Cnxbtbillsupp, c.Cnxletterflag, c.Cnxactpending, c.Cnxspmp, c.Cnxcomment, c.Cnxcomment2, c.Cnxcomment3, c.Cnxconnqueries, c.Cnxaddrcheck, c.Cnxappform, c.Cnxcbccreditcard, c.Cnxcontacttel, c.Cnxcoudatetobill, c.Cnxreferral, c.Cnxownerortenant, c.Cnxinitservices, c.Cnxexpress, c.Cnxeligablecust, c.Cnxappformno, c.Cnxrequestservs, c.Cnxdatetolr, c.Cnxtenancyend, c.Cnxcbcbarred, c.Cnxversion, c.Cnxprotectorlvl, c.Cnxcreditscore, c.Cnxexorder, c.Cnxsurname2, c.Cnxtitle2, c.Cnxfirstname2, c.Cnxrelationship, c.Cnxcreditcheck, c.Cnxchecking, c.Cnxvaliddate, c.Cnxvalidby, c.Cnxappsource, c.Cnxcampaign, c.Cnxeligablesrvs, c.Cnxgiftsettled, c.Cnxservicelvl, c.Cnxapptype, c.Cnxbusnature, c.Cnxcomregno, c.Cnxyrstrading, c.Cnxcomcredscore, c.Cnxsiccode, c.Cnxcompanypos, c.Cnxownerfirst, c.Cnxownerlast, c.Cnxownertitle, c.Cnxownerdob, c.Cnxowneradd1, c.Cnxowneradd2, c.Cnxowneradd3, c.Cnxownercity, c.Cnxownercnty, c.Cnxownerpcod, c.Cnxowneraddver, c.Cnxidcheck, c.Cnxelectoral, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxaccountno, c.Cnxbtbillsupp, c.Cnxletterflag, c.Cnxactpending, c.Cnxspmp, c.Cnxcomment, c.Cnxcomment2, c.Cnxcomment3, c.Cnxconnqueries, c.Cnxaddrcheck, c.Cnxappform, c.Cnxcbccreditcard, c.Cnxcontacttel, c.Cnxcoudatetobill, c.Cnxreferral, c.Cnxownerortenant, c.Cnxinitservices, c.Cnxexpress, c.Cnxeligablecust, c.Cnxappformno, c.Cnxrequestservs, c.Cnxdatetolr, c.Cnxtenancyend, c.Cnxcbcbarred, c.Cnxversion, c.Cnxprotectorlvl, c.Cnxcreditscore, c.Cnxexorder, c.Cnxsurname2, c.Cnxtitle2, c.Cnxfirstname2, c.Cnxrelationship, c.Cnxcreditcheck, c.Cnxchecking, c.Cnxvaliddate, c.Cnxvalidby, c.Cnxappsource, c.Cnxcampaign, c.Cnxeligablesrvs, c.Cnxgiftsettled, c.Cnxservicelvl, c.Cnxapptype, c.Cnxbusnature, c.Cnxcomregno, c.Cnxyrstrading, c.Cnxcomcredscore, c.Cnxsiccode, c.Cnxcompanypos, c.Cnxownerfirst, c.Cnxownerlast, c.Cnxownertitle, c.Cnxownerdob, c.Cnxowneradd1, c.Cnxowneradd2, c.Cnxowneradd3, c.Cnxownercity, c.Cnxownercnty, c.Cnxownerpcod, c.Cnxowneraddver, c.Cnxidcheck, c.Cnxelectoral, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Connect from the database.
-func (c *Connect) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.connect WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // ConnectByEquinoxLrn retrieves a row from 'equinox.connect' as a Connect.
@@ -234,9 +90,7 @@ func ConnectByEquinoxLrn(db XODB, equinoxLrn int64) (*Connect, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Connect{
-		_exists: true,
-	}
+	c := Connect{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxaccountno, &c.Cnxbtbillsupp, &c.Cnxletterflag, &c.Cnxactpending, &c.Cnxspmp, &c.Cnxcomment, &c.Cnxcomment2, &c.Cnxcomment3, &c.Cnxconnqueries, &c.Cnxaddrcheck, &c.Cnxappform, &c.Cnxcbccreditcard, &c.Cnxcontacttel, &c.Cnxcoudatetobill, &c.Cnxreferral, &c.Cnxownerortenant, &c.Cnxinitservices, &c.Cnxexpress, &c.Cnxeligablecust, &c.Cnxappformno, &c.Cnxrequestservs, &c.Cnxdatetolr, &c.Cnxtenancyend, &c.Cnxcbcbarred, &c.Cnxversion, &c.Cnxprotectorlvl, &c.Cnxcreditscore, &c.Cnxexorder, &c.Cnxsurname2, &c.Cnxtitle2, &c.Cnxfirstname2, &c.Cnxrelationship, &c.Cnxcreditcheck, &c.Cnxchecking, &c.Cnxvaliddate, &c.Cnxvalidby, &c.Cnxappsource, &c.Cnxcampaign, &c.Cnxeligablesrvs, &c.Cnxgiftsettled, &c.Cnxservicelvl, &c.Cnxapptype, &c.Cnxbusnature, &c.Cnxcomregno, &c.Cnxyrstrading, &c.Cnxcomcredscore, &c.Cnxsiccode, &c.Cnxcompanypos, &c.Cnxownerfirst, &c.Cnxownerlast, &c.Cnxownertitle, &c.Cnxownerdob, &c.Cnxowneradd1, &c.Cnxowneradd2, &c.Cnxowneradd3, &c.Cnxownercity, &c.Cnxownercnty, &c.Cnxownerpcod, &c.Cnxowneraddver, &c.Cnxidcheck, &c.Cnxelectoral, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

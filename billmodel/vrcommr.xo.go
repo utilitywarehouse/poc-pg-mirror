@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -23,149 +22,6 @@ type Vrcommr struct {
 	Vrstatements   sql.NullString `json:"vrstatements"`   // vrstatements
 	EquinoxLrn     int64          `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Vrcommr exists in the database.
-func (v *Vrcommr) Exists() bool {
-	return v._exists
-}
-
-// Deleted provides information if the Vrcommr has been deleted from the database.
-func (v *Vrcommr) Deleted() bool {
-	return v._deleted
-}
-
-// Insert inserts the Vrcommr to the database.
-func (v *Vrcommr) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.vrcommr (` +
-		`vrnumber, vrfrom, vrto, vrbillinggroup, vrstarted, vrended, vrcurrent, vrfiles, vrstatements, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, v.Vrnumber, v.Vrfrom, v.Vrto, v.Vrbillinggroup, v.Vrstarted, v.Vrended, v.Vrcurrent, v.Vrfiles, v.Vrstatements, v.EquinoxSec)
-	err = db.QueryRow(sqlstr, v.Vrnumber, v.Vrfrom, v.Vrto, v.Vrbillinggroup, v.Vrstarted, v.Vrended, v.Vrcurrent, v.Vrfiles, v.Vrstatements, v.EquinoxSec).Scan(&v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Update updates the Vrcommr in the database.
-func (v *Vrcommr) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.vrcommr SET (` +
-		`vrnumber, vrfrom, vrto, vrbillinggroup, vrstarted, vrended, vrcurrent, vrfiles, vrstatements, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) WHERE equinox_lrn = $11`
-
-	// run query
-	XOLog(sqlstr, v.Vrnumber, v.Vrfrom, v.Vrto, v.Vrbillinggroup, v.Vrstarted, v.Vrended, v.Vrcurrent, v.Vrfiles, v.Vrstatements, v.EquinoxSec, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.Vrnumber, v.Vrfrom, v.Vrto, v.Vrbillinggroup, v.Vrstarted, v.Vrended, v.Vrcurrent, v.Vrfiles, v.Vrstatements, v.EquinoxSec, v.EquinoxLrn)
-	return err
-}
-
-// Save saves the Vrcommr to the database.
-func (v *Vrcommr) Save(db XODB) error {
-	if v.Exists() {
-		return v.Update(db)
-	}
-
-	return v.Insert(db)
-}
-
-// Upsert performs an upsert for Vrcommr.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (v *Vrcommr) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.vrcommr (` +
-		`vrnumber, vrfrom, vrto, vrbillinggroup, vrstarted, vrended, vrcurrent, vrfiles, vrstatements, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`vrnumber, vrfrom, vrto, vrbillinggroup, vrstarted, vrended, vrcurrent, vrfiles, vrstatements, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.vrnumber, EXCLUDED.vrfrom, EXCLUDED.vrto, EXCLUDED.vrbillinggroup, EXCLUDED.vrstarted, EXCLUDED.vrended, EXCLUDED.vrcurrent, EXCLUDED.vrfiles, EXCLUDED.vrstatements, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, v.Vrnumber, v.Vrfrom, v.Vrto, v.Vrbillinggroup, v.Vrstarted, v.Vrended, v.Vrcurrent, v.Vrfiles, v.Vrstatements, v.EquinoxLrn, v.EquinoxSec)
-	_, err = db.Exec(sqlstr, v.Vrnumber, v.Vrfrom, v.Vrto, v.Vrbillinggroup, v.Vrstarted, v.Vrended, v.Vrcurrent, v.Vrfiles, v.Vrstatements, v.EquinoxLrn, v.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Delete deletes the Vrcommr from the database.
-func (v *Vrcommr) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.vrcommr WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	v._deleted = true
-
-	return nil
 }
 
 // VrcommrByEquinoxLrn retrieves a row from 'equinox.vrcommr' as a Vrcommr.
@@ -182,9 +38,7 @@ func VrcommrByEquinoxLrn(db XODB, equinoxLrn int64) (*Vrcommr, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	v := Vrcommr{
-		_exists: true,
-	}
+	v := Vrcommr{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&v.Vrnumber, &v.Vrfrom, &v.Vrto, &v.Vrbillinggroup, &v.Vrstarted, &v.Vrended, &v.Vrcurrent, &v.Vrfiles, &v.Vrstatements, &v.EquinoxLrn, &v.EquinoxSec)
 	if err != nil {

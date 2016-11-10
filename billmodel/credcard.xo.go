@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -37,149 +36,6 @@ type Credcard struct {
 	Cardspared2     pq.NullTime     `json:"cardspared2"`     // cardspared2
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Credcard exists in the database.
-func (c *Credcard) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Credcard has been deleted from the database.
-func (c *Credcard) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Credcard to the database.
-func (c *Credcard) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.credcard (` +
-		`carduniquesys, cardaccounttype, cardelementid, cardnumber, cardstartdate, cardexpirydate, cardissuenumber, cardtypecord, cardpostcode, cardverified, cardsource, cardvalid, cardusedebt, cardholder, carddateentered, cardenteredby, cardnotes, cardcv2, cardholdername, cardsparen1, cardsparen2, cardspared1, cardspared2, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Carduniquesys, c.Cardaccounttype, c.Cardelementid, c.Cardnumber, c.Cardstartdate, c.Cardexpirydate, c.Cardissuenumber, c.Cardtypecord, c.Cardpostcode, c.Cardverified, c.Cardsource, c.Cardvalid, c.Cardusedebt, c.Cardholder, c.Carddateentered, c.Cardenteredby, c.Cardnotes, c.Cardcv2, c.Cardholdername, c.Cardsparen1, c.Cardsparen2, c.Cardspared1, c.Cardspared2, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Carduniquesys, c.Cardaccounttype, c.Cardelementid, c.Cardnumber, c.Cardstartdate, c.Cardexpirydate, c.Cardissuenumber, c.Cardtypecord, c.Cardpostcode, c.Cardverified, c.Cardsource, c.Cardvalid, c.Cardusedebt, c.Cardholder, c.Carddateentered, c.Cardenteredby, c.Cardnotes, c.Cardcv2, c.Cardholdername, c.Cardsparen1, c.Cardsparen2, c.Cardspared1, c.Cardspared2, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Credcard in the database.
-func (c *Credcard) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.credcard SET (` +
-		`carduniquesys, cardaccounttype, cardelementid, cardnumber, cardstartdate, cardexpirydate, cardissuenumber, cardtypecord, cardpostcode, cardverified, cardsource, cardvalid, cardusedebt, cardholder, carddateentered, cardenteredby, cardnotes, cardcv2, cardholdername, cardsparen1, cardsparen2, cardspared1, cardspared2, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) WHERE equinox_lrn = $25`
-
-	// run query
-	XOLog(sqlstr, c.Carduniquesys, c.Cardaccounttype, c.Cardelementid, c.Cardnumber, c.Cardstartdate, c.Cardexpirydate, c.Cardissuenumber, c.Cardtypecord, c.Cardpostcode, c.Cardverified, c.Cardsource, c.Cardvalid, c.Cardusedebt, c.Cardholder, c.Carddateentered, c.Cardenteredby, c.Cardnotes, c.Cardcv2, c.Cardholdername, c.Cardsparen1, c.Cardsparen2, c.Cardspared1, c.Cardspared2, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Carduniquesys, c.Cardaccounttype, c.Cardelementid, c.Cardnumber, c.Cardstartdate, c.Cardexpirydate, c.Cardissuenumber, c.Cardtypecord, c.Cardpostcode, c.Cardverified, c.Cardsource, c.Cardvalid, c.Cardusedebt, c.Cardholder, c.Carddateentered, c.Cardenteredby, c.Cardnotes, c.Cardcv2, c.Cardholdername, c.Cardsparen1, c.Cardsparen2, c.Cardspared1, c.Cardspared2, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Credcard to the database.
-func (c *Credcard) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Credcard.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Credcard) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.credcard (` +
-		`carduniquesys, cardaccounttype, cardelementid, cardnumber, cardstartdate, cardexpirydate, cardissuenumber, cardtypecord, cardpostcode, cardverified, cardsource, cardvalid, cardusedebt, cardholder, carddateentered, cardenteredby, cardnotes, cardcv2, cardholdername, cardsparen1, cardsparen2, cardspared1, cardspared2, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`carduniquesys, cardaccounttype, cardelementid, cardnumber, cardstartdate, cardexpirydate, cardissuenumber, cardtypecord, cardpostcode, cardverified, cardsource, cardvalid, cardusedebt, cardholder, carddateentered, cardenteredby, cardnotes, cardcv2, cardholdername, cardsparen1, cardsparen2, cardspared1, cardspared2, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.carduniquesys, EXCLUDED.cardaccounttype, EXCLUDED.cardelementid, EXCLUDED.cardnumber, EXCLUDED.cardstartdate, EXCLUDED.cardexpirydate, EXCLUDED.cardissuenumber, EXCLUDED.cardtypecord, EXCLUDED.cardpostcode, EXCLUDED.cardverified, EXCLUDED.cardsource, EXCLUDED.cardvalid, EXCLUDED.cardusedebt, EXCLUDED.cardholder, EXCLUDED.carddateentered, EXCLUDED.cardenteredby, EXCLUDED.cardnotes, EXCLUDED.cardcv2, EXCLUDED.cardholdername, EXCLUDED.cardsparen1, EXCLUDED.cardsparen2, EXCLUDED.cardspared1, EXCLUDED.cardspared2, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Carduniquesys, c.Cardaccounttype, c.Cardelementid, c.Cardnumber, c.Cardstartdate, c.Cardexpirydate, c.Cardissuenumber, c.Cardtypecord, c.Cardpostcode, c.Cardverified, c.Cardsource, c.Cardvalid, c.Cardusedebt, c.Cardholder, c.Carddateentered, c.Cardenteredby, c.Cardnotes, c.Cardcv2, c.Cardholdername, c.Cardsparen1, c.Cardsparen2, c.Cardspared1, c.Cardspared2, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Carduniquesys, c.Cardaccounttype, c.Cardelementid, c.Cardnumber, c.Cardstartdate, c.Cardexpirydate, c.Cardissuenumber, c.Cardtypecord, c.Cardpostcode, c.Cardverified, c.Cardsource, c.Cardvalid, c.Cardusedebt, c.Cardholder, c.Carddateentered, c.Cardenteredby, c.Cardnotes, c.Cardcv2, c.Cardholdername, c.Cardsparen1, c.Cardsparen2, c.Cardspared1, c.Cardspared2, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Credcard from the database.
-func (c *Credcard) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.credcard WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CredcardByEquinoxLrn retrieves a row from 'equinox.credcard' as a Credcard.
@@ -196,9 +52,7 @@ func CredcardByEquinoxLrn(db XODB, equinoxLrn int64) (*Credcard, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Credcard{
-		_exists: true,
-	}
+	c := Credcard{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Carduniquesys, &c.Cardaccounttype, &c.Cardelementid, &c.Cardnumber, &c.Cardstartdate, &c.Cardexpirydate, &c.Cardissuenumber, &c.Cardtypecord, &c.Cardpostcode, &c.Cardverified, &c.Cardsource, &c.Cardvalid, &c.Cardusedebt, &c.Cardholder, &c.Carddateentered, &c.Cardenteredby, &c.Cardnotes, &c.Cardcv2, &c.Cardholdername, &c.Cardsparen1, &c.Cardsparen2, &c.Cardspared1, &c.Cardspared2, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

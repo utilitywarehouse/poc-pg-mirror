@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Usercon struct {
 	Userconssparec1  sql.NullString `json:"userconssparec1"`  // userconssparec1
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Usercon exists in the database.
-func (u *Usercon) Exists() bool {
-	return u._exists
-}
-
-// Deleted provides information if the Usercon has been deleted from the database.
-func (u *Usercon) Deleted() bool {
-	return u._deleted
-}
-
-// Insert inserts the Usercon to the database.
-func (u *Usercon) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if u._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.usercons (` +
-		`userconsid, userconslogin, userconsname, userconsintime, userconsindate, userconsouttime, userconsoutdate, userconsclient, userconsdeptid, userconsdeptname, userconsapp, userconsaddition, userconsmachine, userconsclientdr, userconsusrgrp, userconsspared1, userconssparec1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, u.Userconsid, u.Userconslogin, u.Userconsname, u.Userconsintime, u.Userconsindate, u.Userconsouttime, u.Userconsoutdate, u.Userconsclient, u.Userconsdeptid, u.Userconsdeptname, u.Userconsapp, u.Userconsaddition, u.Userconsmachine, u.Userconsclientdr, u.Userconsusrgrp, u.Userconsspared1, u.Userconssparec1, u.EquinoxSec)
-	err = db.QueryRow(sqlstr, u.Userconsid, u.Userconslogin, u.Userconsname, u.Userconsintime, u.Userconsindate, u.Userconsouttime, u.Userconsoutdate, u.Userconsclient, u.Userconsdeptid, u.Userconsdeptname, u.Userconsapp, u.Userconsaddition, u.Userconsmachine, u.Userconsclientdr, u.Userconsusrgrp, u.Userconsspared1, u.Userconssparec1, u.EquinoxSec).Scan(&u.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	u._exists = true
-
-	return nil
-}
-
-// Update updates the Usercon in the database.
-func (u *Usercon) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !u._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if u._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.usercons SET (` +
-		`userconsid, userconslogin, userconsname, userconsintime, userconsindate, userconsouttime, userconsoutdate, userconsclient, userconsdeptid, userconsdeptname, userconsapp, userconsaddition, userconsmachine, userconsclientdr, userconsusrgrp, userconsspared1, userconssparec1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, u.Userconsid, u.Userconslogin, u.Userconsname, u.Userconsintime, u.Userconsindate, u.Userconsouttime, u.Userconsoutdate, u.Userconsclient, u.Userconsdeptid, u.Userconsdeptname, u.Userconsapp, u.Userconsaddition, u.Userconsmachine, u.Userconsclientdr, u.Userconsusrgrp, u.Userconsspared1, u.Userconssparec1, u.EquinoxSec, u.EquinoxLrn)
-	_, err = db.Exec(sqlstr, u.Userconsid, u.Userconslogin, u.Userconsname, u.Userconsintime, u.Userconsindate, u.Userconsouttime, u.Userconsoutdate, u.Userconsclient, u.Userconsdeptid, u.Userconsdeptname, u.Userconsapp, u.Userconsaddition, u.Userconsmachine, u.Userconsclientdr, u.Userconsusrgrp, u.Userconsspared1, u.Userconssparec1, u.EquinoxSec, u.EquinoxLrn)
-	return err
-}
-
-// Save saves the Usercon to the database.
-func (u *Usercon) Save(db XODB) error {
-	if u.Exists() {
-		return u.Update(db)
-	}
-
-	return u.Insert(db)
-}
-
-// Upsert performs an upsert for Usercon.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (u *Usercon) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if u._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.usercons (` +
-		`userconsid, userconslogin, userconsname, userconsintime, userconsindate, userconsouttime, userconsoutdate, userconsclient, userconsdeptid, userconsdeptname, userconsapp, userconsaddition, userconsmachine, userconsclientdr, userconsusrgrp, userconsspared1, userconssparec1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`userconsid, userconslogin, userconsname, userconsintime, userconsindate, userconsouttime, userconsoutdate, userconsclient, userconsdeptid, userconsdeptname, userconsapp, userconsaddition, userconsmachine, userconsclientdr, userconsusrgrp, userconsspared1, userconssparec1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.userconsid, EXCLUDED.userconslogin, EXCLUDED.userconsname, EXCLUDED.userconsintime, EXCLUDED.userconsindate, EXCLUDED.userconsouttime, EXCLUDED.userconsoutdate, EXCLUDED.userconsclient, EXCLUDED.userconsdeptid, EXCLUDED.userconsdeptname, EXCLUDED.userconsapp, EXCLUDED.userconsaddition, EXCLUDED.userconsmachine, EXCLUDED.userconsclientdr, EXCLUDED.userconsusrgrp, EXCLUDED.userconsspared1, EXCLUDED.userconssparec1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, u.Userconsid, u.Userconslogin, u.Userconsname, u.Userconsintime, u.Userconsindate, u.Userconsouttime, u.Userconsoutdate, u.Userconsclient, u.Userconsdeptid, u.Userconsdeptname, u.Userconsapp, u.Userconsaddition, u.Userconsmachine, u.Userconsclientdr, u.Userconsusrgrp, u.Userconsspared1, u.Userconssparec1, u.EquinoxLrn, u.EquinoxSec)
-	_, err = db.Exec(sqlstr, u.Userconsid, u.Userconslogin, u.Userconsname, u.Userconsintime, u.Userconsindate, u.Userconsouttime, u.Userconsoutdate, u.Userconsclient, u.Userconsdeptid, u.Userconsdeptname, u.Userconsapp, u.Userconsaddition, u.Userconsmachine, u.Userconsclientdr, u.Userconsusrgrp, u.Userconsspared1, u.Userconssparec1, u.EquinoxLrn, u.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	u._exists = true
-
-	return nil
-}
-
-// Delete deletes the Usercon from the database.
-func (u *Usercon) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !u._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if u._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.usercons WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, u.EquinoxLrn)
-	_, err = db.Exec(sqlstr, u.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	u._deleted = true
-
-	return nil
 }
 
 // UserconByEquinoxLrn retrieves a row from 'equinox.usercons' as a Usercon.
@@ -190,9 +46,7 @@ func UserconByEquinoxLrn(db XODB, equinoxLrn int64) (*Usercon, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	u := Usercon{
-		_exists: true,
-	}
+	u := Usercon{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&u.Userconsid, &u.Userconslogin, &u.Userconsname, &u.Userconsintime, &u.Userconsindate, &u.Userconsouttime, &u.Userconsoutdate, &u.Userconsclient, &u.Userconsdeptid, &u.Userconsdeptname, &u.Userconsapp, &u.Userconsaddition, &u.Userconsmachine, &u.Userconsclientdr, &u.Userconsusrgrp, &u.Userconsspared1, &u.Userconssparec1, &u.EquinoxLrn, &u.EquinoxSec)
 	if err != nil {

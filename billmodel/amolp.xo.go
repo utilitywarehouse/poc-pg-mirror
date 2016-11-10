@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -19,149 +18,6 @@ type Amolp struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Amolp exists in the database.
-func (a *Amolp) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Amolp has been deleted from the database.
-func (a *Amolp) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Amolp to the database.
-func (a *Amolp) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.amolp (` +
-		`amolpdatefrom, amolpdateto, amolppercent, amolppercentearn, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Amolpdatefrom, a.Amolpdateto, a.Amolppercent, a.Amolppercentearn, a.EquinoxPrn, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Amolpdatefrom, a.Amolpdateto, a.Amolppercent, a.Amolppercentearn, a.EquinoxPrn, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Amolp in the database.
-func (a *Amolp) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.amolp SET (` +
-		`amolpdatefrom, amolpdateto, amolppercent, amolppercentearn, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) WHERE equinox_lrn = $7`
-
-	// run query
-	XOLog(sqlstr, a.Amolpdatefrom, a.Amolpdateto, a.Amolppercent, a.Amolppercentearn, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Amolpdatefrom, a.Amolpdateto, a.Amolppercent, a.Amolppercentearn, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Amolp to the database.
-func (a *Amolp) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Amolp.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Amolp) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.amolp (` +
-		`amolpdatefrom, amolpdateto, amolppercent, amolppercentearn, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`amolpdatefrom, amolpdateto, amolppercent, amolppercentearn, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.amolpdatefrom, EXCLUDED.amolpdateto, EXCLUDED.amolppercent, EXCLUDED.amolppercentearn, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Amolpdatefrom, a.Amolpdateto, a.Amolppercent, a.Amolppercentearn, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Amolpdatefrom, a.Amolpdateto, a.Amolppercent, a.Amolppercentearn, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Amolp from the database.
-func (a *Amolp) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.amolp WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AmolpByEquinoxLrn retrieves a row from 'equinox.amolp' as a Amolp.
@@ -178,9 +34,7 @@ func AmolpByEquinoxLrn(db XODB, equinoxLrn int64) (*Amolp, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Amolp{
-		_exists: true,
-	}
+	a := Amolp{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Amolpdatefrom, &a.Amolpdateto, &a.Amolppercent, &a.Amolppercentearn, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -119,149 +118,6 @@ type Enbase struct {
 	Enn2             sql.NullInt64   `json:"enn2"`             // enn2
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Enbase exists in the database.
-func (e *Enbase) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Enbase has been deleted from the database.
-func (e *Enbase) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Enbase to the database.
-func (e *Enbase) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.enbase (` +
-		`endate, enregion, ensedd, ensecash, ensepp, enhodd, enhocash, enhopp, engodd, engocash, engopp, engohdd, engohcash, engohpp, enseddaq, ensecashaq, enseppaq, enhoddaq, enhocashaq, enhoppaq, engoddaq, engocashaq, engoppaq, engohddaq, engohcashaq, engohppaq, enseddelec, enseddeleceac, ensedde7, ensedde7deac, ensedde7neac, ensecashelec, ensecasheleceac, ensecashe7, ensecashe7deac, ensecashe7neac, enseppelec, enseppeleceac, enseppe7, enseppe7deac, enseppe7neac, enhoddelec, enhoddeleceac, enhodde7, enhodde7deac, enhodde7neac, enhocashelec, enhocasheleceac, enhocashe7, enhocashe7deac, enhocashe7neac, enhoppelec, enhoppeleceac, enhoppe7, enhoppe7deac, enhoppe7neac, engoddelec, engohddelec, engoddeleceac, engohddeleceac, engodde7, engohdde7, engodde7deac, engohdde7deac, engodde7neac, engohdde7neac, engocashelec, engohcashelec, engocasheleceac, engohcasheleceac, engocashe7, engohcashe7, engocashe7deac, engohcashe7deac, engocashe7neac, engohcashe7neac, engoppelec, engohppelec, engoppeleceac, engohppeleceac, engoppe7, engohppe7, engoppe7deac, engohppe7deac, engoppe7neac, engohppe7neac, entotaldualfdisc, engoldcrossover, eneleccrossover, ene7crossover, gogasddsplit, goelecddsplit, goe7ddsplitd, goe7ddsplitn, gogasddsplitaq, goelecddspliteac, goe7ddspliteac, goe7ddspliteacn, enavbill, enavebill, enave7bill, endfdiscount, endfnos, enn1, enn2, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Endate, e.Enregion, e.Ensedd, e.Ensecash, e.Ensepp, e.Enhodd, e.Enhocash, e.Enhopp, e.Engodd, e.Engocash, e.Engopp, e.Engohdd, e.Engohcash, e.Engohpp, e.Enseddaq, e.Ensecashaq, e.Enseppaq, e.Enhoddaq, e.Enhocashaq, e.Enhoppaq, e.Engoddaq, e.Engocashaq, e.Engoppaq, e.Engohddaq, e.Engohcashaq, e.Engohppaq, e.Enseddelec, e.Enseddeleceac, e.Ensedde7, e.Ensedde7deac, e.Ensedde7neac, e.Ensecashelec, e.Ensecasheleceac, e.Ensecashe7, e.Ensecashe7deac, e.Ensecashe7neac, e.Enseppelec, e.Enseppeleceac, e.Enseppe7, e.Enseppe7deac, e.Enseppe7neac, e.Enhoddelec, e.Enhoddeleceac, e.Enhodde7, e.Enhodde7deac, e.Enhodde7neac, e.Enhocashelec, e.Enhocasheleceac, e.Enhocashe7, e.Enhocashe7deac, e.Enhocashe7neac, e.Enhoppelec, e.Enhoppeleceac, e.Enhoppe7, e.Enhoppe7deac, e.Enhoppe7neac, e.Engoddelec, e.Engohddelec, e.Engoddeleceac, e.Engohddeleceac, e.Engodde7, e.Engohdde7, e.Engodde7deac, e.Engohdde7deac, e.Engodde7neac, e.Engohdde7neac, e.Engocashelec, e.Engohcashelec, e.Engocasheleceac, e.Engohcasheleceac, e.Engocashe7, e.Engohcashe7, e.Engocashe7deac, e.Engohcashe7deac, e.Engocashe7neac, e.Engohcashe7neac, e.Engoppelec, e.Engohppelec, e.Engoppeleceac, e.Engohppeleceac, e.Engoppe7, e.Engohppe7, e.Engoppe7deac, e.Engohppe7deac, e.Engoppe7neac, e.Engohppe7neac, e.Entotaldualfdisc, e.Engoldcrossover, e.Eneleccrossover, e.Ene7crossover, e.Gogasddsplit, e.Goelecddsplit, e.Goe7ddsplitd, e.Goe7ddsplitn, e.Gogasddsplitaq, e.Goelecddspliteac, e.Goe7ddspliteac, e.Goe7ddspliteacn, e.Enavbill, e.Enavebill, e.Enave7bill, e.Endfdiscount, e.Endfnos, e.Enn1, e.Enn2, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Endate, e.Enregion, e.Ensedd, e.Ensecash, e.Ensepp, e.Enhodd, e.Enhocash, e.Enhopp, e.Engodd, e.Engocash, e.Engopp, e.Engohdd, e.Engohcash, e.Engohpp, e.Enseddaq, e.Ensecashaq, e.Enseppaq, e.Enhoddaq, e.Enhocashaq, e.Enhoppaq, e.Engoddaq, e.Engocashaq, e.Engoppaq, e.Engohddaq, e.Engohcashaq, e.Engohppaq, e.Enseddelec, e.Enseddeleceac, e.Ensedde7, e.Ensedde7deac, e.Ensedde7neac, e.Ensecashelec, e.Ensecasheleceac, e.Ensecashe7, e.Ensecashe7deac, e.Ensecashe7neac, e.Enseppelec, e.Enseppeleceac, e.Enseppe7, e.Enseppe7deac, e.Enseppe7neac, e.Enhoddelec, e.Enhoddeleceac, e.Enhodde7, e.Enhodde7deac, e.Enhodde7neac, e.Enhocashelec, e.Enhocasheleceac, e.Enhocashe7, e.Enhocashe7deac, e.Enhocashe7neac, e.Enhoppelec, e.Enhoppeleceac, e.Enhoppe7, e.Enhoppe7deac, e.Enhoppe7neac, e.Engoddelec, e.Engohddelec, e.Engoddeleceac, e.Engohddeleceac, e.Engodde7, e.Engohdde7, e.Engodde7deac, e.Engohdde7deac, e.Engodde7neac, e.Engohdde7neac, e.Engocashelec, e.Engohcashelec, e.Engocasheleceac, e.Engohcasheleceac, e.Engocashe7, e.Engohcashe7, e.Engocashe7deac, e.Engohcashe7deac, e.Engocashe7neac, e.Engohcashe7neac, e.Engoppelec, e.Engohppelec, e.Engoppeleceac, e.Engohppeleceac, e.Engoppe7, e.Engohppe7, e.Engoppe7deac, e.Engohppe7deac, e.Engoppe7neac, e.Engohppe7neac, e.Entotaldualfdisc, e.Engoldcrossover, e.Eneleccrossover, e.Ene7crossover, e.Gogasddsplit, e.Goelecddsplit, e.Goe7ddsplitd, e.Goe7ddsplitn, e.Gogasddsplitaq, e.Goelecddspliteac, e.Goe7ddspliteac, e.Goe7ddspliteacn, e.Enavbill, e.Enavebill, e.Enave7bill, e.Endfdiscount, e.Endfnos, e.Enn1, e.Enn2, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Enbase in the database.
-func (e *Enbase) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.enbase SET (` +
-		`endate, enregion, ensedd, ensecash, ensepp, enhodd, enhocash, enhopp, engodd, engocash, engopp, engohdd, engohcash, engohpp, enseddaq, ensecashaq, enseppaq, enhoddaq, enhocashaq, enhoppaq, engoddaq, engocashaq, engoppaq, engohddaq, engohcashaq, engohppaq, enseddelec, enseddeleceac, ensedde7, ensedde7deac, ensedde7neac, ensecashelec, ensecasheleceac, ensecashe7, ensecashe7deac, ensecashe7neac, enseppelec, enseppeleceac, enseppe7, enseppe7deac, enseppe7neac, enhoddelec, enhoddeleceac, enhodde7, enhodde7deac, enhodde7neac, enhocashelec, enhocasheleceac, enhocashe7, enhocashe7deac, enhocashe7neac, enhoppelec, enhoppeleceac, enhoppe7, enhoppe7deac, enhoppe7neac, engoddelec, engohddelec, engoddeleceac, engohddeleceac, engodde7, engohdde7, engodde7deac, engohdde7deac, engodde7neac, engohdde7neac, engocashelec, engohcashelec, engocasheleceac, engohcasheleceac, engocashe7, engohcashe7, engocashe7deac, engohcashe7deac, engocashe7neac, engohcashe7neac, engoppelec, engohppelec, engoppeleceac, engohppeleceac, engoppe7, engohppe7, engoppe7deac, engohppe7deac, engoppe7neac, engohppe7neac, entotaldualfdisc, engoldcrossover, eneleccrossover, ene7crossover, gogasddsplit, goelecddsplit, goe7ddsplitd, goe7ddsplitn, gogasddsplitaq, goelecddspliteac, goe7ddspliteac, goe7ddspliteacn, enavbill, enavebill, enave7bill, endfdiscount, endfnos, enn1, enn2, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106` +
-		`) WHERE equinox_lrn = $107`
-
-	// run query
-	XOLog(sqlstr, e.Endate, e.Enregion, e.Ensedd, e.Ensecash, e.Ensepp, e.Enhodd, e.Enhocash, e.Enhopp, e.Engodd, e.Engocash, e.Engopp, e.Engohdd, e.Engohcash, e.Engohpp, e.Enseddaq, e.Ensecashaq, e.Enseppaq, e.Enhoddaq, e.Enhocashaq, e.Enhoppaq, e.Engoddaq, e.Engocashaq, e.Engoppaq, e.Engohddaq, e.Engohcashaq, e.Engohppaq, e.Enseddelec, e.Enseddeleceac, e.Ensedde7, e.Ensedde7deac, e.Ensedde7neac, e.Ensecashelec, e.Ensecasheleceac, e.Ensecashe7, e.Ensecashe7deac, e.Ensecashe7neac, e.Enseppelec, e.Enseppeleceac, e.Enseppe7, e.Enseppe7deac, e.Enseppe7neac, e.Enhoddelec, e.Enhoddeleceac, e.Enhodde7, e.Enhodde7deac, e.Enhodde7neac, e.Enhocashelec, e.Enhocasheleceac, e.Enhocashe7, e.Enhocashe7deac, e.Enhocashe7neac, e.Enhoppelec, e.Enhoppeleceac, e.Enhoppe7, e.Enhoppe7deac, e.Enhoppe7neac, e.Engoddelec, e.Engohddelec, e.Engoddeleceac, e.Engohddeleceac, e.Engodde7, e.Engohdde7, e.Engodde7deac, e.Engohdde7deac, e.Engodde7neac, e.Engohdde7neac, e.Engocashelec, e.Engohcashelec, e.Engocasheleceac, e.Engohcasheleceac, e.Engocashe7, e.Engohcashe7, e.Engocashe7deac, e.Engohcashe7deac, e.Engocashe7neac, e.Engohcashe7neac, e.Engoppelec, e.Engohppelec, e.Engoppeleceac, e.Engohppeleceac, e.Engoppe7, e.Engohppe7, e.Engoppe7deac, e.Engohppe7deac, e.Engoppe7neac, e.Engohppe7neac, e.Entotaldualfdisc, e.Engoldcrossover, e.Eneleccrossover, e.Ene7crossover, e.Gogasddsplit, e.Goelecddsplit, e.Goe7ddsplitd, e.Goe7ddsplitn, e.Gogasddsplitaq, e.Goelecddspliteac, e.Goe7ddspliteac, e.Goe7ddspliteacn, e.Enavbill, e.Enavebill, e.Enave7bill, e.Endfdiscount, e.Endfnos, e.Enn1, e.Enn2, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Endate, e.Enregion, e.Ensedd, e.Ensecash, e.Ensepp, e.Enhodd, e.Enhocash, e.Enhopp, e.Engodd, e.Engocash, e.Engopp, e.Engohdd, e.Engohcash, e.Engohpp, e.Enseddaq, e.Ensecashaq, e.Enseppaq, e.Enhoddaq, e.Enhocashaq, e.Enhoppaq, e.Engoddaq, e.Engocashaq, e.Engoppaq, e.Engohddaq, e.Engohcashaq, e.Engohppaq, e.Enseddelec, e.Enseddeleceac, e.Ensedde7, e.Ensedde7deac, e.Ensedde7neac, e.Ensecashelec, e.Ensecasheleceac, e.Ensecashe7, e.Ensecashe7deac, e.Ensecashe7neac, e.Enseppelec, e.Enseppeleceac, e.Enseppe7, e.Enseppe7deac, e.Enseppe7neac, e.Enhoddelec, e.Enhoddeleceac, e.Enhodde7, e.Enhodde7deac, e.Enhodde7neac, e.Enhocashelec, e.Enhocasheleceac, e.Enhocashe7, e.Enhocashe7deac, e.Enhocashe7neac, e.Enhoppelec, e.Enhoppeleceac, e.Enhoppe7, e.Enhoppe7deac, e.Enhoppe7neac, e.Engoddelec, e.Engohddelec, e.Engoddeleceac, e.Engohddeleceac, e.Engodde7, e.Engohdde7, e.Engodde7deac, e.Engohdde7deac, e.Engodde7neac, e.Engohdde7neac, e.Engocashelec, e.Engohcashelec, e.Engocasheleceac, e.Engohcasheleceac, e.Engocashe7, e.Engohcashe7, e.Engocashe7deac, e.Engohcashe7deac, e.Engocashe7neac, e.Engohcashe7neac, e.Engoppelec, e.Engohppelec, e.Engoppeleceac, e.Engohppeleceac, e.Engoppe7, e.Engohppe7, e.Engoppe7deac, e.Engohppe7deac, e.Engoppe7neac, e.Engohppe7neac, e.Entotaldualfdisc, e.Engoldcrossover, e.Eneleccrossover, e.Ene7crossover, e.Gogasddsplit, e.Goelecddsplit, e.Goe7ddsplitd, e.Goe7ddsplitn, e.Gogasddsplitaq, e.Goelecddspliteac, e.Goe7ddspliteac, e.Goe7ddspliteacn, e.Enavbill, e.Enavebill, e.Enave7bill, e.Endfdiscount, e.Endfnos, e.Enn1, e.Enn2, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Enbase to the database.
-func (e *Enbase) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Enbase.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Enbase) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.enbase (` +
-		`endate, enregion, ensedd, ensecash, ensepp, enhodd, enhocash, enhopp, engodd, engocash, engopp, engohdd, engohcash, engohpp, enseddaq, ensecashaq, enseppaq, enhoddaq, enhocashaq, enhoppaq, engoddaq, engocashaq, engoppaq, engohddaq, engohcashaq, engohppaq, enseddelec, enseddeleceac, ensedde7, ensedde7deac, ensedde7neac, ensecashelec, ensecasheleceac, ensecashe7, ensecashe7deac, ensecashe7neac, enseppelec, enseppeleceac, enseppe7, enseppe7deac, enseppe7neac, enhoddelec, enhoddeleceac, enhodde7, enhodde7deac, enhodde7neac, enhocashelec, enhocasheleceac, enhocashe7, enhocashe7deac, enhocashe7neac, enhoppelec, enhoppeleceac, enhoppe7, enhoppe7deac, enhoppe7neac, engoddelec, engohddelec, engoddeleceac, engohddeleceac, engodde7, engohdde7, engodde7deac, engohdde7deac, engodde7neac, engohdde7neac, engocashelec, engohcashelec, engocasheleceac, engohcasheleceac, engocashe7, engohcashe7, engocashe7deac, engohcashe7deac, engocashe7neac, engohcashe7neac, engoppelec, engohppelec, engoppeleceac, engohppeleceac, engoppe7, engohppe7, engoppe7deac, engohppe7deac, engoppe7neac, engohppe7neac, entotaldualfdisc, engoldcrossover, eneleccrossover, ene7crossover, gogasddsplit, goelecddsplit, goe7ddsplitd, goe7ddsplitn, gogasddsplitaq, goelecddspliteac, goe7ddspliteac, goe7ddspliteacn, enavbill, enavebill, enave7bill, endfdiscount, endfnos, enn1, enn2, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`endate, enregion, ensedd, ensecash, ensepp, enhodd, enhocash, enhopp, engodd, engocash, engopp, engohdd, engohcash, engohpp, enseddaq, ensecashaq, enseppaq, enhoddaq, enhocashaq, enhoppaq, engoddaq, engocashaq, engoppaq, engohddaq, engohcashaq, engohppaq, enseddelec, enseddeleceac, ensedde7, ensedde7deac, ensedde7neac, ensecashelec, ensecasheleceac, ensecashe7, ensecashe7deac, ensecashe7neac, enseppelec, enseppeleceac, enseppe7, enseppe7deac, enseppe7neac, enhoddelec, enhoddeleceac, enhodde7, enhodde7deac, enhodde7neac, enhocashelec, enhocasheleceac, enhocashe7, enhocashe7deac, enhocashe7neac, enhoppelec, enhoppeleceac, enhoppe7, enhoppe7deac, enhoppe7neac, engoddelec, engohddelec, engoddeleceac, engohddeleceac, engodde7, engohdde7, engodde7deac, engohdde7deac, engodde7neac, engohdde7neac, engocashelec, engohcashelec, engocasheleceac, engohcasheleceac, engocashe7, engohcashe7, engocashe7deac, engohcashe7deac, engocashe7neac, engohcashe7neac, engoppelec, engohppelec, engoppeleceac, engohppeleceac, engoppe7, engohppe7, engoppe7deac, engohppe7deac, engoppe7neac, engohppe7neac, entotaldualfdisc, engoldcrossover, eneleccrossover, ene7crossover, gogasddsplit, goelecddsplit, goe7ddsplitd, goe7ddsplitn, gogasddsplitaq, goelecddspliteac, goe7ddspliteac, goe7ddspliteacn, enavbill, enavebill, enave7bill, endfdiscount, endfnos, enn1, enn2, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.endate, EXCLUDED.enregion, EXCLUDED.ensedd, EXCLUDED.ensecash, EXCLUDED.ensepp, EXCLUDED.enhodd, EXCLUDED.enhocash, EXCLUDED.enhopp, EXCLUDED.engodd, EXCLUDED.engocash, EXCLUDED.engopp, EXCLUDED.engohdd, EXCLUDED.engohcash, EXCLUDED.engohpp, EXCLUDED.enseddaq, EXCLUDED.ensecashaq, EXCLUDED.enseppaq, EXCLUDED.enhoddaq, EXCLUDED.enhocashaq, EXCLUDED.enhoppaq, EXCLUDED.engoddaq, EXCLUDED.engocashaq, EXCLUDED.engoppaq, EXCLUDED.engohddaq, EXCLUDED.engohcashaq, EXCLUDED.engohppaq, EXCLUDED.enseddelec, EXCLUDED.enseddeleceac, EXCLUDED.ensedde7, EXCLUDED.ensedde7deac, EXCLUDED.ensedde7neac, EXCLUDED.ensecashelec, EXCLUDED.ensecasheleceac, EXCLUDED.ensecashe7, EXCLUDED.ensecashe7deac, EXCLUDED.ensecashe7neac, EXCLUDED.enseppelec, EXCLUDED.enseppeleceac, EXCLUDED.enseppe7, EXCLUDED.enseppe7deac, EXCLUDED.enseppe7neac, EXCLUDED.enhoddelec, EXCLUDED.enhoddeleceac, EXCLUDED.enhodde7, EXCLUDED.enhodde7deac, EXCLUDED.enhodde7neac, EXCLUDED.enhocashelec, EXCLUDED.enhocasheleceac, EXCLUDED.enhocashe7, EXCLUDED.enhocashe7deac, EXCLUDED.enhocashe7neac, EXCLUDED.enhoppelec, EXCLUDED.enhoppeleceac, EXCLUDED.enhoppe7, EXCLUDED.enhoppe7deac, EXCLUDED.enhoppe7neac, EXCLUDED.engoddelec, EXCLUDED.engohddelec, EXCLUDED.engoddeleceac, EXCLUDED.engohddeleceac, EXCLUDED.engodde7, EXCLUDED.engohdde7, EXCLUDED.engodde7deac, EXCLUDED.engohdde7deac, EXCLUDED.engodde7neac, EXCLUDED.engohdde7neac, EXCLUDED.engocashelec, EXCLUDED.engohcashelec, EXCLUDED.engocasheleceac, EXCLUDED.engohcasheleceac, EXCLUDED.engocashe7, EXCLUDED.engohcashe7, EXCLUDED.engocashe7deac, EXCLUDED.engohcashe7deac, EXCLUDED.engocashe7neac, EXCLUDED.engohcashe7neac, EXCLUDED.engoppelec, EXCLUDED.engohppelec, EXCLUDED.engoppeleceac, EXCLUDED.engohppeleceac, EXCLUDED.engoppe7, EXCLUDED.engohppe7, EXCLUDED.engoppe7deac, EXCLUDED.engohppe7deac, EXCLUDED.engoppe7neac, EXCLUDED.engohppe7neac, EXCLUDED.entotaldualfdisc, EXCLUDED.engoldcrossover, EXCLUDED.eneleccrossover, EXCLUDED.ene7crossover, EXCLUDED.gogasddsplit, EXCLUDED.goelecddsplit, EXCLUDED.goe7ddsplitd, EXCLUDED.goe7ddsplitn, EXCLUDED.gogasddsplitaq, EXCLUDED.goelecddspliteac, EXCLUDED.goe7ddspliteac, EXCLUDED.goe7ddspliteacn, EXCLUDED.enavbill, EXCLUDED.enavebill, EXCLUDED.enave7bill, EXCLUDED.endfdiscount, EXCLUDED.endfnos, EXCLUDED.enn1, EXCLUDED.enn2, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Endate, e.Enregion, e.Ensedd, e.Ensecash, e.Ensepp, e.Enhodd, e.Enhocash, e.Enhopp, e.Engodd, e.Engocash, e.Engopp, e.Engohdd, e.Engohcash, e.Engohpp, e.Enseddaq, e.Ensecashaq, e.Enseppaq, e.Enhoddaq, e.Enhocashaq, e.Enhoppaq, e.Engoddaq, e.Engocashaq, e.Engoppaq, e.Engohddaq, e.Engohcashaq, e.Engohppaq, e.Enseddelec, e.Enseddeleceac, e.Ensedde7, e.Ensedde7deac, e.Ensedde7neac, e.Ensecashelec, e.Ensecasheleceac, e.Ensecashe7, e.Ensecashe7deac, e.Ensecashe7neac, e.Enseppelec, e.Enseppeleceac, e.Enseppe7, e.Enseppe7deac, e.Enseppe7neac, e.Enhoddelec, e.Enhoddeleceac, e.Enhodde7, e.Enhodde7deac, e.Enhodde7neac, e.Enhocashelec, e.Enhocasheleceac, e.Enhocashe7, e.Enhocashe7deac, e.Enhocashe7neac, e.Enhoppelec, e.Enhoppeleceac, e.Enhoppe7, e.Enhoppe7deac, e.Enhoppe7neac, e.Engoddelec, e.Engohddelec, e.Engoddeleceac, e.Engohddeleceac, e.Engodde7, e.Engohdde7, e.Engodde7deac, e.Engohdde7deac, e.Engodde7neac, e.Engohdde7neac, e.Engocashelec, e.Engohcashelec, e.Engocasheleceac, e.Engohcasheleceac, e.Engocashe7, e.Engohcashe7, e.Engocashe7deac, e.Engohcashe7deac, e.Engocashe7neac, e.Engohcashe7neac, e.Engoppelec, e.Engohppelec, e.Engoppeleceac, e.Engohppeleceac, e.Engoppe7, e.Engohppe7, e.Engoppe7deac, e.Engohppe7deac, e.Engoppe7neac, e.Engohppe7neac, e.Entotaldualfdisc, e.Engoldcrossover, e.Eneleccrossover, e.Ene7crossover, e.Gogasddsplit, e.Goelecddsplit, e.Goe7ddsplitd, e.Goe7ddsplitn, e.Gogasddsplitaq, e.Goelecddspliteac, e.Goe7ddspliteac, e.Goe7ddspliteacn, e.Enavbill, e.Enavebill, e.Enave7bill, e.Endfdiscount, e.Endfnos, e.Enn1, e.Enn2, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Endate, e.Enregion, e.Ensedd, e.Ensecash, e.Ensepp, e.Enhodd, e.Enhocash, e.Enhopp, e.Engodd, e.Engocash, e.Engopp, e.Engohdd, e.Engohcash, e.Engohpp, e.Enseddaq, e.Ensecashaq, e.Enseppaq, e.Enhoddaq, e.Enhocashaq, e.Enhoppaq, e.Engoddaq, e.Engocashaq, e.Engoppaq, e.Engohddaq, e.Engohcashaq, e.Engohppaq, e.Enseddelec, e.Enseddeleceac, e.Ensedde7, e.Ensedde7deac, e.Ensedde7neac, e.Ensecashelec, e.Ensecasheleceac, e.Ensecashe7, e.Ensecashe7deac, e.Ensecashe7neac, e.Enseppelec, e.Enseppeleceac, e.Enseppe7, e.Enseppe7deac, e.Enseppe7neac, e.Enhoddelec, e.Enhoddeleceac, e.Enhodde7, e.Enhodde7deac, e.Enhodde7neac, e.Enhocashelec, e.Enhocasheleceac, e.Enhocashe7, e.Enhocashe7deac, e.Enhocashe7neac, e.Enhoppelec, e.Enhoppeleceac, e.Enhoppe7, e.Enhoppe7deac, e.Enhoppe7neac, e.Engoddelec, e.Engohddelec, e.Engoddeleceac, e.Engohddeleceac, e.Engodde7, e.Engohdde7, e.Engodde7deac, e.Engohdde7deac, e.Engodde7neac, e.Engohdde7neac, e.Engocashelec, e.Engohcashelec, e.Engocasheleceac, e.Engohcasheleceac, e.Engocashe7, e.Engohcashe7, e.Engocashe7deac, e.Engohcashe7deac, e.Engocashe7neac, e.Engohcashe7neac, e.Engoppelec, e.Engohppelec, e.Engoppeleceac, e.Engohppeleceac, e.Engoppe7, e.Engohppe7, e.Engoppe7deac, e.Engohppe7deac, e.Engoppe7neac, e.Engohppe7neac, e.Entotaldualfdisc, e.Engoldcrossover, e.Eneleccrossover, e.Ene7crossover, e.Gogasddsplit, e.Goelecddsplit, e.Goe7ddsplitd, e.Goe7ddsplitn, e.Gogasddsplitaq, e.Goelecddspliteac, e.Goe7ddspliteac, e.Goe7ddspliteacn, e.Enavbill, e.Enavebill, e.Enave7bill, e.Endfdiscount, e.Endfnos, e.Enn1, e.Enn2, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Enbase from the database.
-func (e *Enbase) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.enbase WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EnbaseByEquinoxLrn retrieves a row from 'equinox.enbase' as a Enbase.
@@ -278,9 +134,7 @@ func EnbaseByEquinoxLrn(db XODB, equinoxLrn int64) (*Enbase, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Enbase{
-		_exists: true,
-	}
+	e := Enbase{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Endate, &e.Enregion, &e.Ensedd, &e.Ensecash, &e.Ensepp, &e.Enhodd, &e.Enhocash, &e.Enhopp, &e.Engodd, &e.Engocash, &e.Engopp, &e.Engohdd, &e.Engohcash, &e.Engohpp, &e.Enseddaq, &e.Ensecashaq, &e.Enseppaq, &e.Enhoddaq, &e.Enhocashaq, &e.Enhoppaq, &e.Engoddaq, &e.Engocashaq, &e.Engoppaq, &e.Engohddaq, &e.Engohcashaq, &e.Engohppaq, &e.Enseddelec, &e.Enseddeleceac, &e.Ensedde7, &e.Ensedde7deac, &e.Ensedde7neac, &e.Ensecashelec, &e.Ensecasheleceac, &e.Ensecashe7, &e.Ensecashe7deac, &e.Ensecashe7neac, &e.Enseppelec, &e.Enseppeleceac, &e.Enseppe7, &e.Enseppe7deac, &e.Enseppe7neac, &e.Enhoddelec, &e.Enhoddeleceac, &e.Enhodde7, &e.Enhodde7deac, &e.Enhodde7neac, &e.Enhocashelec, &e.Enhocasheleceac, &e.Enhocashe7, &e.Enhocashe7deac, &e.Enhocashe7neac, &e.Enhoppelec, &e.Enhoppeleceac, &e.Enhoppe7, &e.Enhoppe7deac, &e.Enhoppe7neac, &e.Engoddelec, &e.Engohddelec, &e.Engoddeleceac, &e.Engohddeleceac, &e.Engodde7, &e.Engohdde7, &e.Engodde7deac, &e.Engohdde7deac, &e.Engodde7neac, &e.Engohdde7neac, &e.Engocashelec, &e.Engohcashelec, &e.Engocasheleceac, &e.Engohcasheleceac, &e.Engocashe7, &e.Engohcashe7, &e.Engocashe7deac, &e.Engohcashe7deac, &e.Engocashe7neac, &e.Engohcashe7neac, &e.Engoppelec, &e.Engohppelec, &e.Engoppeleceac, &e.Engohppeleceac, &e.Engoppe7, &e.Engohppe7, &e.Engoppe7deac, &e.Engohppe7deac, &e.Engoppe7neac, &e.Engohppe7neac, &e.Entotaldualfdisc, &e.Engoldcrossover, &e.Eneleccrossover, &e.Ene7crossover, &e.Gogasddsplit, &e.Goelecddsplit, &e.Goe7ddsplitd, &e.Goe7ddsplitn, &e.Gogasddsplitaq, &e.Goelecddspliteac, &e.Goe7ddspliteac, &e.Goe7ddspliteacn, &e.Enavbill, &e.Enavebill, &e.Enave7bill, &e.Endfdiscount, &e.Endfnos, &e.Enn1, &e.Enn2, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

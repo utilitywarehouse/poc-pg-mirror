@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -33,149 +32,6 @@ type Smartrec struct {
 	Smsmicop         sql.NullString `json:"smsmicop"`         // smsmicop
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Smartrec exists in the database.
-func (s *Smartrec) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Smartrec has been deleted from the database.
-func (s *Smartrec) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Smartrec to the database.
-func (s *Smartrec) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartrec (` +
-		`smaccno, smmpan, smmprn, smemsn, smgmsn, smtype, smgtype, sminststatus, sminststatusdate, smmopref, smmop, sminstalldate, smwithdrawaldate, smselectedinstal, smihd, smhanlive, smwanlive, smdataconsent, smsmicop, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Smaccno, s.Smmpan, s.Smmprn, s.Smemsn, s.Smgmsn, s.Smtype, s.Smgtype, s.Sminststatus, s.Sminststatusdate, s.Smmopref, s.Smmop, s.Sminstalldate, s.Smwithdrawaldate, s.Smselectedinstal, s.Smihd, s.Smhanlive, s.Smwanlive, s.Smdataconsent, s.Smsmicop, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Smaccno, s.Smmpan, s.Smmprn, s.Smemsn, s.Smgmsn, s.Smtype, s.Smgtype, s.Sminststatus, s.Sminststatusdate, s.Smmopref, s.Smmop, s.Sminstalldate, s.Smwithdrawaldate, s.Smselectedinstal, s.Smihd, s.Smhanlive, s.Smwanlive, s.Smdataconsent, s.Smsmicop, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Smartrec in the database.
-func (s *Smartrec) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.smartrec SET (` +
-		`smaccno, smmpan, smmprn, smemsn, smgmsn, smtype, smgtype, sminststatus, sminststatusdate, smmopref, smmop, sminstalldate, smwithdrawaldate, smselectedinstal, smihd, smhanlive, smwanlive, smdataconsent, smsmicop, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) WHERE equinox_lrn = $21`
-
-	// run query
-	XOLog(sqlstr, s.Smaccno, s.Smmpan, s.Smmprn, s.Smemsn, s.Smgmsn, s.Smtype, s.Smgtype, s.Sminststatus, s.Sminststatusdate, s.Smmopref, s.Smmop, s.Sminstalldate, s.Smwithdrawaldate, s.Smselectedinstal, s.Smihd, s.Smhanlive, s.Smwanlive, s.Smdataconsent, s.Smsmicop, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Smaccno, s.Smmpan, s.Smmprn, s.Smemsn, s.Smgmsn, s.Smtype, s.Smgtype, s.Sminststatus, s.Sminststatusdate, s.Smmopref, s.Smmop, s.Sminstalldate, s.Smwithdrawaldate, s.Smselectedinstal, s.Smihd, s.Smhanlive, s.Smwanlive, s.Smdataconsent, s.Smsmicop, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Smartrec to the database.
-func (s *Smartrec) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Smartrec.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Smartrec) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartrec (` +
-		`smaccno, smmpan, smmprn, smemsn, smgmsn, smtype, smgtype, sminststatus, sminststatusdate, smmopref, smmop, sminstalldate, smwithdrawaldate, smselectedinstal, smihd, smhanlive, smwanlive, smdataconsent, smsmicop, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`smaccno, smmpan, smmprn, smemsn, smgmsn, smtype, smgtype, sminststatus, sminststatusdate, smmopref, smmop, sminstalldate, smwithdrawaldate, smselectedinstal, smihd, smhanlive, smwanlive, smdataconsent, smsmicop, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.smaccno, EXCLUDED.smmpan, EXCLUDED.smmprn, EXCLUDED.smemsn, EXCLUDED.smgmsn, EXCLUDED.smtype, EXCLUDED.smgtype, EXCLUDED.sminststatus, EXCLUDED.sminststatusdate, EXCLUDED.smmopref, EXCLUDED.smmop, EXCLUDED.sminstalldate, EXCLUDED.smwithdrawaldate, EXCLUDED.smselectedinstal, EXCLUDED.smihd, EXCLUDED.smhanlive, EXCLUDED.smwanlive, EXCLUDED.smdataconsent, EXCLUDED.smsmicop, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Smaccno, s.Smmpan, s.Smmprn, s.Smemsn, s.Smgmsn, s.Smtype, s.Smgtype, s.Sminststatus, s.Sminststatusdate, s.Smmopref, s.Smmop, s.Sminstalldate, s.Smwithdrawaldate, s.Smselectedinstal, s.Smihd, s.Smhanlive, s.Smwanlive, s.Smdataconsent, s.Smsmicop, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Smaccno, s.Smmpan, s.Smmprn, s.Smemsn, s.Smgmsn, s.Smtype, s.Smgtype, s.Sminststatus, s.Sminststatusdate, s.Smmopref, s.Smmop, s.Sminstalldate, s.Smwithdrawaldate, s.Smselectedinstal, s.Smihd, s.Smhanlive, s.Smwanlive, s.Smdataconsent, s.Smsmicop, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Smartrec from the database.
-func (s *Smartrec) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.smartrec WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SmartrecByEquinoxLrn retrieves a row from 'equinox.smartrec' as a Smartrec.
@@ -192,9 +48,7 @@ func SmartrecByEquinoxLrn(db XODB, equinoxLrn int64) (*Smartrec, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Smartrec{
-		_exists: true,
-	}
+	s := Smartrec{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Smaccno, &s.Smmpan, &s.Smmprn, &s.Smemsn, &s.Smgmsn, &s.Smtype, &s.Smgtype, &s.Sminststatus, &s.Sminststatusdate, &s.Smmopref, &s.Smmop, &s.Sminstalldate, &s.Smwithdrawaldate, &s.Smselectedinstal, &s.Smihd, &s.Smhanlive, &s.Smwanlive, &s.Smdataconsent, &s.Smsmicop, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

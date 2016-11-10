@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -114,149 +113,6 @@ type Cnxhmcli struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxhmcli exists in the database.
-func (c *Cnxhmcli) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxhmcli has been deleted from the database.
-func (c *Cnxhmcli) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxhmcli to the database.
-func (c *Cnxhmcli) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxhmcli (` +
-		`cnxhmcliunisys, cnxhmclinumber, cnxhmcliservtype, cnxhmcliaction, cnxhmclitransfer, cnxhmcligodate, cnxhmclisnum1, cnxhmclisnum2, cnxhmcliomr, cnxhmclipaymeth, cnxhmclipromocd, cnxhmclimnumber, cnxhmclibcname, cnxhmclibcplus, cnxhmcliwadaptor, cnxhmclinumwithh, cnxhmcliexdir, cnxhmclitps, cnxhmcliequip, cnxhmclimaccode, cnxhmclifilters, cnxhmcliss07, cnxhmcliss01, cnxhmcliss1a, cnxhmcliss08, cnxhmcliss06, cnxhmcliss09, cnxhmcliss02, cnxhmcliss05, cnxhmcliss14, cnxhmclideladd, cnxhmclipcode, cnxhmcliadd1, cnxhmcliadd2, cnxhmcliadd3, cnxhmcliadd4, cnxhmclicounty, cnxhmclifeaturel, cnxhmclicable, cnxhmclismartbox, cnxhmcliretainno, cnxhmclimobsaver, cnxhmcliintsaver, cnxhmcliservlvl, cnxhmclitermno, cnxhmclihandset, cnxhmclirpc, cnxhmclicontterm, cnxhmclivmail, cnxhmcliport, cnxhmclipaccode, cnxhmcliservatp1, cnxhmclitariff, cnxhmclicontdate, cnxhmclimonthly, cnxhmcliorgread1, cnxhmcliorgread2, cnxhmcliaddread, cnxhmclicomplete, cnxhmclip2appdun, cnxhmclispared3, cnxhmclihp2hplr, cnxhmclihponly, cnxhmclibalarm, cnxhmcliforcedr, cnxhmclisparet1, cnxhmcliomr2, cnxhmclimatchp1, cnxhmclicontadvi, cnxhmclicanretno, cnxhmcliintaddeq, cnxhmclinumatp2, cnxhmclic2reques, cnxhmcliannual, cnxhmcliactionc2, cnxhmselectservs, cnxhmclicni, cnxhmclicniphone, cnxhmclietf, cnxhmclietfterms, cnxhmclinewphone, cnxhmclibtcable, cnxhmclicps, cnxhmclipendnrg, cnxhmclisrvlvlc2, cnxhmclikwhrs, cnxhmcliecosave, cnxhmclilinetype, cnxhmclicontract, cnxhmcliultraava, cnxhmclimobilebb, cnxhmclinewcli, cnxhmclinewuniq, cnxhmcliomrtype, cnxhmcliprefer, cnxhmclipeaks, cnxhmcliintsave, cnxhmcliinstnote, cnxhmcliss20, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxhmcliunisys, c.Cnxhmclinumber, c.Cnxhmcliservtype, c.Cnxhmcliaction, c.Cnxhmclitransfer, c.Cnxhmcligodate, c.Cnxhmclisnum1, c.Cnxhmclisnum2, c.Cnxhmcliomr, c.Cnxhmclipaymeth, c.Cnxhmclipromocd, c.Cnxhmclimnumber, c.Cnxhmclibcname, c.Cnxhmclibcplus, c.Cnxhmcliwadaptor, c.Cnxhmclinumwithh, c.Cnxhmcliexdir, c.Cnxhmclitps, c.Cnxhmcliequip, c.Cnxhmclimaccode, c.Cnxhmclifilters, c.Cnxhmcliss07, c.Cnxhmcliss01, c.Cnxhmcliss1a, c.Cnxhmcliss08, c.Cnxhmcliss06, c.Cnxhmcliss09, c.Cnxhmcliss02, c.Cnxhmcliss05, c.Cnxhmcliss14, c.Cnxhmclideladd, c.Cnxhmclipcode, c.Cnxhmcliadd1, c.Cnxhmcliadd2, c.Cnxhmcliadd3, c.Cnxhmcliadd4, c.Cnxhmclicounty, c.Cnxhmclifeaturel, c.Cnxhmclicable, c.Cnxhmclismartbox, c.Cnxhmcliretainno, c.Cnxhmclimobsaver, c.Cnxhmcliintsaver, c.Cnxhmcliservlvl, c.Cnxhmclitermno, c.Cnxhmclihandset, c.Cnxhmclirpc, c.Cnxhmclicontterm, c.Cnxhmclivmail, c.Cnxhmcliport, c.Cnxhmclipaccode, c.Cnxhmcliservatp1, c.Cnxhmclitariff, c.Cnxhmclicontdate, c.Cnxhmclimonthly, c.Cnxhmcliorgread1, c.Cnxhmcliorgread2, c.Cnxhmcliaddread, c.Cnxhmclicomplete, c.Cnxhmclip2appdun, c.Cnxhmclispared3, c.Cnxhmclihp2hplr, c.Cnxhmclihponly, c.Cnxhmclibalarm, c.Cnxhmcliforcedr, c.Cnxhmclisparet1, c.Cnxhmcliomr2, c.Cnxhmclimatchp1, c.Cnxhmclicontadvi, c.Cnxhmclicanretno, c.Cnxhmcliintaddeq, c.Cnxhmclinumatp2, c.Cnxhmclic2reques, c.Cnxhmcliannual, c.Cnxhmcliactionc2, c.Cnxhmselectservs, c.Cnxhmclicni, c.Cnxhmclicniphone, c.Cnxhmclietf, c.Cnxhmclietfterms, c.Cnxhmclinewphone, c.Cnxhmclibtcable, c.Cnxhmclicps, c.Cnxhmclipendnrg, c.Cnxhmclisrvlvlc2, c.Cnxhmclikwhrs, c.Cnxhmcliecosave, c.Cnxhmclilinetype, c.Cnxhmclicontract, c.Cnxhmcliultraava, c.Cnxhmclimobilebb, c.Cnxhmclinewcli, c.Cnxhmclinewuniq, c.Cnxhmcliomrtype, c.Cnxhmcliprefer, c.Cnxhmclipeaks, c.Cnxhmcliintsave, c.Cnxhmcliinstnote, c.Cnxhmcliss20, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxhmcliunisys, c.Cnxhmclinumber, c.Cnxhmcliservtype, c.Cnxhmcliaction, c.Cnxhmclitransfer, c.Cnxhmcligodate, c.Cnxhmclisnum1, c.Cnxhmclisnum2, c.Cnxhmcliomr, c.Cnxhmclipaymeth, c.Cnxhmclipromocd, c.Cnxhmclimnumber, c.Cnxhmclibcname, c.Cnxhmclibcplus, c.Cnxhmcliwadaptor, c.Cnxhmclinumwithh, c.Cnxhmcliexdir, c.Cnxhmclitps, c.Cnxhmcliequip, c.Cnxhmclimaccode, c.Cnxhmclifilters, c.Cnxhmcliss07, c.Cnxhmcliss01, c.Cnxhmcliss1a, c.Cnxhmcliss08, c.Cnxhmcliss06, c.Cnxhmcliss09, c.Cnxhmcliss02, c.Cnxhmcliss05, c.Cnxhmcliss14, c.Cnxhmclideladd, c.Cnxhmclipcode, c.Cnxhmcliadd1, c.Cnxhmcliadd2, c.Cnxhmcliadd3, c.Cnxhmcliadd4, c.Cnxhmclicounty, c.Cnxhmclifeaturel, c.Cnxhmclicable, c.Cnxhmclismartbox, c.Cnxhmcliretainno, c.Cnxhmclimobsaver, c.Cnxhmcliintsaver, c.Cnxhmcliservlvl, c.Cnxhmclitermno, c.Cnxhmclihandset, c.Cnxhmclirpc, c.Cnxhmclicontterm, c.Cnxhmclivmail, c.Cnxhmcliport, c.Cnxhmclipaccode, c.Cnxhmcliservatp1, c.Cnxhmclitariff, c.Cnxhmclicontdate, c.Cnxhmclimonthly, c.Cnxhmcliorgread1, c.Cnxhmcliorgread2, c.Cnxhmcliaddread, c.Cnxhmclicomplete, c.Cnxhmclip2appdun, c.Cnxhmclispared3, c.Cnxhmclihp2hplr, c.Cnxhmclihponly, c.Cnxhmclibalarm, c.Cnxhmcliforcedr, c.Cnxhmclisparet1, c.Cnxhmcliomr2, c.Cnxhmclimatchp1, c.Cnxhmclicontadvi, c.Cnxhmclicanretno, c.Cnxhmcliintaddeq, c.Cnxhmclinumatp2, c.Cnxhmclic2reques, c.Cnxhmcliannual, c.Cnxhmcliactionc2, c.Cnxhmselectservs, c.Cnxhmclicni, c.Cnxhmclicniphone, c.Cnxhmclietf, c.Cnxhmclietfterms, c.Cnxhmclinewphone, c.Cnxhmclibtcable, c.Cnxhmclicps, c.Cnxhmclipendnrg, c.Cnxhmclisrvlvlc2, c.Cnxhmclikwhrs, c.Cnxhmcliecosave, c.Cnxhmclilinetype, c.Cnxhmclicontract, c.Cnxhmcliultraava, c.Cnxhmclimobilebb, c.Cnxhmclinewcli, c.Cnxhmclinewuniq, c.Cnxhmcliomrtype, c.Cnxhmcliprefer, c.Cnxhmclipeaks, c.Cnxhmcliintsave, c.Cnxhmcliinstnote, c.Cnxhmcliss20, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxhmcli in the database.
-func (c *Cnxhmcli) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxhmcli SET (` +
-		`cnxhmcliunisys, cnxhmclinumber, cnxhmcliservtype, cnxhmcliaction, cnxhmclitransfer, cnxhmcligodate, cnxhmclisnum1, cnxhmclisnum2, cnxhmcliomr, cnxhmclipaymeth, cnxhmclipromocd, cnxhmclimnumber, cnxhmclibcname, cnxhmclibcplus, cnxhmcliwadaptor, cnxhmclinumwithh, cnxhmcliexdir, cnxhmclitps, cnxhmcliequip, cnxhmclimaccode, cnxhmclifilters, cnxhmcliss07, cnxhmcliss01, cnxhmcliss1a, cnxhmcliss08, cnxhmcliss06, cnxhmcliss09, cnxhmcliss02, cnxhmcliss05, cnxhmcliss14, cnxhmclideladd, cnxhmclipcode, cnxhmcliadd1, cnxhmcliadd2, cnxhmcliadd3, cnxhmcliadd4, cnxhmclicounty, cnxhmclifeaturel, cnxhmclicable, cnxhmclismartbox, cnxhmcliretainno, cnxhmclimobsaver, cnxhmcliintsaver, cnxhmcliservlvl, cnxhmclitermno, cnxhmclihandset, cnxhmclirpc, cnxhmclicontterm, cnxhmclivmail, cnxhmcliport, cnxhmclipaccode, cnxhmcliservatp1, cnxhmclitariff, cnxhmclicontdate, cnxhmclimonthly, cnxhmcliorgread1, cnxhmcliorgread2, cnxhmcliaddread, cnxhmclicomplete, cnxhmclip2appdun, cnxhmclispared3, cnxhmclihp2hplr, cnxhmclihponly, cnxhmclibalarm, cnxhmcliforcedr, cnxhmclisparet1, cnxhmcliomr2, cnxhmclimatchp1, cnxhmclicontadvi, cnxhmclicanretno, cnxhmcliintaddeq, cnxhmclinumatp2, cnxhmclic2reques, cnxhmcliannual, cnxhmcliactionc2, cnxhmselectservs, cnxhmclicni, cnxhmclicniphone, cnxhmclietf, cnxhmclietfterms, cnxhmclinewphone, cnxhmclibtcable, cnxhmclicps, cnxhmclipendnrg, cnxhmclisrvlvlc2, cnxhmclikwhrs, cnxhmcliecosave, cnxhmclilinetype, cnxhmclicontract, cnxhmcliultraava, cnxhmclimobilebb, cnxhmclinewcli, cnxhmclinewuniq, cnxhmcliomrtype, cnxhmcliprefer, cnxhmclipeaks, cnxhmcliintsave, cnxhmcliinstnote, cnxhmcliss20, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101` +
-		`) WHERE equinox_lrn = $102`
-
-	// run query
-	XOLog(sqlstr, c.Cnxhmcliunisys, c.Cnxhmclinumber, c.Cnxhmcliservtype, c.Cnxhmcliaction, c.Cnxhmclitransfer, c.Cnxhmcligodate, c.Cnxhmclisnum1, c.Cnxhmclisnum2, c.Cnxhmcliomr, c.Cnxhmclipaymeth, c.Cnxhmclipromocd, c.Cnxhmclimnumber, c.Cnxhmclibcname, c.Cnxhmclibcplus, c.Cnxhmcliwadaptor, c.Cnxhmclinumwithh, c.Cnxhmcliexdir, c.Cnxhmclitps, c.Cnxhmcliequip, c.Cnxhmclimaccode, c.Cnxhmclifilters, c.Cnxhmcliss07, c.Cnxhmcliss01, c.Cnxhmcliss1a, c.Cnxhmcliss08, c.Cnxhmcliss06, c.Cnxhmcliss09, c.Cnxhmcliss02, c.Cnxhmcliss05, c.Cnxhmcliss14, c.Cnxhmclideladd, c.Cnxhmclipcode, c.Cnxhmcliadd1, c.Cnxhmcliadd2, c.Cnxhmcliadd3, c.Cnxhmcliadd4, c.Cnxhmclicounty, c.Cnxhmclifeaturel, c.Cnxhmclicable, c.Cnxhmclismartbox, c.Cnxhmcliretainno, c.Cnxhmclimobsaver, c.Cnxhmcliintsaver, c.Cnxhmcliservlvl, c.Cnxhmclitermno, c.Cnxhmclihandset, c.Cnxhmclirpc, c.Cnxhmclicontterm, c.Cnxhmclivmail, c.Cnxhmcliport, c.Cnxhmclipaccode, c.Cnxhmcliservatp1, c.Cnxhmclitariff, c.Cnxhmclicontdate, c.Cnxhmclimonthly, c.Cnxhmcliorgread1, c.Cnxhmcliorgread2, c.Cnxhmcliaddread, c.Cnxhmclicomplete, c.Cnxhmclip2appdun, c.Cnxhmclispared3, c.Cnxhmclihp2hplr, c.Cnxhmclihponly, c.Cnxhmclibalarm, c.Cnxhmcliforcedr, c.Cnxhmclisparet1, c.Cnxhmcliomr2, c.Cnxhmclimatchp1, c.Cnxhmclicontadvi, c.Cnxhmclicanretno, c.Cnxhmcliintaddeq, c.Cnxhmclinumatp2, c.Cnxhmclic2reques, c.Cnxhmcliannual, c.Cnxhmcliactionc2, c.Cnxhmselectservs, c.Cnxhmclicni, c.Cnxhmclicniphone, c.Cnxhmclietf, c.Cnxhmclietfterms, c.Cnxhmclinewphone, c.Cnxhmclibtcable, c.Cnxhmclicps, c.Cnxhmclipendnrg, c.Cnxhmclisrvlvlc2, c.Cnxhmclikwhrs, c.Cnxhmcliecosave, c.Cnxhmclilinetype, c.Cnxhmclicontract, c.Cnxhmcliultraava, c.Cnxhmclimobilebb, c.Cnxhmclinewcli, c.Cnxhmclinewuniq, c.Cnxhmcliomrtype, c.Cnxhmcliprefer, c.Cnxhmclipeaks, c.Cnxhmcliintsave, c.Cnxhmcliinstnote, c.Cnxhmcliss20, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxhmcliunisys, c.Cnxhmclinumber, c.Cnxhmcliservtype, c.Cnxhmcliaction, c.Cnxhmclitransfer, c.Cnxhmcligodate, c.Cnxhmclisnum1, c.Cnxhmclisnum2, c.Cnxhmcliomr, c.Cnxhmclipaymeth, c.Cnxhmclipromocd, c.Cnxhmclimnumber, c.Cnxhmclibcname, c.Cnxhmclibcplus, c.Cnxhmcliwadaptor, c.Cnxhmclinumwithh, c.Cnxhmcliexdir, c.Cnxhmclitps, c.Cnxhmcliequip, c.Cnxhmclimaccode, c.Cnxhmclifilters, c.Cnxhmcliss07, c.Cnxhmcliss01, c.Cnxhmcliss1a, c.Cnxhmcliss08, c.Cnxhmcliss06, c.Cnxhmcliss09, c.Cnxhmcliss02, c.Cnxhmcliss05, c.Cnxhmcliss14, c.Cnxhmclideladd, c.Cnxhmclipcode, c.Cnxhmcliadd1, c.Cnxhmcliadd2, c.Cnxhmcliadd3, c.Cnxhmcliadd4, c.Cnxhmclicounty, c.Cnxhmclifeaturel, c.Cnxhmclicable, c.Cnxhmclismartbox, c.Cnxhmcliretainno, c.Cnxhmclimobsaver, c.Cnxhmcliintsaver, c.Cnxhmcliservlvl, c.Cnxhmclitermno, c.Cnxhmclihandset, c.Cnxhmclirpc, c.Cnxhmclicontterm, c.Cnxhmclivmail, c.Cnxhmcliport, c.Cnxhmclipaccode, c.Cnxhmcliservatp1, c.Cnxhmclitariff, c.Cnxhmclicontdate, c.Cnxhmclimonthly, c.Cnxhmcliorgread1, c.Cnxhmcliorgread2, c.Cnxhmcliaddread, c.Cnxhmclicomplete, c.Cnxhmclip2appdun, c.Cnxhmclispared3, c.Cnxhmclihp2hplr, c.Cnxhmclihponly, c.Cnxhmclibalarm, c.Cnxhmcliforcedr, c.Cnxhmclisparet1, c.Cnxhmcliomr2, c.Cnxhmclimatchp1, c.Cnxhmclicontadvi, c.Cnxhmclicanretno, c.Cnxhmcliintaddeq, c.Cnxhmclinumatp2, c.Cnxhmclic2reques, c.Cnxhmcliannual, c.Cnxhmcliactionc2, c.Cnxhmselectservs, c.Cnxhmclicni, c.Cnxhmclicniphone, c.Cnxhmclietf, c.Cnxhmclietfterms, c.Cnxhmclinewphone, c.Cnxhmclibtcable, c.Cnxhmclicps, c.Cnxhmclipendnrg, c.Cnxhmclisrvlvlc2, c.Cnxhmclikwhrs, c.Cnxhmcliecosave, c.Cnxhmclilinetype, c.Cnxhmclicontract, c.Cnxhmcliultraava, c.Cnxhmclimobilebb, c.Cnxhmclinewcli, c.Cnxhmclinewuniq, c.Cnxhmcliomrtype, c.Cnxhmcliprefer, c.Cnxhmclipeaks, c.Cnxhmcliintsave, c.Cnxhmcliinstnote, c.Cnxhmcliss20, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxhmcli to the database.
-func (c *Cnxhmcli) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxhmcli.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxhmcli) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxhmcli (` +
-		`cnxhmcliunisys, cnxhmclinumber, cnxhmcliservtype, cnxhmcliaction, cnxhmclitransfer, cnxhmcligodate, cnxhmclisnum1, cnxhmclisnum2, cnxhmcliomr, cnxhmclipaymeth, cnxhmclipromocd, cnxhmclimnumber, cnxhmclibcname, cnxhmclibcplus, cnxhmcliwadaptor, cnxhmclinumwithh, cnxhmcliexdir, cnxhmclitps, cnxhmcliequip, cnxhmclimaccode, cnxhmclifilters, cnxhmcliss07, cnxhmcliss01, cnxhmcliss1a, cnxhmcliss08, cnxhmcliss06, cnxhmcliss09, cnxhmcliss02, cnxhmcliss05, cnxhmcliss14, cnxhmclideladd, cnxhmclipcode, cnxhmcliadd1, cnxhmcliadd2, cnxhmcliadd3, cnxhmcliadd4, cnxhmclicounty, cnxhmclifeaturel, cnxhmclicable, cnxhmclismartbox, cnxhmcliretainno, cnxhmclimobsaver, cnxhmcliintsaver, cnxhmcliservlvl, cnxhmclitermno, cnxhmclihandset, cnxhmclirpc, cnxhmclicontterm, cnxhmclivmail, cnxhmcliport, cnxhmclipaccode, cnxhmcliservatp1, cnxhmclitariff, cnxhmclicontdate, cnxhmclimonthly, cnxhmcliorgread1, cnxhmcliorgread2, cnxhmcliaddread, cnxhmclicomplete, cnxhmclip2appdun, cnxhmclispared3, cnxhmclihp2hplr, cnxhmclihponly, cnxhmclibalarm, cnxhmcliforcedr, cnxhmclisparet1, cnxhmcliomr2, cnxhmclimatchp1, cnxhmclicontadvi, cnxhmclicanretno, cnxhmcliintaddeq, cnxhmclinumatp2, cnxhmclic2reques, cnxhmcliannual, cnxhmcliactionc2, cnxhmselectservs, cnxhmclicni, cnxhmclicniphone, cnxhmclietf, cnxhmclietfterms, cnxhmclinewphone, cnxhmclibtcable, cnxhmclicps, cnxhmclipendnrg, cnxhmclisrvlvlc2, cnxhmclikwhrs, cnxhmcliecosave, cnxhmclilinetype, cnxhmclicontract, cnxhmcliultraava, cnxhmclimobilebb, cnxhmclinewcli, cnxhmclinewuniq, cnxhmcliomrtype, cnxhmcliprefer, cnxhmclipeaks, cnxhmcliintsave, cnxhmcliinstnote, cnxhmcliss20, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxhmcliunisys, cnxhmclinumber, cnxhmcliservtype, cnxhmcliaction, cnxhmclitransfer, cnxhmcligodate, cnxhmclisnum1, cnxhmclisnum2, cnxhmcliomr, cnxhmclipaymeth, cnxhmclipromocd, cnxhmclimnumber, cnxhmclibcname, cnxhmclibcplus, cnxhmcliwadaptor, cnxhmclinumwithh, cnxhmcliexdir, cnxhmclitps, cnxhmcliequip, cnxhmclimaccode, cnxhmclifilters, cnxhmcliss07, cnxhmcliss01, cnxhmcliss1a, cnxhmcliss08, cnxhmcliss06, cnxhmcliss09, cnxhmcliss02, cnxhmcliss05, cnxhmcliss14, cnxhmclideladd, cnxhmclipcode, cnxhmcliadd1, cnxhmcliadd2, cnxhmcliadd3, cnxhmcliadd4, cnxhmclicounty, cnxhmclifeaturel, cnxhmclicable, cnxhmclismartbox, cnxhmcliretainno, cnxhmclimobsaver, cnxhmcliintsaver, cnxhmcliservlvl, cnxhmclitermno, cnxhmclihandset, cnxhmclirpc, cnxhmclicontterm, cnxhmclivmail, cnxhmcliport, cnxhmclipaccode, cnxhmcliservatp1, cnxhmclitariff, cnxhmclicontdate, cnxhmclimonthly, cnxhmcliorgread1, cnxhmcliorgread2, cnxhmcliaddread, cnxhmclicomplete, cnxhmclip2appdun, cnxhmclispared3, cnxhmclihp2hplr, cnxhmclihponly, cnxhmclibalarm, cnxhmcliforcedr, cnxhmclisparet1, cnxhmcliomr2, cnxhmclimatchp1, cnxhmclicontadvi, cnxhmclicanretno, cnxhmcliintaddeq, cnxhmclinumatp2, cnxhmclic2reques, cnxhmcliannual, cnxhmcliactionc2, cnxhmselectservs, cnxhmclicni, cnxhmclicniphone, cnxhmclietf, cnxhmclietfterms, cnxhmclinewphone, cnxhmclibtcable, cnxhmclicps, cnxhmclipendnrg, cnxhmclisrvlvlc2, cnxhmclikwhrs, cnxhmcliecosave, cnxhmclilinetype, cnxhmclicontract, cnxhmcliultraava, cnxhmclimobilebb, cnxhmclinewcli, cnxhmclinewuniq, cnxhmcliomrtype, cnxhmcliprefer, cnxhmclipeaks, cnxhmcliintsave, cnxhmcliinstnote, cnxhmcliss20, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxhmcliunisys, EXCLUDED.cnxhmclinumber, EXCLUDED.cnxhmcliservtype, EXCLUDED.cnxhmcliaction, EXCLUDED.cnxhmclitransfer, EXCLUDED.cnxhmcligodate, EXCLUDED.cnxhmclisnum1, EXCLUDED.cnxhmclisnum2, EXCLUDED.cnxhmcliomr, EXCLUDED.cnxhmclipaymeth, EXCLUDED.cnxhmclipromocd, EXCLUDED.cnxhmclimnumber, EXCLUDED.cnxhmclibcname, EXCLUDED.cnxhmclibcplus, EXCLUDED.cnxhmcliwadaptor, EXCLUDED.cnxhmclinumwithh, EXCLUDED.cnxhmcliexdir, EXCLUDED.cnxhmclitps, EXCLUDED.cnxhmcliequip, EXCLUDED.cnxhmclimaccode, EXCLUDED.cnxhmclifilters, EXCLUDED.cnxhmcliss07, EXCLUDED.cnxhmcliss01, EXCLUDED.cnxhmcliss1a, EXCLUDED.cnxhmcliss08, EXCLUDED.cnxhmcliss06, EXCLUDED.cnxhmcliss09, EXCLUDED.cnxhmcliss02, EXCLUDED.cnxhmcliss05, EXCLUDED.cnxhmcliss14, EXCLUDED.cnxhmclideladd, EXCLUDED.cnxhmclipcode, EXCLUDED.cnxhmcliadd1, EXCLUDED.cnxhmcliadd2, EXCLUDED.cnxhmcliadd3, EXCLUDED.cnxhmcliadd4, EXCLUDED.cnxhmclicounty, EXCLUDED.cnxhmclifeaturel, EXCLUDED.cnxhmclicable, EXCLUDED.cnxhmclismartbox, EXCLUDED.cnxhmcliretainno, EXCLUDED.cnxhmclimobsaver, EXCLUDED.cnxhmcliintsaver, EXCLUDED.cnxhmcliservlvl, EXCLUDED.cnxhmclitermno, EXCLUDED.cnxhmclihandset, EXCLUDED.cnxhmclirpc, EXCLUDED.cnxhmclicontterm, EXCLUDED.cnxhmclivmail, EXCLUDED.cnxhmcliport, EXCLUDED.cnxhmclipaccode, EXCLUDED.cnxhmcliservatp1, EXCLUDED.cnxhmclitariff, EXCLUDED.cnxhmclicontdate, EXCLUDED.cnxhmclimonthly, EXCLUDED.cnxhmcliorgread1, EXCLUDED.cnxhmcliorgread2, EXCLUDED.cnxhmcliaddread, EXCLUDED.cnxhmclicomplete, EXCLUDED.cnxhmclip2appdun, EXCLUDED.cnxhmclispared3, EXCLUDED.cnxhmclihp2hplr, EXCLUDED.cnxhmclihponly, EXCLUDED.cnxhmclibalarm, EXCLUDED.cnxhmcliforcedr, EXCLUDED.cnxhmclisparet1, EXCLUDED.cnxhmcliomr2, EXCLUDED.cnxhmclimatchp1, EXCLUDED.cnxhmclicontadvi, EXCLUDED.cnxhmclicanretno, EXCLUDED.cnxhmcliintaddeq, EXCLUDED.cnxhmclinumatp2, EXCLUDED.cnxhmclic2reques, EXCLUDED.cnxhmcliannual, EXCLUDED.cnxhmcliactionc2, EXCLUDED.cnxhmselectservs, EXCLUDED.cnxhmclicni, EXCLUDED.cnxhmclicniphone, EXCLUDED.cnxhmclietf, EXCLUDED.cnxhmclietfterms, EXCLUDED.cnxhmclinewphone, EXCLUDED.cnxhmclibtcable, EXCLUDED.cnxhmclicps, EXCLUDED.cnxhmclipendnrg, EXCLUDED.cnxhmclisrvlvlc2, EXCLUDED.cnxhmclikwhrs, EXCLUDED.cnxhmcliecosave, EXCLUDED.cnxhmclilinetype, EXCLUDED.cnxhmclicontract, EXCLUDED.cnxhmcliultraava, EXCLUDED.cnxhmclimobilebb, EXCLUDED.cnxhmclinewcli, EXCLUDED.cnxhmclinewuniq, EXCLUDED.cnxhmcliomrtype, EXCLUDED.cnxhmcliprefer, EXCLUDED.cnxhmclipeaks, EXCLUDED.cnxhmcliintsave, EXCLUDED.cnxhmcliinstnote, EXCLUDED.cnxhmcliss20, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxhmcliunisys, c.Cnxhmclinumber, c.Cnxhmcliservtype, c.Cnxhmcliaction, c.Cnxhmclitransfer, c.Cnxhmcligodate, c.Cnxhmclisnum1, c.Cnxhmclisnum2, c.Cnxhmcliomr, c.Cnxhmclipaymeth, c.Cnxhmclipromocd, c.Cnxhmclimnumber, c.Cnxhmclibcname, c.Cnxhmclibcplus, c.Cnxhmcliwadaptor, c.Cnxhmclinumwithh, c.Cnxhmcliexdir, c.Cnxhmclitps, c.Cnxhmcliequip, c.Cnxhmclimaccode, c.Cnxhmclifilters, c.Cnxhmcliss07, c.Cnxhmcliss01, c.Cnxhmcliss1a, c.Cnxhmcliss08, c.Cnxhmcliss06, c.Cnxhmcliss09, c.Cnxhmcliss02, c.Cnxhmcliss05, c.Cnxhmcliss14, c.Cnxhmclideladd, c.Cnxhmclipcode, c.Cnxhmcliadd1, c.Cnxhmcliadd2, c.Cnxhmcliadd3, c.Cnxhmcliadd4, c.Cnxhmclicounty, c.Cnxhmclifeaturel, c.Cnxhmclicable, c.Cnxhmclismartbox, c.Cnxhmcliretainno, c.Cnxhmclimobsaver, c.Cnxhmcliintsaver, c.Cnxhmcliservlvl, c.Cnxhmclitermno, c.Cnxhmclihandset, c.Cnxhmclirpc, c.Cnxhmclicontterm, c.Cnxhmclivmail, c.Cnxhmcliport, c.Cnxhmclipaccode, c.Cnxhmcliservatp1, c.Cnxhmclitariff, c.Cnxhmclicontdate, c.Cnxhmclimonthly, c.Cnxhmcliorgread1, c.Cnxhmcliorgread2, c.Cnxhmcliaddread, c.Cnxhmclicomplete, c.Cnxhmclip2appdun, c.Cnxhmclispared3, c.Cnxhmclihp2hplr, c.Cnxhmclihponly, c.Cnxhmclibalarm, c.Cnxhmcliforcedr, c.Cnxhmclisparet1, c.Cnxhmcliomr2, c.Cnxhmclimatchp1, c.Cnxhmclicontadvi, c.Cnxhmclicanretno, c.Cnxhmcliintaddeq, c.Cnxhmclinumatp2, c.Cnxhmclic2reques, c.Cnxhmcliannual, c.Cnxhmcliactionc2, c.Cnxhmselectservs, c.Cnxhmclicni, c.Cnxhmclicniphone, c.Cnxhmclietf, c.Cnxhmclietfterms, c.Cnxhmclinewphone, c.Cnxhmclibtcable, c.Cnxhmclicps, c.Cnxhmclipendnrg, c.Cnxhmclisrvlvlc2, c.Cnxhmclikwhrs, c.Cnxhmcliecosave, c.Cnxhmclilinetype, c.Cnxhmclicontract, c.Cnxhmcliultraava, c.Cnxhmclimobilebb, c.Cnxhmclinewcli, c.Cnxhmclinewuniq, c.Cnxhmcliomrtype, c.Cnxhmcliprefer, c.Cnxhmclipeaks, c.Cnxhmcliintsave, c.Cnxhmcliinstnote, c.Cnxhmcliss20, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxhmcliunisys, c.Cnxhmclinumber, c.Cnxhmcliservtype, c.Cnxhmcliaction, c.Cnxhmclitransfer, c.Cnxhmcligodate, c.Cnxhmclisnum1, c.Cnxhmclisnum2, c.Cnxhmcliomr, c.Cnxhmclipaymeth, c.Cnxhmclipromocd, c.Cnxhmclimnumber, c.Cnxhmclibcname, c.Cnxhmclibcplus, c.Cnxhmcliwadaptor, c.Cnxhmclinumwithh, c.Cnxhmcliexdir, c.Cnxhmclitps, c.Cnxhmcliequip, c.Cnxhmclimaccode, c.Cnxhmclifilters, c.Cnxhmcliss07, c.Cnxhmcliss01, c.Cnxhmcliss1a, c.Cnxhmcliss08, c.Cnxhmcliss06, c.Cnxhmcliss09, c.Cnxhmcliss02, c.Cnxhmcliss05, c.Cnxhmcliss14, c.Cnxhmclideladd, c.Cnxhmclipcode, c.Cnxhmcliadd1, c.Cnxhmcliadd2, c.Cnxhmcliadd3, c.Cnxhmcliadd4, c.Cnxhmclicounty, c.Cnxhmclifeaturel, c.Cnxhmclicable, c.Cnxhmclismartbox, c.Cnxhmcliretainno, c.Cnxhmclimobsaver, c.Cnxhmcliintsaver, c.Cnxhmcliservlvl, c.Cnxhmclitermno, c.Cnxhmclihandset, c.Cnxhmclirpc, c.Cnxhmclicontterm, c.Cnxhmclivmail, c.Cnxhmcliport, c.Cnxhmclipaccode, c.Cnxhmcliservatp1, c.Cnxhmclitariff, c.Cnxhmclicontdate, c.Cnxhmclimonthly, c.Cnxhmcliorgread1, c.Cnxhmcliorgread2, c.Cnxhmcliaddread, c.Cnxhmclicomplete, c.Cnxhmclip2appdun, c.Cnxhmclispared3, c.Cnxhmclihp2hplr, c.Cnxhmclihponly, c.Cnxhmclibalarm, c.Cnxhmcliforcedr, c.Cnxhmclisparet1, c.Cnxhmcliomr2, c.Cnxhmclimatchp1, c.Cnxhmclicontadvi, c.Cnxhmclicanretno, c.Cnxhmcliintaddeq, c.Cnxhmclinumatp2, c.Cnxhmclic2reques, c.Cnxhmcliannual, c.Cnxhmcliactionc2, c.Cnxhmselectservs, c.Cnxhmclicni, c.Cnxhmclicniphone, c.Cnxhmclietf, c.Cnxhmclietfterms, c.Cnxhmclinewphone, c.Cnxhmclibtcable, c.Cnxhmclicps, c.Cnxhmclipendnrg, c.Cnxhmclisrvlvlc2, c.Cnxhmclikwhrs, c.Cnxhmcliecosave, c.Cnxhmclilinetype, c.Cnxhmclicontract, c.Cnxhmcliultraava, c.Cnxhmclimobilebb, c.Cnxhmclinewcli, c.Cnxhmclinewuniq, c.Cnxhmcliomrtype, c.Cnxhmcliprefer, c.Cnxhmclipeaks, c.Cnxhmcliintsave, c.Cnxhmcliinstnote, c.Cnxhmcliss20, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxhmcli from the database.
-func (c *Cnxhmcli) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxhmcli WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxhmcliByEquinoxLrn retrieves a row from 'equinox.cnxhmcli' as a Cnxhmcli.
@@ -273,9 +129,7 @@ func CnxhmcliByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxhmcli, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxhmcli{
-		_exists: true,
-	}
+	c := Cnxhmcli{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxhmcliunisys, &c.Cnxhmclinumber, &c.Cnxhmcliservtype, &c.Cnxhmcliaction, &c.Cnxhmclitransfer, &c.Cnxhmcligodate, &c.Cnxhmclisnum1, &c.Cnxhmclisnum2, &c.Cnxhmcliomr, &c.Cnxhmclipaymeth, &c.Cnxhmclipromocd, &c.Cnxhmclimnumber, &c.Cnxhmclibcname, &c.Cnxhmclibcplus, &c.Cnxhmcliwadaptor, &c.Cnxhmclinumwithh, &c.Cnxhmcliexdir, &c.Cnxhmclitps, &c.Cnxhmcliequip, &c.Cnxhmclimaccode, &c.Cnxhmclifilters, &c.Cnxhmcliss07, &c.Cnxhmcliss01, &c.Cnxhmcliss1a, &c.Cnxhmcliss08, &c.Cnxhmcliss06, &c.Cnxhmcliss09, &c.Cnxhmcliss02, &c.Cnxhmcliss05, &c.Cnxhmcliss14, &c.Cnxhmclideladd, &c.Cnxhmclipcode, &c.Cnxhmcliadd1, &c.Cnxhmcliadd2, &c.Cnxhmcliadd3, &c.Cnxhmcliadd4, &c.Cnxhmclicounty, &c.Cnxhmclifeaturel, &c.Cnxhmclicable, &c.Cnxhmclismartbox, &c.Cnxhmcliretainno, &c.Cnxhmclimobsaver, &c.Cnxhmcliintsaver, &c.Cnxhmcliservlvl, &c.Cnxhmclitermno, &c.Cnxhmclihandset, &c.Cnxhmclirpc, &c.Cnxhmclicontterm, &c.Cnxhmclivmail, &c.Cnxhmcliport, &c.Cnxhmclipaccode, &c.Cnxhmcliservatp1, &c.Cnxhmclitariff, &c.Cnxhmclicontdate, &c.Cnxhmclimonthly, &c.Cnxhmcliorgread1, &c.Cnxhmcliorgread2, &c.Cnxhmcliaddread, &c.Cnxhmclicomplete, &c.Cnxhmclip2appdun, &c.Cnxhmclispared3, &c.Cnxhmclihp2hplr, &c.Cnxhmclihponly, &c.Cnxhmclibalarm, &c.Cnxhmcliforcedr, &c.Cnxhmclisparet1, &c.Cnxhmcliomr2, &c.Cnxhmclimatchp1, &c.Cnxhmclicontadvi, &c.Cnxhmclicanretno, &c.Cnxhmcliintaddeq, &c.Cnxhmclinumatp2, &c.Cnxhmclic2reques, &c.Cnxhmcliannual, &c.Cnxhmcliactionc2, &c.Cnxhmselectservs, &c.Cnxhmclicni, &c.Cnxhmclicniphone, &c.Cnxhmclietf, &c.Cnxhmclietfterms, &c.Cnxhmclinewphone, &c.Cnxhmclibtcable, &c.Cnxhmclicps, &c.Cnxhmclipendnrg, &c.Cnxhmclisrvlvlc2, &c.Cnxhmclikwhrs, &c.Cnxhmcliecosave, &c.Cnxhmclilinetype, &c.Cnxhmclicontract, &c.Cnxhmcliultraava, &c.Cnxhmclimobilebb, &c.Cnxhmclinewcli, &c.Cnxhmclinewuniq, &c.Cnxhmcliomrtype, &c.Cnxhmcliprefer, &c.Cnxhmclipeaks, &c.Cnxhmcliintsave, &c.Cnxhmcliinstnote, &c.Cnxhmcliss20, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

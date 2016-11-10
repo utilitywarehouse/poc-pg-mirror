@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -145,149 +144,6 @@ type Probcode struct {
 	Probqkalbertnote pq.NullTime     `json:"probqkalbertnote"` // probqkalbertnote
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Probcode exists in the database.
-func (p *Probcode) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Probcode has been deleted from the database.
-func (p *Probcode) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Probcode to the database.
-func (p *Probcode) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.probcode (` +
-		`probcodecode, probdescrip, probintocomment, probadd1, probadddefault1, probaddtype1, probaddmand1, probaddvalid1, probadd2, probadddefault2, probaddtype2, probaddmand2, probaddvalid2, probadd3, probadddefault3, probaddtype3, probaddmand3, probaddvalid3, probadd4, probadddefault4, probaddtype4, probaddmand4, probaddvalid4, probadd5, probadddefault5, probaddtype5, probaddmand5, probaddvalid5, probadd6, probadddefault6, probaddtype6, probaddmand6, probaddvalid6, probadd7, probadddefault7, probaddtype7, probaddmand7, probaddvalid7, probadd8, probadddefault8, probaddtype8, probaddmand8, probaddvalid8, probadd9, probadddefault9, probaddtype9, probaddmand9, probaddvalid9, probadd10, probadddefault10, probaddtype10, probaddmand10, probaddvalid10, probactday, probactfromnow, probacttime, probdatatype, probupperlimit, problowerlimit, probtype, probletterdest, probsmstext, probdefstatus, probsuspend, probnoprocess, probprocessedby, probgeneratedby, probcreatedby, problastchangeby, probinformation, probjcl, probdatecreated, problastchange, probrequires, probcreateslette, probchoice, probalertline1, probalertline2, probalertline3, probalertline4, probtaskto, probautoexpiry, probclistatus, probtaskablecode, probmacrobs, probmacroas, probmacronotes, probuniqueness, probcompletelock, probspared3, probsparen1, probsparen2, probsparen3, probokwith230s, probopencomsrep, probopencomsdays, probeditworkflow, probworkflowdept, probdeleteafter, probarchiveafter, probautocancel, probdelclidead, probflgnodebt, probflggoodcust, probvalidationd, probcomment, probremovedate, probchangelog, probeditlock, probsendemail, probsendletter, probsysadded, probuseradded, probrobeditable, probeditcode, probqkdesc, probdescripold, probqkkeywords, probqkimportant, probaddqktip01, probaddqktip02, probaddqktip03, probaddqktip04, probaddqktip05, probaddqktip06, probaddqktip07, probaddqktip08, probaddqktip09, probaddqktip10, probqkcategory, probqkalbertnote, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111, $112, $113, $114, $115, $116, $117, $118, $119, $120, $121, $122, $123, $124, $125, $126, $127, $128, $129, $130, $131, $132` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Probcodecode, p.Probdescrip, p.Probintocomment, p.Probadd1, p.Probadddefault1, p.Probaddtype1, p.Probaddmand1, p.Probaddvalid1, p.Probadd2, p.Probadddefault2, p.Probaddtype2, p.Probaddmand2, p.Probaddvalid2, p.Probadd3, p.Probadddefault3, p.Probaddtype3, p.Probaddmand3, p.Probaddvalid3, p.Probadd4, p.Probadddefault4, p.Probaddtype4, p.Probaddmand4, p.Probaddvalid4, p.Probadd5, p.Probadddefault5, p.Probaddtype5, p.Probaddmand5, p.Probaddvalid5, p.Probadd6, p.Probadddefault6, p.Probaddtype6, p.Probaddmand6, p.Probaddvalid6, p.Probadd7, p.Probadddefault7, p.Probaddtype7, p.Probaddmand7, p.Probaddvalid7, p.Probadd8, p.Probadddefault8, p.Probaddtype8, p.Probaddmand8, p.Probaddvalid8, p.Probadd9, p.Probadddefault9, p.Probaddtype9, p.Probaddmand9, p.Probaddvalid9, p.Probadd10, p.Probadddefault10, p.Probaddtype10, p.Probaddmand10, p.Probaddvalid10, p.Probactday, p.Probactfromnow, p.Probacttime, p.Probdatatype, p.Probupperlimit, p.Problowerlimit, p.Probtype, p.Probletterdest, p.Probsmstext, p.Probdefstatus, p.Probsuspend, p.Probnoprocess, p.Probprocessedby, p.Probgeneratedby, p.Probcreatedby, p.Problastchangeby, p.Probinformation, p.Probjcl, p.Probdatecreated, p.Problastchange, p.Probrequires, p.Probcreateslette, p.Probchoice, p.Probalertline1, p.Probalertline2, p.Probalertline3, p.Probalertline4, p.Probtaskto, p.Probautoexpiry, p.Probclistatus, p.Probtaskablecode, p.Probmacrobs, p.Probmacroas, p.Probmacronotes, p.Probuniqueness, p.Probcompletelock, p.Probspared3, p.Probsparen1, p.Probsparen2, p.Probsparen3, p.Probokwith230s, p.Probopencomsrep, p.Probopencomsdays, p.Probeditworkflow, p.Probworkflowdept, p.Probdeleteafter, p.Probarchiveafter, p.Probautocancel, p.Probdelclidead, p.Probflgnodebt, p.Probflggoodcust, p.Probvalidationd, p.Probcomment, p.Probremovedate, p.Probchangelog, p.Probeditlock, p.Probsendemail, p.Probsendletter, p.Probsysadded, p.Probuseradded, p.Probrobeditable, p.Probeditcode, p.Probqkdesc, p.Probdescripold, p.Probqkkeywords, p.Probqkimportant, p.Probaddqktip01, p.Probaddqktip02, p.Probaddqktip03, p.Probaddqktip04, p.Probaddqktip05, p.Probaddqktip06, p.Probaddqktip07, p.Probaddqktip08, p.Probaddqktip09, p.Probaddqktip10, p.Probqkcategory, p.Probqkalbertnote, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Probcodecode, p.Probdescrip, p.Probintocomment, p.Probadd1, p.Probadddefault1, p.Probaddtype1, p.Probaddmand1, p.Probaddvalid1, p.Probadd2, p.Probadddefault2, p.Probaddtype2, p.Probaddmand2, p.Probaddvalid2, p.Probadd3, p.Probadddefault3, p.Probaddtype3, p.Probaddmand3, p.Probaddvalid3, p.Probadd4, p.Probadddefault4, p.Probaddtype4, p.Probaddmand4, p.Probaddvalid4, p.Probadd5, p.Probadddefault5, p.Probaddtype5, p.Probaddmand5, p.Probaddvalid5, p.Probadd6, p.Probadddefault6, p.Probaddtype6, p.Probaddmand6, p.Probaddvalid6, p.Probadd7, p.Probadddefault7, p.Probaddtype7, p.Probaddmand7, p.Probaddvalid7, p.Probadd8, p.Probadddefault8, p.Probaddtype8, p.Probaddmand8, p.Probaddvalid8, p.Probadd9, p.Probadddefault9, p.Probaddtype9, p.Probaddmand9, p.Probaddvalid9, p.Probadd10, p.Probadddefault10, p.Probaddtype10, p.Probaddmand10, p.Probaddvalid10, p.Probactday, p.Probactfromnow, p.Probacttime, p.Probdatatype, p.Probupperlimit, p.Problowerlimit, p.Probtype, p.Probletterdest, p.Probsmstext, p.Probdefstatus, p.Probsuspend, p.Probnoprocess, p.Probprocessedby, p.Probgeneratedby, p.Probcreatedby, p.Problastchangeby, p.Probinformation, p.Probjcl, p.Probdatecreated, p.Problastchange, p.Probrequires, p.Probcreateslette, p.Probchoice, p.Probalertline1, p.Probalertline2, p.Probalertline3, p.Probalertline4, p.Probtaskto, p.Probautoexpiry, p.Probclistatus, p.Probtaskablecode, p.Probmacrobs, p.Probmacroas, p.Probmacronotes, p.Probuniqueness, p.Probcompletelock, p.Probspared3, p.Probsparen1, p.Probsparen2, p.Probsparen3, p.Probokwith230s, p.Probopencomsrep, p.Probopencomsdays, p.Probeditworkflow, p.Probworkflowdept, p.Probdeleteafter, p.Probarchiveafter, p.Probautocancel, p.Probdelclidead, p.Probflgnodebt, p.Probflggoodcust, p.Probvalidationd, p.Probcomment, p.Probremovedate, p.Probchangelog, p.Probeditlock, p.Probsendemail, p.Probsendletter, p.Probsysadded, p.Probuseradded, p.Probrobeditable, p.Probeditcode, p.Probqkdesc, p.Probdescripold, p.Probqkkeywords, p.Probqkimportant, p.Probaddqktip01, p.Probaddqktip02, p.Probaddqktip03, p.Probaddqktip04, p.Probaddqktip05, p.Probaddqktip06, p.Probaddqktip07, p.Probaddqktip08, p.Probaddqktip09, p.Probaddqktip10, p.Probqkcategory, p.Probqkalbertnote, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Probcode in the database.
-func (p *Probcode) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.probcode SET (` +
-		`probcodecode, probdescrip, probintocomment, probadd1, probadddefault1, probaddtype1, probaddmand1, probaddvalid1, probadd2, probadddefault2, probaddtype2, probaddmand2, probaddvalid2, probadd3, probadddefault3, probaddtype3, probaddmand3, probaddvalid3, probadd4, probadddefault4, probaddtype4, probaddmand4, probaddvalid4, probadd5, probadddefault5, probaddtype5, probaddmand5, probaddvalid5, probadd6, probadddefault6, probaddtype6, probaddmand6, probaddvalid6, probadd7, probadddefault7, probaddtype7, probaddmand7, probaddvalid7, probadd8, probadddefault8, probaddtype8, probaddmand8, probaddvalid8, probadd9, probadddefault9, probaddtype9, probaddmand9, probaddvalid9, probadd10, probadddefault10, probaddtype10, probaddmand10, probaddvalid10, probactday, probactfromnow, probacttime, probdatatype, probupperlimit, problowerlimit, probtype, probletterdest, probsmstext, probdefstatus, probsuspend, probnoprocess, probprocessedby, probgeneratedby, probcreatedby, problastchangeby, probinformation, probjcl, probdatecreated, problastchange, probrequires, probcreateslette, probchoice, probalertline1, probalertline2, probalertline3, probalertline4, probtaskto, probautoexpiry, probclistatus, probtaskablecode, probmacrobs, probmacroas, probmacronotes, probuniqueness, probcompletelock, probspared3, probsparen1, probsparen2, probsparen3, probokwith230s, probopencomsrep, probopencomsdays, probeditworkflow, probworkflowdept, probdeleteafter, probarchiveafter, probautocancel, probdelclidead, probflgnodebt, probflggoodcust, probvalidationd, probcomment, probremovedate, probchangelog, probeditlock, probsendemail, probsendletter, probsysadded, probuseradded, probrobeditable, probeditcode, probqkdesc, probdescripold, probqkkeywords, probqkimportant, probaddqktip01, probaddqktip02, probaddqktip03, probaddqktip04, probaddqktip05, probaddqktip06, probaddqktip07, probaddqktip08, probaddqktip09, probaddqktip10, probqkcategory, probqkalbertnote, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111, $112, $113, $114, $115, $116, $117, $118, $119, $120, $121, $122, $123, $124, $125, $126, $127, $128, $129, $130, $131, $132` +
-		`) WHERE equinox_lrn = $133`
-
-	// run query
-	XOLog(sqlstr, p.Probcodecode, p.Probdescrip, p.Probintocomment, p.Probadd1, p.Probadddefault1, p.Probaddtype1, p.Probaddmand1, p.Probaddvalid1, p.Probadd2, p.Probadddefault2, p.Probaddtype2, p.Probaddmand2, p.Probaddvalid2, p.Probadd3, p.Probadddefault3, p.Probaddtype3, p.Probaddmand3, p.Probaddvalid3, p.Probadd4, p.Probadddefault4, p.Probaddtype4, p.Probaddmand4, p.Probaddvalid4, p.Probadd5, p.Probadddefault5, p.Probaddtype5, p.Probaddmand5, p.Probaddvalid5, p.Probadd6, p.Probadddefault6, p.Probaddtype6, p.Probaddmand6, p.Probaddvalid6, p.Probadd7, p.Probadddefault7, p.Probaddtype7, p.Probaddmand7, p.Probaddvalid7, p.Probadd8, p.Probadddefault8, p.Probaddtype8, p.Probaddmand8, p.Probaddvalid8, p.Probadd9, p.Probadddefault9, p.Probaddtype9, p.Probaddmand9, p.Probaddvalid9, p.Probadd10, p.Probadddefault10, p.Probaddtype10, p.Probaddmand10, p.Probaddvalid10, p.Probactday, p.Probactfromnow, p.Probacttime, p.Probdatatype, p.Probupperlimit, p.Problowerlimit, p.Probtype, p.Probletterdest, p.Probsmstext, p.Probdefstatus, p.Probsuspend, p.Probnoprocess, p.Probprocessedby, p.Probgeneratedby, p.Probcreatedby, p.Problastchangeby, p.Probinformation, p.Probjcl, p.Probdatecreated, p.Problastchange, p.Probrequires, p.Probcreateslette, p.Probchoice, p.Probalertline1, p.Probalertline2, p.Probalertline3, p.Probalertline4, p.Probtaskto, p.Probautoexpiry, p.Probclistatus, p.Probtaskablecode, p.Probmacrobs, p.Probmacroas, p.Probmacronotes, p.Probuniqueness, p.Probcompletelock, p.Probspared3, p.Probsparen1, p.Probsparen2, p.Probsparen3, p.Probokwith230s, p.Probopencomsrep, p.Probopencomsdays, p.Probeditworkflow, p.Probworkflowdept, p.Probdeleteafter, p.Probarchiveafter, p.Probautocancel, p.Probdelclidead, p.Probflgnodebt, p.Probflggoodcust, p.Probvalidationd, p.Probcomment, p.Probremovedate, p.Probchangelog, p.Probeditlock, p.Probsendemail, p.Probsendletter, p.Probsysadded, p.Probuseradded, p.Probrobeditable, p.Probeditcode, p.Probqkdesc, p.Probdescripold, p.Probqkkeywords, p.Probqkimportant, p.Probaddqktip01, p.Probaddqktip02, p.Probaddqktip03, p.Probaddqktip04, p.Probaddqktip05, p.Probaddqktip06, p.Probaddqktip07, p.Probaddqktip08, p.Probaddqktip09, p.Probaddqktip10, p.Probqkcategory, p.Probqkalbertnote, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Probcodecode, p.Probdescrip, p.Probintocomment, p.Probadd1, p.Probadddefault1, p.Probaddtype1, p.Probaddmand1, p.Probaddvalid1, p.Probadd2, p.Probadddefault2, p.Probaddtype2, p.Probaddmand2, p.Probaddvalid2, p.Probadd3, p.Probadddefault3, p.Probaddtype3, p.Probaddmand3, p.Probaddvalid3, p.Probadd4, p.Probadddefault4, p.Probaddtype4, p.Probaddmand4, p.Probaddvalid4, p.Probadd5, p.Probadddefault5, p.Probaddtype5, p.Probaddmand5, p.Probaddvalid5, p.Probadd6, p.Probadddefault6, p.Probaddtype6, p.Probaddmand6, p.Probaddvalid6, p.Probadd7, p.Probadddefault7, p.Probaddtype7, p.Probaddmand7, p.Probaddvalid7, p.Probadd8, p.Probadddefault8, p.Probaddtype8, p.Probaddmand8, p.Probaddvalid8, p.Probadd9, p.Probadddefault9, p.Probaddtype9, p.Probaddmand9, p.Probaddvalid9, p.Probadd10, p.Probadddefault10, p.Probaddtype10, p.Probaddmand10, p.Probaddvalid10, p.Probactday, p.Probactfromnow, p.Probacttime, p.Probdatatype, p.Probupperlimit, p.Problowerlimit, p.Probtype, p.Probletterdest, p.Probsmstext, p.Probdefstatus, p.Probsuspend, p.Probnoprocess, p.Probprocessedby, p.Probgeneratedby, p.Probcreatedby, p.Problastchangeby, p.Probinformation, p.Probjcl, p.Probdatecreated, p.Problastchange, p.Probrequires, p.Probcreateslette, p.Probchoice, p.Probalertline1, p.Probalertline2, p.Probalertline3, p.Probalertline4, p.Probtaskto, p.Probautoexpiry, p.Probclistatus, p.Probtaskablecode, p.Probmacrobs, p.Probmacroas, p.Probmacronotes, p.Probuniqueness, p.Probcompletelock, p.Probspared3, p.Probsparen1, p.Probsparen2, p.Probsparen3, p.Probokwith230s, p.Probopencomsrep, p.Probopencomsdays, p.Probeditworkflow, p.Probworkflowdept, p.Probdeleteafter, p.Probarchiveafter, p.Probautocancel, p.Probdelclidead, p.Probflgnodebt, p.Probflggoodcust, p.Probvalidationd, p.Probcomment, p.Probremovedate, p.Probchangelog, p.Probeditlock, p.Probsendemail, p.Probsendletter, p.Probsysadded, p.Probuseradded, p.Probrobeditable, p.Probeditcode, p.Probqkdesc, p.Probdescripold, p.Probqkkeywords, p.Probqkimportant, p.Probaddqktip01, p.Probaddqktip02, p.Probaddqktip03, p.Probaddqktip04, p.Probaddqktip05, p.Probaddqktip06, p.Probaddqktip07, p.Probaddqktip08, p.Probaddqktip09, p.Probaddqktip10, p.Probqkcategory, p.Probqkalbertnote, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Probcode to the database.
-func (p *Probcode) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Probcode.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Probcode) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.probcode (` +
-		`probcodecode, probdescrip, probintocomment, probadd1, probadddefault1, probaddtype1, probaddmand1, probaddvalid1, probadd2, probadddefault2, probaddtype2, probaddmand2, probaddvalid2, probadd3, probadddefault3, probaddtype3, probaddmand3, probaddvalid3, probadd4, probadddefault4, probaddtype4, probaddmand4, probaddvalid4, probadd5, probadddefault5, probaddtype5, probaddmand5, probaddvalid5, probadd6, probadddefault6, probaddtype6, probaddmand6, probaddvalid6, probadd7, probadddefault7, probaddtype7, probaddmand7, probaddvalid7, probadd8, probadddefault8, probaddtype8, probaddmand8, probaddvalid8, probadd9, probadddefault9, probaddtype9, probaddmand9, probaddvalid9, probadd10, probadddefault10, probaddtype10, probaddmand10, probaddvalid10, probactday, probactfromnow, probacttime, probdatatype, probupperlimit, problowerlimit, probtype, probletterdest, probsmstext, probdefstatus, probsuspend, probnoprocess, probprocessedby, probgeneratedby, probcreatedby, problastchangeby, probinformation, probjcl, probdatecreated, problastchange, probrequires, probcreateslette, probchoice, probalertline1, probalertline2, probalertline3, probalertline4, probtaskto, probautoexpiry, probclistatus, probtaskablecode, probmacrobs, probmacroas, probmacronotes, probuniqueness, probcompletelock, probspared3, probsparen1, probsparen2, probsparen3, probokwith230s, probopencomsrep, probopencomsdays, probeditworkflow, probworkflowdept, probdeleteafter, probarchiveafter, probautocancel, probdelclidead, probflgnodebt, probflggoodcust, probvalidationd, probcomment, probremovedate, probchangelog, probeditlock, probsendemail, probsendletter, probsysadded, probuseradded, probrobeditable, probeditcode, probqkdesc, probdescripold, probqkkeywords, probqkimportant, probaddqktip01, probaddqktip02, probaddqktip03, probaddqktip04, probaddqktip05, probaddqktip06, probaddqktip07, probaddqktip08, probaddqktip09, probaddqktip10, probqkcategory, probqkalbertnote, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111, $112, $113, $114, $115, $116, $117, $118, $119, $120, $121, $122, $123, $124, $125, $126, $127, $128, $129, $130, $131, $132, $133` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`probcodecode, probdescrip, probintocomment, probadd1, probadddefault1, probaddtype1, probaddmand1, probaddvalid1, probadd2, probadddefault2, probaddtype2, probaddmand2, probaddvalid2, probadd3, probadddefault3, probaddtype3, probaddmand3, probaddvalid3, probadd4, probadddefault4, probaddtype4, probaddmand4, probaddvalid4, probadd5, probadddefault5, probaddtype5, probaddmand5, probaddvalid5, probadd6, probadddefault6, probaddtype6, probaddmand6, probaddvalid6, probadd7, probadddefault7, probaddtype7, probaddmand7, probaddvalid7, probadd8, probadddefault8, probaddtype8, probaddmand8, probaddvalid8, probadd9, probadddefault9, probaddtype9, probaddmand9, probaddvalid9, probadd10, probadddefault10, probaddtype10, probaddmand10, probaddvalid10, probactday, probactfromnow, probacttime, probdatatype, probupperlimit, problowerlimit, probtype, probletterdest, probsmstext, probdefstatus, probsuspend, probnoprocess, probprocessedby, probgeneratedby, probcreatedby, problastchangeby, probinformation, probjcl, probdatecreated, problastchange, probrequires, probcreateslette, probchoice, probalertline1, probalertline2, probalertline3, probalertline4, probtaskto, probautoexpiry, probclistatus, probtaskablecode, probmacrobs, probmacroas, probmacronotes, probuniqueness, probcompletelock, probspared3, probsparen1, probsparen2, probsparen3, probokwith230s, probopencomsrep, probopencomsdays, probeditworkflow, probworkflowdept, probdeleteafter, probarchiveafter, probautocancel, probdelclidead, probflgnodebt, probflggoodcust, probvalidationd, probcomment, probremovedate, probchangelog, probeditlock, probsendemail, probsendletter, probsysadded, probuseradded, probrobeditable, probeditcode, probqkdesc, probdescripold, probqkkeywords, probqkimportant, probaddqktip01, probaddqktip02, probaddqktip03, probaddqktip04, probaddqktip05, probaddqktip06, probaddqktip07, probaddqktip08, probaddqktip09, probaddqktip10, probqkcategory, probqkalbertnote, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.probcodecode, EXCLUDED.probdescrip, EXCLUDED.probintocomment, EXCLUDED.probadd1, EXCLUDED.probadddefault1, EXCLUDED.probaddtype1, EXCLUDED.probaddmand1, EXCLUDED.probaddvalid1, EXCLUDED.probadd2, EXCLUDED.probadddefault2, EXCLUDED.probaddtype2, EXCLUDED.probaddmand2, EXCLUDED.probaddvalid2, EXCLUDED.probadd3, EXCLUDED.probadddefault3, EXCLUDED.probaddtype3, EXCLUDED.probaddmand3, EXCLUDED.probaddvalid3, EXCLUDED.probadd4, EXCLUDED.probadddefault4, EXCLUDED.probaddtype4, EXCLUDED.probaddmand4, EXCLUDED.probaddvalid4, EXCLUDED.probadd5, EXCLUDED.probadddefault5, EXCLUDED.probaddtype5, EXCLUDED.probaddmand5, EXCLUDED.probaddvalid5, EXCLUDED.probadd6, EXCLUDED.probadddefault6, EXCLUDED.probaddtype6, EXCLUDED.probaddmand6, EXCLUDED.probaddvalid6, EXCLUDED.probadd7, EXCLUDED.probadddefault7, EXCLUDED.probaddtype7, EXCLUDED.probaddmand7, EXCLUDED.probaddvalid7, EXCLUDED.probadd8, EXCLUDED.probadddefault8, EXCLUDED.probaddtype8, EXCLUDED.probaddmand8, EXCLUDED.probaddvalid8, EXCLUDED.probadd9, EXCLUDED.probadddefault9, EXCLUDED.probaddtype9, EXCLUDED.probaddmand9, EXCLUDED.probaddvalid9, EXCLUDED.probadd10, EXCLUDED.probadddefault10, EXCLUDED.probaddtype10, EXCLUDED.probaddmand10, EXCLUDED.probaddvalid10, EXCLUDED.probactday, EXCLUDED.probactfromnow, EXCLUDED.probacttime, EXCLUDED.probdatatype, EXCLUDED.probupperlimit, EXCLUDED.problowerlimit, EXCLUDED.probtype, EXCLUDED.probletterdest, EXCLUDED.probsmstext, EXCLUDED.probdefstatus, EXCLUDED.probsuspend, EXCLUDED.probnoprocess, EXCLUDED.probprocessedby, EXCLUDED.probgeneratedby, EXCLUDED.probcreatedby, EXCLUDED.problastchangeby, EXCLUDED.probinformation, EXCLUDED.probjcl, EXCLUDED.probdatecreated, EXCLUDED.problastchange, EXCLUDED.probrequires, EXCLUDED.probcreateslette, EXCLUDED.probchoice, EXCLUDED.probalertline1, EXCLUDED.probalertline2, EXCLUDED.probalertline3, EXCLUDED.probalertline4, EXCLUDED.probtaskto, EXCLUDED.probautoexpiry, EXCLUDED.probclistatus, EXCLUDED.probtaskablecode, EXCLUDED.probmacrobs, EXCLUDED.probmacroas, EXCLUDED.probmacronotes, EXCLUDED.probuniqueness, EXCLUDED.probcompletelock, EXCLUDED.probspared3, EXCLUDED.probsparen1, EXCLUDED.probsparen2, EXCLUDED.probsparen3, EXCLUDED.probokwith230s, EXCLUDED.probopencomsrep, EXCLUDED.probopencomsdays, EXCLUDED.probeditworkflow, EXCLUDED.probworkflowdept, EXCLUDED.probdeleteafter, EXCLUDED.probarchiveafter, EXCLUDED.probautocancel, EXCLUDED.probdelclidead, EXCLUDED.probflgnodebt, EXCLUDED.probflggoodcust, EXCLUDED.probvalidationd, EXCLUDED.probcomment, EXCLUDED.probremovedate, EXCLUDED.probchangelog, EXCLUDED.probeditlock, EXCLUDED.probsendemail, EXCLUDED.probsendletter, EXCLUDED.probsysadded, EXCLUDED.probuseradded, EXCLUDED.probrobeditable, EXCLUDED.probeditcode, EXCLUDED.probqkdesc, EXCLUDED.probdescripold, EXCLUDED.probqkkeywords, EXCLUDED.probqkimportant, EXCLUDED.probaddqktip01, EXCLUDED.probaddqktip02, EXCLUDED.probaddqktip03, EXCLUDED.probaddqktip04, EXCLUDED.probaddqktip05, EXCLUDED.probaddqktip06, EXCLUDED.probaddqktip07, EXCLUDED.probaddqktip08, EXCLUDED.probaddqktip09, EXCLUDED.probaddqktip10, EXCLUDED.probqkcategory, EXCLUDED.probqkalbertnote, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Probcodecode, p.Probdescrip, p.Probintocomment, p.Probadd1, p.Probadddefault1, p.Probaddtype1, p.Probaddmand1, p.Probaddvalid1, p.Probadd2, p.Probadddefault2, p.Probaddtype2, p.Probaddmand2, p.Probaddvalid2, p.Probadd3, p.Probadddefault3, p.Probaddtype3, p.Probaddmand3, p.Probaddvalid3, p.Probadd4, p.Probadddefault4, p.Probaddtype4, p.Probaddmand4, p.Probaddvalid4, p.Probadd5, p.Probadddefault5, p.Probaddtype5, p.Probaddmand5, p.Probaddvalid5, p.Probadd6, p.Probadddefault6, p.Probaddtype6, p.Probaddmand6, p.Probaddvalid6, p.Probadd7, p.Probadddefault7, p.Probaddtype7, p.Probaddmand7, p.Probaddvalid7, p.Probadd8, p.Probadddefault8, p.Probaddtype8, p.Probaddmand8, p.Probaddvalid8, p.Probadd9, p.Probadddefault9, p.Probaddtype9, p.Probaddmand9, p.Probaddvalid9, p.Probadd10, p.Probadddefault10, p.Probaddtype10, p.Probaddmand10, p.Probaddvalid10, p.Probactday, p.Probactfromnow, p.Probacttime, p.Probdatatype, p.Probupperlimit, p.Problowerlimit, p.Probtype, p.Probletterdest, p.Probsmstext, p.Probdefstatus, p.Probsuspend, p.Probnoprocess, p.Probprocessedby, p.Probgeneratedby, p.Probcreatedby, p.Problastchangeby, p.Probinformation, p.Probjcl, p.Probdatecreated, p.Problastchange, p.Probrequires, p.Probcreateslette, p.Probchoice, p.Probalertline1, p.Probalertline2, p.Probalertline3, p.Probalertline4, p.Probtaskto, p.Probautoexpiry, p.Probclistatus, p.Probtaskablecode, p.Probmacrobs, p.Probmacroas, p.Probmacronotes, p.Probuniqueness, p.Probcompletelock, p.Probspared3, p.Probsparen1, p.Probsparen2, p.Probsparen3, p.Probokwith230s, p.Probopencomsrep, p.Probopencomsdays, p.Probeditworkflow, p.Probworkflowdept, p.Probdeleteafter, p.Probarchiveafter, p.Probautocancel, p.Probdelclidead, p.Probflgnodebt, p.Probflggoodcust, p.Probvalidationd, p.Probcomment, p.Probremovedate, p.Probchangelog, p.Probeditlock, p.Probsendemail, p.Probsendletter, p.Probsysadded, p.Probuseradded, p.Probrobeditable, p.Probeditcode, p.Probqkdesc, p.Probdescripold, p.Probqkkeywords, p.Probqkimportant, p.Probaddqktip01, p.Probaddqktip02, p.Probaddqktip03, p.Probaddqktip04, p.Probaddqktip05, p.Probaddqktip06, p.Probaddqktip07, p.Probaddqktip08, p.Probaddqktip09, p.Probaddqktip10, p.Probqkcategory, p.Probqkalbertnote, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Probcodecode, p.Probdescrip, p.Probintocomment, p.Probadd1, p.Probadddefault1, p.Probaddtype1, p.Probaddmand1, p.Probaddvalid1, p.Probadd2, p.Probadddefault2, p.Probaddtype2, p.Probaddmand2, p.Probaddvalid2, p.Probadd3, p.Probadddefault3, p.Probaddtype3, p.Probaddmand3, p.Probaddvalid3, p.Probadd4, p.Probadddefault4, p.Probaddtype4, p.Probaddmand4, p.Probaddvalid4, p.Probadd5, p.Probadddefault5, p.Probaddtype5, p.Probaddmand5, p.Probaddvalid5, p.Probadd6, p.Probadddefault6, p.Probaddtype6, p.Probaddmand6, p.Probaddvalid6, p.Probadd7, p.Probadddefault7, p.Probaddtype7, p.Probaddmand7, p.Probaddvalid7, p.Probadd8, p.Probadddefault8, p.Probaddtype8, p.Probaddmand8, p.Probaddvalid8, p.Probadd9, p.Probadddefault9, p.Probaddtype9, p.Probaddmand9, p.Probaddvalid9, p.Probadd10, p.Probadddefault10, p.Probaddtype10, p.Probaddmand10, p.Probaddvalid10, p.Probactday, p.Probactfromnow, p.Probacttime, p.Probdatatype, p.Probupperlimit, p.Problowerlimit, p.Probtype, p.Probletterdest, p.Probsmstext, p.Probdefstatus, p.Probsuspend, p.Probnoprocess, p.Probprocessedby, p.Probgeneratedby, p.Probcreatedby, p.Problastchangeby, p.Probinformation, p.Probjcl, p.Probdatecreated, p.Problastchange, p.Probrequires, p.Probcreateslette, p.Probchoice, p.Probalertline1, p.Probalertline2, p.Probalertline3, p.Probalertline4, p.Probtaskto, p.Probautoexpiry, p.Probclistatus, p.Probtaskablecode, p.Probmacrobs, p.Probmacroas, p.Probmacronotes, p.Probuniqueness, p.Probcompletelock, p.Probspared3, p.Probsparen1, p.Probsparen2, p.Probsparen3, p.Probokwith230s, p.Probopencomsrep, p.Probopencomsdays, p.Probeditworkflow, p.Probworkflowdept, p.Probdeleteafter, p.Probarchiveafter, p.Probautocancel, p.Probdelclidead, p.Probflgnodebt, p.Probflggoodcust, p.Probvalidationd, p.Probcomment, p.Probremovedate, p.Probchangelog, p.Probeditlock, p.Probsendemail, p.Probsendletter, p.Probsysadded, p.Probuseradded, p.Probrobeditable, p.Probeditcode, p.Probqkdesc, p.Probdescripold, p.Probqkkeywords, p.Probqkimportant, p.Probaddqktip01, p.Probaddqktip02, p.Probaddqktip03, p.Probaddqktip04, p.Probaddqktip05, p.Probaddqktip06, p.Probaddqktip07, p.Probaddqktip08, p.Probaddqktip09, p.Probaddqktip10, p.Probqkcategory, p.Probqkalbertnote, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Probcode from the database.
-func (p *Probcode) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.probcode WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // ProbcodeByEquinoxLrn retrieves a row from 'equinox.probcode' as a Probcode.
@@ -304,9 +160,7 @@ func ProbcodeByEquinoxLrn(db XODB, equinoxLrn int64) (*Probcode, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Probcode{
-		_exists: true,
-	}
+	p := Probcode{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Probcodecode, &p.Probdescrip, &p.Probintocomment, &p.Probadd1, &p.Probadddefault1, &p.Probaddtype1, &p.Probaddmand1, &p.Probaddvalid1, &p.Probadd2, &p.Probadddefault2, &p.Probaddtype2, &p.Probaddmand2, &p.Probaddvalid2, &p.Probadd3, &p.Probadddefault3, &p.Probaddtype3, &p.Probaddmand3, &p.Probaddvalid3, &p.Probadd4, &p.Probadddefault4, &p.Probaddtype4, &p.Probaddmand4, &p.Probaddvalid4, &p.Probadd5, &p.Probadddefault5, &p.Probaddtype5, &p.Probaddmand5, &p.Probaddvalid5, &p.Probadd6, &p.Probadddefault6, &p.Probaddtype6, &p.Probaddmand6, &p.Probaddvalid6, &p.Probadd7, &p.Probadddefault7, &p.Probaddtype7, &p.Probaddmand7, &p.Probaddvalid7, &p.Probadd8, &p.Probadddefault8, &p.Probaddtype8, &p.Probaddmand8, &p.Probaddvalid8, &p.Probadd9, &p.Probadddefault9, &p.Probaddtype9, &p.Probaddmand9, &p.Probaddvalid9, &p.Probadd10, &p.Probadddefault10, &p.Probaddtype10, &p.Probaddmand10, &p.Probaddvalid10, &p.Probactday, &p.Probactfromnow, &p.Probacttime, &p.Probdatatype, &p.Probupperlimit, &p.Problowerlimit, &p.Probtype, &p.Probletterdest, &p.Probsmstext, &p.Probdefstatus, &p.Probsuspend, &p.Probnoprocess, &p.Probprocessedby, &p.Probgeneratedby, &p.Probcreatedby, &p.Problastchangeby, &p.Probinformation, &p.Probjcl, &p.Probdatecreated, &p.Problastchange, &p.Probrequires, &p.Probcreateslette, &p.Probchoice, &p.Probalertline1, &p.Probalertline2, &p.Probalertline3, &p.Probalertline4, &p.Probtaskto, &p.Probautoexpiry, &p.Probclistatus, &p.Probtaskablecode, &p.Probmacrobs, &p.Probmacroas, &p.Probmacronotes, &p.Probuniqueness, &p.Probcompletelock, &p.Probspared3, &p.Probsparen1, &p.Probsparen2, &p.Probsparen3, &p.Probokwith230s, &p.Probopencomsrep, &p.Probopencomsdays, &p.Probeditworkflow, &p.Probworkflowdept, &p.Probdeleteafter, &p.Probarchiveafter, &p.Probautocancel, &p.Probdelclidead, &p.Probflgnodebt, &p.Probflggoodcust, &p.Probvalidationd, &p.Probcomment, &p.Probremovedate, &p.Probchangelog, &p.Probeditlock, &p.Probsendemail, &p.Probsendletter, &p.Probsysadded, &p.Probuseradded, &p.Probrobeditable, &p.Probeditcode, &p.Probqkdesc, &p.Probdescripold, &p.Probqkkeywords, &p.Probqkimportant, &p.Probaddqktip01, &p.Probaddqktip02, &p.Probaddqktip03, &p.Probaddqktip04, &p.Probaddqktip05, &p.Probaddqktip06, &p.Probaddqktip07, &p.Probaddqktip08, &p.Probaddqktip09, &p.Probaddqktip10, &p.Probqkcategory, &p.Probqkalbertnote, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

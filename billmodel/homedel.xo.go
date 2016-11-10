@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -47,149 +46,6 @@ type Homedel struct {
 	Hdsparec5     sql.NullString `json:"hdsparec5"`     // hdsparec5
 	EquinoxLrn    int64          `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Homedel exists in the database.
-func (h *Homedel) Exists() bool {
-	return h._exists
-}
-
-// Deleted provides information if the Homedel has been deleted from the database.
-func (h *Homedel) Deleted() bool {
-	return h._deleted
-}
-
-// Insert inserts the Homedel to the database.
-func (h *Homedel) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if h._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.homedel (` +
-		`hdcustref, hdname, hdaddress1, hdaddress2, hdaddress3, hdaddress4, hdaddress5, hdpostcode, hdcontact, hdtelephone, hddelinstruct, hdsenderacc, hdpacks, hdweight, hddespdate, hdservicecode, hdtype, hdselect, hddeltype, hdtypeofpack, hdemail, hdsparen1, hdsparen2, hdsparen3, hdspared1, hdspared2, hdspared3, hdsparel1, hdsparel2, hdsparel3, hdprinted, hdsparec4, hdsparec5, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, h.Hdcustref, h.Hdname, h.Hdaddress1, h.Hdaddress2, h.Hdaddress3, h.Hdaddress4, h.Hdaddress5, h.Hdpostcode, h.Hdcontact, h.Hdtelephone, h.Hddelinstruct, h.Hdsenderacc, h.Hdpacks, h.Hdweight, h.Hddespdate, h.Hdservicecode, h.Hdtype, h.Hdselect, h.Hddeltype, h.Hdtypeofpack, h.Hdemail, h.Hdsparen1, h.Hdsparen2, h.Hdsparen3, h.Hdspared1, h.Hdspared2, h.Hdspared3, h.Hdsparel1, h.Hdsparel2, h.Hdsparel3, h.Hdprinted, h.Hdsparec4, h.Hdsparec5, h.EquinoxSec)
-	err = db.QueryRow(sqlstr, h.Hdcustref, h.Hdname, h.Hdaddress1, h.Hdaddress2, h.Hdaddress3, h.Hdaddress4, h.Hdaddress5, h.Hdpostcode, h.Hdcontact, h.Hdtelephone, h.Hddelinstruct, h.Hdsenderacc, h.Hdpacks, h.Hdweight, h.Hddespdate, h.Hdservicecode, h.Hdtype, h.Hdselect, h.Hddeltype, h.Hdtypeofpack, h.Hdemail, h.Hdsparen1, h.Hdsparen2, h.Hdsparen3, h.Hdspared1, h.Hdspared2, h.Hdspared3, h.Hdsparel1, h.Hdsparel2, h.Hdsparel3, h.Hdprinted, h.Hdsparec4, h.Hdsparec5, h.EquinoxSec).Scan(&h.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	h._exists = true
-
-	return nil
-}
-
-// Update updates the Homedel in the database.
-func (h *Homedel) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !h._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if h._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.homedel SET (` +
-		`hdcustref, hdname, hdaddress1, hdaddress2, hdaddress3, hdaddress4, hdaddress5, hdpostcode, hdcontact, hdtelephone, hddelinstruct, hdsenderacc, hdpacks, hdweight, hddespdate, hdservicecode, hdtype, hdselect, hddeltype, hdtypeofpack, hdemail, hdsparen1, hdsparen2, hdsparen3, hdspared1, hdspared2, hdspared3, hdsparel1, hdsparel2, hdsparel3, hdprinted, hdsparec4, hdsparec5, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34` +
-		`) WHERE equinox_lrn = $35`
-
-	// run query
-	XOLog(sqlstr, h.Hdcustref, h.Hdname, h.Hdaddress1, h.Hdaddress2, h.Hdaddress3, h.Hdaddress4, h.Hdaddress5, h.Hdpostcode, h.Hdcontact, h.Hdtelephone, h.Hddelinstruct, h.Hdsenderacc, h.Hdpacks, h.Hdweight, h.Hddespdate, h.Hdservicecode, h.Hdtype, h.Hdselect, h.Hddeltype, h.Hdtypeofpack, h.Hdemail, h.Hdsparen1, h.Hdsparen2, h.Hdsparen3, h.Hdspared1, h.Hdspared2, h.Hdspared3, h.Hdsparel1, h.Hdsparel2, h.Hdsparel3, h.Hdprinted, h.Hdsparec4, h.Hdsparec5, h.EquinoxSec, h.EquinoxLrn)
-	_, err = db.Exec(sqlstr, h.Hdcustref, h.Hdname, h.Hdaddress1, h.Hdaddress2, h.Hdaddress3, h.Hdaddress4, h.Hdaddress5, h.Hdpostcode, h.Hdcontact, h.Hdtelephone, h.Hddelinstruct, h.Hdsenderacc, h.Hdpacks, h.Hdweight, h.Hddespdate, h.Hdservicecode, h.Hdtype, h.Hdselect, h.Hddeltype, h.Hdtypeofpack, h.Hdemail, h.Hdsparen1, h.Hdsparen2, h.Hdsparen3, h.Hdspared1, h.Hdspared2, h.Hdspared3, h.Hdsparel1, h.Hdsparel2, h.Hdsparel3, h.Hdprinted, h.Hdsparec4, h.Hdsparec5, h.EquinoxSec, h.EquinoxLrn)
-	return err
-}
-
-// Save saves the Homedel to the database.
-func (h *Homedel) Save(db XODB) error {
-	if h.Exists() {
-		return h.Update(db)
-	}
-
-	return h.Insert(db)
-}
-
-// Upsert performs an upsert for Homedel.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (h *Homedel) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if h._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.homedel (` +
-		`hdcustref, hdname, hdaddress1, hdaddress2, hdaddress3, hdaddress4, hdaddress5, hdpostcode, hdcontact, hdtelephone, hddelinstruct, hdsenderacc, hdpacks, hdweight, hddespdate, hdservicecode, hdtype, hdselect, hddeltype, hdtypeofpack, hdemail, hdsparen1, hdsparen2, hdsparen3, hdspared1, hdspared2, hdspared3, hdsparel1, hdsparel2, hdsparel3, hdprinted, hdsparec4, hdsparec5, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`hdcustref, hdname, hdaddress1, hdaddress2, hdaddress3, hdaddress4, hdaddress5, hdpostcode, hdcontact, hdtelephone, hddelinstruct, hdsenderacc, hdpacks, hdweight, hddespdate, hdservicecode, hdtype, hdselect, hddeltype, hdtypeofpack, hdemail, hdsparen1, hdsparen2, hdsparen3, hdspared1, hdspared2, hdspared3, hdsparel1, hdsparel2, hdsparel3, hdprinted, hdsparec4, hdsparec5, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.hdcustref, EXCLUDED.hdname, EXCLUDED.hdaddress1, EXCLUDED.hdaddress2, EXCLUDED.hdaddress3, EXCLUDED.hdaddress4, EXCLUDED.hdaddress5, EXCLUDED.hdpostcode, EXCLUDED.hdcontact, EXCLUDED.hdtelephone, EXCLUDED.hddelinstruct, EXCLUDED.hdsenderacc, EXCLUDED.hdpacks, EXCLUDED.hdweight, EXCLUDED.hddespdate, EXCLUDED.hdservicecode, EXCLUDED.hdtype, EXCLUDED.hdselect, EXCLUDED.hddeltype, EXCLUDED.hdtypeofpack, EXCLUDED.hdemail, EXCLUDED.hdsparen1, EXCLUDED.hdsparen2, EXCLUDED.hdsparen3, EXCLUDED.hdspared1, EXCLUDED.hdspared2, EXCLUDED.hdspared3, EXCLUDED.hdsparel1, EXCLUDED.hdsparel2, EXCLUDED.hdsparel3, EXCLUDED.hdprinted, EXCLUDED.hdsparec4, EXCLUDED.hdsparec5, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, h.Hdcustref, h.Hdname, h.Hdaddress1, h.Hdaddress2, h.Hdaddress3, h.Hdaddress4, h.Hdaddress5, h.Hdpostcode, h.Hdcontact, h.Hdtelephone, h.Hddelinstruct, h.Hdsenderacc, h.Hdpacks, h.Hdweight, h.Hddespdate, h.Hdservicecode, h.Hdtype, h.Hdselect, h.Hddeltype, h.Hdtypeofpack, h.Hdemail, h.Hdsparen1, h.Hdsparen2, h.Hdsparen3, h.Hdspared1, h.Hdspared2, h.Hdspared3, h.Hdsparel1, h.Hdsparel2, h.Hdsparel3, h.Hdprinted, h.Hdsparec4, h.Hdsparec5, h.EquinoxLrn, h.EquinoxSec)
-	_, err = db.Exec(sqlstr, h.Hdcustref, h.Hdname, h.Hdaddress1, h.Hdaddress2, h.Hdaddress3, h.Hdaddress4, h.Hdaddress5, h.Hdpostcode, h.Hdcontact, h.Hdtelephone, h.Hddelinstruct, h.Hdsenderacc, h.Hdpacks, h.Hdweight, h.Hddespdate, h.Hdservicecode, h.Hdtype, h.Hdselect, h.Hddeltype, h.Hdtypeofpack, h.Hdemail, h.Hdsparen1, h.Hdsparen2, h.Hdsparen3, h.Hdspared1, h.Hdspared2, h.Hdspared3, h.Hdsparel1, h.Hdsparel2, h.Hdsparel3, h.Hdprinted, h.Hdsparec4, h.Hdsparec5, h.EquinoxLrn, h.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	h._exists = true
-
-	return nil
-}
-
-// Delete deletes the Homedel from the database.
-func (h *Homedel) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !h._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if h._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.homedel WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, h.EquinoxLrn)
-	_, err = db.Exec(sqlstr, h.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	h._deleted = true
-
-	return nil
 }
 
 // HomedelByEquinoxLrn retrieves a row from 'equinox.homedel' as a Homedel.
@@ -206,9 +62,7 @@ func HomedelByEquinoxLrn(db XODB, equinoxLrn int64) (*Homedel, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	h := Homedel{
-		_exists: true,
-	}
+	h := Homedel{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&h.Hdcustref, &h.Hdname, &h.Hdaddress1, &h.Hdaddress2, &h.Hdaddress3, &h.Hdaddress4, &h.Hdaddress5, &h.Hdpostcode, &h.Hdcontact, &h.Hdtelephone, &h.Hddelinstruct, &h.Hdsenderacc, &h.Hdpacks, &h.Hdweight, &h.Hddespdate, &h.Hdservicecode, &h.Hdtype, &h.Hdselect, &h.Hddeltype, &h.Hdtypeofpack, &h.Hdemail, &h.Hdsparen1, &h.Hdsparen2, &h.Hdsparen3, &h.Hdspared1, &h.Hdspared2, &h.Hdspared3, &h.Hdsparel1, &h.Hdsparel2, &h.Hdsparel3, &h.Hdprinted, &h.Hdsparec4, &h.Hdsparec5, &h.EquinoxLrn, &h.EquinoxSec)
 	if err != nil {

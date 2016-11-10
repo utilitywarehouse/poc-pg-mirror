@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Billcomm struct {
 	Bsspared1        pq.NullTime     `json:"bsspared1"`        // bsspared1
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Billcomm exists in the database.
-func (b *Billcomm) Exists() bool {
-	return b._exists
-}
-
-// Deleted provides information if the Billcomm has been deleted from the database.
-func (b *Billcomm) Deleted() bool {
-	return b._deleted
-}
-
-// Insert inserts the Billcomm to the database.
-func (b *Billcomm) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.billcomm (` +
-		`bcbillnumber, bcbillperiod, bccustaccountno, bcbillinggroup, bccommispaiddate, bccommisinvoice, bccommpaidperiod, bccommispaidamnt, bccrnumber, bcdealerid, bcclawcrnum, bcclawrepaycrnum, bcsparec1, bcsparec2, bcsparen1, bcsparen2, bsspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, b.Bcbillnumber, b.Bcbillperiod, b.Bccustaccountno, b.Bcbillinggroup, b.Bccommispaiddate, b.Bccommisinvoice, b.Bccommpaidperiod, b.Bccommispaidamnt, b.Bccrnumber, b.Bcdealerid, b.Bcclawcrnum, b.Bcclawrepaycrnum, b.Bcsparec1, b.Bcsparec2, b.Bcsparen1, b.Bcsparen2, b.Bsspared1, b.EquinoxSec)
-	err = db.QueryRow(sqlstr, b.Bcbillnumber, b.Bcbillperiod, b.Bccustaccountno, b.Bcbillinggroup, b.Bccommispaiddate, b.Bccommisinvoice, b.Bccommpaidperiod, b.Bccommispaidamnt, b.Bccrnumber, b.Bcdealerid, b.Bcclawcrnum, b.Bcclawrepaycrnum, b.Bcsparec1, b.Bcsparec2, b.Bcsparen1, b.Bcsparen2, b.Bsspared1, b.EquinoxSec).Scan(&b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Update updates the Billcomm in the database.
-func (b *Billcomm) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.billcomm SET (` +
-		`bcbillnumber, bcbillperiod, bccustaccountno, bcbillinggroup, bccommispaiddate, bccommisinvoice, bccommpaidperiod, bccommispaidamnt, bccrnumber, bcdealerid, bcclawcrnum, bcclawrepaycrnum, bcsparec1, bcsparec2, bcsparen1, bcsparen2, bsspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, b.Bcbillnumber, b.Bcbillperiod, b.Bccustaccountno, b.Bcbillinggroup, b.Bccommispaiddate, b.Bccommisinvoice, b.Bccommpaidperiod, b.Bccommispaidamnt, b.Bccrnumber, b.Bcdealerid, b.Bcclawcrnum, b.Bcclawrepaycrnum, b.Bcsparec1, b.Bcsparec2, b.Bcsparen1, b.Bcsparen2, b.Bsspared1, b.EquinoxSec, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.Bcbillnumber, b.Bcbillperiod, b.Bccustaccountno, b.Bcbillinggroup, b.Bccommispaiddate, b.Bccommisinvoice, b.Bccommpaidperiod, b.Bccommispaidamnt, b.Bccrnumber, b.Bcdealerid, b.Bcclawcrnum, b.Bcclawrepaycrnum, b.Bcsparec1, b.Bcsparec2, b.Bcsparen1, b.Bcsparen2, b.Bsspared1, b.EquinoxSec, b.EquinoxLrn)
-	return err
-}
-
-// Save saves the Billcomm to the database.
-func (b *Billcomm) Save(db XODB) error {
-	if b.Exists() {
-		return b.Update(db)
-	}
-
-	return b.Insert(db)
-}
-
-// Upsert performs an upsert for Billcomm.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (b *Billcomm) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.billcomm (` +
-		`bcbillnumber, bcbillperiod, bccustaccountno, bcbillinggroup, bccommispaiddate, bccommisinvoice, bccommpaidperiod, bccommispaidamnt, bccrnumber, bcdealerid, bcclawcrnum, bcclawrepaycrnum, bcsparec1, bcsparec2, bcsparen1, bcsparen2, bsspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`bcbillnumber, bcbillperiod, bccustaccountno, bcbillinggroup, bccommispaiddate, bccommisinvoice, bccommpaidperiod, bccommispaidamnt, bccrnumber, bcdealerid, bcclawcrnum, bcclawrepaycrnum, bcsparec1, bcsparec2, bcsparen1, bcsparen2, bsspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.bcbillnumber, EXCLUDED.bcbillperiod, EXCLUDED.bccustaccountno, EXCLUDED.bcbillinggroup, EXCLUDED.bccommispaiddate, EXCLUDED.bccommisinvoice, EXCLUDED.bccommpaidperiod, EXCLUDED.bccommispaidamnt, EXCLUDED.bccrnumber, EXCLUDED.bcdealerid, EXCLUDED.bcclawcrnum, EXCLUDED.bcclawrepaycrnum, EXCLUDED.bcsparec1, EXCLUDED.bcsparec2, EXCLUDED.bcsparen1, EXCLUDED.bcsparen2, EXCLUDED.bsspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, b.Bcbillnumber, b.Bcbillperiod, b.Bccustaccountno, b.Bcbillinggroup, b.Bccommispaiddate, b.Bccommisinvoice, b.Bccommpaidperiod, b.Bccommispaidamnt, b.Bccrnumber, b.Bcdealerid, b.Bcclawcrnum, b.Bcclawrepaycrnum, b.Bcsparec1, b.Bcsparec2, b.Bcsparen1, b.Bcsparen2, b.Bsspared1, b.EquinoxLrn, b.EquinoxSec)
-	_, err = db.Exec(sqlstr, b.Bcbillnumber, b.Bcbillperiod, b.Bccustaccountno, b.Bcbillinggroup, b.Bccommispaiddate, b.Bccommisinvoice, b.Bccommpaidperiod, b.Bccommispaidamnt, b.Bccrnumber, b.Bcdealerid, b.Bcclawcrnum, b.Bcclawrepaycrnum, b.Bcsparec1, b.Bcsparec2, b.Bcsparen1, b.Bcsparen2, b.Bsspared1, b.EquinoxLrn, b.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Delete deletes the Billcomm from the database.
-func (b *Billcomm) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.billcomm WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	b._deleted = true
-
-	return nil
 }
 
 // BillcommByEquinoxLrn retrieves a row from 'equinox.billcomm' as a Billcomm.
@@ -190,9 +46,7 @@ func BillcommByEquinoxLrn(db XODB, equinoxLrn int64) (*Billcomm, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	b := Billcomm{
-		_exists: true,
-	}
+	b := Billcomm{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&b.Bcbillnumber, &b.Bcbillperiod, &b.Bccustaccountno, &b.Bcbillinggroup, &b.Bccommispaiddate, &b.Bccommisinvoice, &b.Bccommpaidperiod, &b.Bccommispaidamnt, &b.Bccrnumber, &b.Bcdealerid, &b.Bcclawcrnum, &b.Bcclawrepaycrnum, &b.Bcsparec1, &b.Bcsparec2, &b.Bcsparen1, &b.Bcsparen2, &b.Bsspared1, &b.EquinoxLrn, &b.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -42,149 +41,6 @@ type Exhol struct {
 	EquinoxPrn     sql.NullInt64  `json:"equinox_prn"`    // equinox_prn
 	EquinoxLrn     int64          `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exhol exists in the database.
-func (e *Exhol) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exhol has been deleted from the database.
-func (e *Exhol) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exhol to the database.
-func (e *Exhol) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exhol (` +
-		`exholperiod, exholtype, exholvoucher, exholdwnpot, exholperpot, exholtotpot, exholdwnact, exholperact, exholcfpoints, exholtotact, exhollog, exholsparec1, exholsparec2, exholsparec3, exholsparec4, exholspared1, exholspared2, exholspared3, exholspared4, exholpurchased, exholsparen2, exholsparen3, exholsparen4, exholsparen5, exholsparen6, exholsparen7, exholsparen8, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Exholperiod, e.Exholtype, e.Exholvoucher, e.Exholdwnpot, e.Exholperpot, e.Exholtotpot, e.Exholdwnact, e.Exholperact, e.Exholcfpoints, e.Exholtotact, e.Exhollog, e.Exholsparec1, e.Exholsparec2, e.Exholsparec3, e.Exholsparec4, e.Exholspared1, e.Exholspared2, e.Exholspared3, e.Exholspared4, e.Exholpurchased, e.Exholsparen2, e.Exholsparen3, e.Exholsparen4, e.Exholsparen5, e.Exholsparen6, e.Exholsparen7, e.Exholsparen8, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Exholperiod, e.Exholtype, e.Exholvoucher, e.Exholdwnpot, e.Exholperpot, e.Exholtotpot, e.Exholdwnact, e.Exholperact, e.Exholcfpoints, e.Exholtotact, e.Exhollog, e.Exholsparec1, e.Exholsparec2, e.Exholsparec3, e.Exholsparec4, e.Exholspared1, e.Exholspared2, e.Exholspared3, e.Exholspared4, e.Exholpurchased, e.Exholsparen2, e.Exholsparen3, e.Exholsparen4, e.Exholsparen5, e.Exholsparen6, e.Exholsparen7, e.Exholsparen8, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exhol in the database.
-func (e *Exhol) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exhol SET (` +
-		`exholperiod, exholtype, exholvoucher, exholdwnpot, exholperpot, exholtotpot, exholdwnact, exholperact, exholcfpoints, exholtotact, exhollog, exholsparec1, exholsparec2, exholsparec3, exholsparec4, exholspared1, exholspared2, exholspared3, exholspared4, exholpurchased, exholsparen2, exholsparen3, exholsparen4, exholsparen5, exholsparen6, exholsparen7, exholsparen8, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29` +
-		`) WHERE equinox_lrn = $30`
-
-	// run query
-	XOLog(sqlstr, e.Exholperiod, e.Exholtype, e.Exholvoucher, e.Exholdwnpot, e.Exholperpot, e.Exholtotpot, e.Exholdwnact, e.Exholperact, e.Exholcfpoints, e.Exholtotact, e.Exhollog, e.Exholsparec1, e.Exholsparec2, e.Exholsparec3, e.Exholsparec4, e.Exholspared1, e.Exholspared2, e.Exholspared3, e.Exholspared4, e.Exholpurchased, e.Exholsparen2, e.Exholsparen3, e.Exholsparen4, e.Exholsparen5, e.Exholsparen6, e.Exholsparen7, e.Exholsparen8, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Exholperiod, e.Exholtype, e.Exholvoucher, e.Exholdwnpot, e.Exholperpot, e.Exholtotpot, e.Exholdwnact, e.Exholperact, e.Exholcfpoints, e.Exholtotact, e.Exhollog, e.Exholsparec1, e.Exholsparec2, e.Exholsparec3, e.Exholsparec4, e.Exholspared1, e.Exholspared2, e.Exholspared3, e.Exholspared4, e.Exholpurchased, e.Exholsparen2, e.Exholsparen3, e.Exholsparen4, e.Exholsparen5, e.Exholsparen6, e.Exholsparen7, e.Exholsparen8, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exhol to the database.
-func (e *Exhol) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exhol.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exhol) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exhol (` +
-		`exholperiod, exholtype, exholvoucher, exholdwnpot, exholperpot, exholtotpot, exholdwnact, exholperact, exholcfpoints, exholtotact, exhollog, exholsparec1, exholsparec2, exholsparec3, exholsparec4, exholspared1, exholspared2, exholspared3, exholspared4, exholpurchased, exholsparen2, exholsparen3, exholsparen4, exholsparen5, exholsparen6, exholsparen7, exholsparen8, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`exholperiod, exholtype, exholvoucher, exholdwnpot, exholperpot, exholtotpot, exholdwnact, exholperact, exholcfpoints, exholtotact, exhollog, exholsparec1, exholsparec2, exholsparec3, exholsparec4, exholspared1, exholspared2, exholspared3, exholspared4, exholpurchased, exholsparen2, exholsparen3, exholsparen4, exholsparen5, exholsparen6, exholsparen7, exholsparen8, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.exholperiod, EXCLUDED.exholtype, EXCLUDED.exholvoucher, EXCLUDED.exholdwnpot, EXCLUDED.exholperpot, EXCLUDED.exholtotpot, EXCLUDED.exholdwnact, EXCLUDED.exholperact, EXCLUDED.exholcfpoints, EXCLUDED.exholtotact, EXCLUDED.exhollog, EXCLUDED.exholsparec1, EXCLUDED.exholsparec2, EXCLUDED.exholsparec3, EXCLUDED.exholsparec4, EXCLUDED.exholspared1, EXCLUDED.exholspared2, EXCLUDED.exholspared3, EXCLUDED.exholspared4, EXCLUDED.exholpurchased, EXCLUDED.exholsparen2, EXCLUDED.exholsparen3, EXCLUDED.exholsparen4, EXCLUDED.exholsparen5, EXCLUDED.exholsparen6, EXCLUDED.exholsparen7, EXCLUDED.exholsparen8, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Exholperiod, e.Exholtype, e.Exholvoucher, e.Exholdwnpot, e.Exholperpot, e.Exholtotpot, e.Exholdwnact, e.Exholperact, e.Exholcfpoints, e.Exholtotact, e.Exhollog, e.Exholsparec1, e.Exholsparec2, e.Exholsparec3, e.Exholsparec4, e.Exholspared1, e.Exholspared2, e.Exholspared3, e.Exholspared4, e.Exholpurchased, e.Exholsparen2, e.Exholsparen3, e.Exholsparen4, e.Exholsparen5, e.Exholsparen6, e.Exholsparen7, e.Exholsparen8, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Exholperiod, e.Exholtype, e.Exholvoucher, e.Exholdwnpot, e.Exholperpot, e.Exholtotpot, e.Exholdwnact, e.Exholperact, e.Exholcfpoints, e.Exholtotact, e.Exhollog, e.Exholsparec1, e.Exholsparec2, e.Exholsparec3, e.Exholsparec4, e.Exholspared1, e.Exholspared2, e.Exholspared3, e.Exholspared4, e.Exholpurchased, e.Exholsparen2, e.Exholsparen3, e.Exholsparen4, e.Exholsparen5, e.Exholsparen6, e.Exholsparen7, e.Exholsparen8, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exhol from the database.
-func (e *Exhol) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exhol WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExholByEquinoxLrn retrieves a row from 'equinox.exhol' as a Exhol.
@@ -201,9 +57,7 @@ func ExholByEquinoxLrn(db XODB, equinoxLrn int64) (*Exhol, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exhol{
-		_exists: true,
-	}
+	e := Exhol{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Exholperiod, &e.Exholtype, &e.Exholvoucher, &e.Exholdwnpot, &e.Exholperpot, &e.Exholtotpot, &e.Exholdwnact, &e.Exholperact, &e.Exholcfpoints, &e.Exholtotact, &e.Exhollog, &e.Exholsparec1, &e.Exholsparec2, &e.Exholsparec3, &e.Exholsparec4, &e.Exholspared1, &e.Exholspared2, &e.Exholspared3, &e.Exholspared4, &e.Exholpurchased, &e.Exholsparen2, &e.Exholsparen3, &e.Exholsparen4, &e.Exholsparen5, &e.Exholsparen6, &e.Exholsparen7, &e.Exholsparen8, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -17,149 +16,6 @@ type Gappeno struct {
 	EquinoxPrn  sql.NullInt64  `json:"equinox_prn"` // equinox_prn
 	EquinoxLrn  int64          `json:"equinox_lrn"` // equinox_lrn
 	EquinoxSec  sql.NullInt64  `json:"equinox_sec"` // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gappeno exists in the database.
-func (g *Gappeno) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gappeno has been deleted from the database.
-func (g *Gappeno) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gappeno to the database.
-func (g *Gappeno) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gappeno (` +
-		`gappeucdate, gappeuccat, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gappeucdate, g.Gappeuccat, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gappeucdate, g.Gappeuccat, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gappeno in the database.
-func (g *Gappeno) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gappeno SET (` +
-		`gappeucdate, gappeuccat, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4` +
-		`) WHERE equinox_lrn = $5`
-
-	// run query
-	XOLog(sqlstr, g.Gappeucdate, g.Gappeuccat, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gappeucdate, g.Gappeuccat, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gappeno to the database.
-func (g *Gappeno) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gappeno.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gappeno) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gappeno (` +
-		`gappeucdate, gappeuccat, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gappeucdate, gappeuccat, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gappeucdate, EXCLUDED.gappeuccat, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gappeucdate, g.Gappeuccat, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gappeucdate, g.Gappeuccat, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gappeno from the database.
-func (g *Gappeno) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gappeno WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GappenoByEquinoxLrn retrieves a row from 'equinox.gappeno' as a Gappeno.
@@ -176,9 +32,7 @@ func GappenoByEquinoxLrn(db XODB, equinoxLrn int64) (*Gappeno, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gappeno{
-		_exists: true,
-	}
+	g := Gappeno{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gappeucdate, &g.Gappeuccat, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

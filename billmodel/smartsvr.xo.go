@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -33,149 +32,6 @@ type Smartsvr struct {
 	Ssvrdata12      sql.NullString `json:"ssvrdata12"`      // ssvrdata12
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Smartsvr exists in the database.
-func (s *Smartsvr) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Smartsvr has been deleted from the database.
-func (s *Smartsvr) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Smartsvr to the database.
-func (s *Smartsvr) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartsvr (` +
-		`ssvrid, ssvrdtadded, ssvrdtprocessed, ssvrfilename, ssvrsource, ssvraccount, ssvrmpxn, ssvrdata1, ssvrdata2, ssvrdata3, ssvrdata4, ssvrdata5, ssvrdata6, ssvrdata7, ssvrdata8, ssvrdata9, ssvrdata10, ssvrdata11, ssvrdata12, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Ssvrid, s.Ssvrdtadded, s.Ssvrdtprocessed, s.Ssvrfilename, s.Ssvrsource, s.Ssvraccount, s.Ssvrmpxn, s.Ssvrdata1, s.Ssvrdata2, s.Ssvrdata3, s.Ssvrdata4, s.Ssvrdata5, s.Ssvrdata6, s.Ssvrdata7, s.Ssvrdata8, s.Ssvrdata9, s.Ssvrdata10, s.Ssvrdata11, s.Ssvrdata12, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Ssvrid, s.Ssvrdtadded, s.Ssvrdtprocessed, s.Ssvrfilename, s.Ssvrsource, s.Ssvraccount, s.Ssvrmpxn, s.Ssvrdata1, s.Ssvrdata2, s.Ssvrdata3, s.Ssvrdata4, s.Ssvrdata5, s.Ssvrdata6, s.Ssvrdata7, s.Ssvrdata8, s.Ssvrdata9, s.Ssvrdata10, s.Ssvrdata11, s.Ssvrdata12, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Smartsvr in the database.
-func (s *Smartsvr) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.smartsvr SET (` +
-		`ssvrid, ssvrdtadded, ssvrdtprocessed, ssvrfilename, ssvrsource, ssvraccount, ssvrmpxn, ssvrdata1, ssvrdata2, ssvrdata3, ssvrdata4, ssvrdata5, ssvrdata6, ssvrdata7, ssvrdata8, ssvrdata9, ssvrdata10, ssvrdata11, ssvrdata12, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) WHERE equinox_lrn = $21`
-
-	// run query
-	XOLog(sqlstr, s.Ssvrid, s.Ssvrdtadded, s.Ssvrdtprocessed, s.Ssvrfilename, s.Ssvrsource, s.Ssvraccount, s.Ssvrmpxn, s.Ssvrdata1, s.Ssvrdata2, s.Ssvrdata3, s.Ssvrdata4, s.Ssvrdata5, s.Ssvrdata6, s.Ssvrdata7, s.Ssvrdata8, s.Ssvrdata9, s.Ssvrdata10, s.Ssvrdata11, s.Ssvrdata12, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Ssvrid, s.Ssvrdtadded, s.Ssvrdtprocessed, s.Ssvrfilename, s.Ssvrsource, s.Ssvraccount, s.Ssvrmpxn, s.Ssvrdata1, s.Ssvrdata2, s.Ssvrdata3, s.Ssvrdata4, s.Ssvrdata5, s.Ssvrdata6, s.Ssvrdata7, s.Ssvrdata8, s.Ssvrdata9, s.Ssvrdata10, s.Ssvrdata11, s.Ssvrdata12, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Smartsvr to the database.
-func (s *Smartsvr) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Smartsvr.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Smartsvr) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartsvr (` +
-		`ssvrid, ssvrdtadded, ssvrdtprocessed, ssvrfilename, ssvrsource, ssvraccount, ssvrmpxn, ssvrdata1, ssvrdata2, ssvrdata3, ssvrdata4, ssvrdata5, ssvrdata6, ssvrdata7, ssvrdata8, ssvrdata9, ssvrdata10, ssvrdata11, ssvrdata12, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ssvrid, ssvrdtadded, ssvrdtprocessed, ssvrfilename, ssvrsource, ssvraccount, ssvrmpxn, ssvrdata1, ssvrdata2, ssvrdata3, ssvrdata4, ssvrdata5, ssvrdata6, ssvrdata7, ssvrdata8, ssvrdata9, ssvrdata10, ssvrdata11, ssvrdata12, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ssvrid, EXCLUDED.ssvrdtadded, EXCLUDED.ssvrdtprocessed, EXCLUDED.ssvrfilename, EXCLUDED.ssvrsource, EXCLUDED.ssvraccount, EXCLUDED.ssvrmpxn, EXCLUDED.ssvrdata1, EXCLUDED.ssvrdata2, EXCLUDED.ssvrdata3, EXCLUDED.ssvrdata4, EXCLUDED.ssvrdata5, EXCLUDED.ssvrdata6, EXCLUDED.ssvrdata7, EXCLUDED.ssvrdata8, EXCLUDED.ssvrdata9, EXCLUDED.ssvrdata10, EXCLUDED.ssvrdata11, EXCLUDED.ssvrdata12, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Ssvrid, s.Ssvrdtadded, s.Ssvrdtprocessed, s.Ssvrfilename, s.Ssvrsource, s.Ssvraccount, s.Ssvrmpxn, s.Ssvrdata1, s.Ssvrdata2, s.Ssvrdata3, s.Ssvrdata4, s.Ssvrdata5, s.Ssvrdata6, s.Ssvrdata7, s.Ssvrdata8, s.Ssvrdata9, s.Ssvrdata10, s.Ssvrdata11, s.Ssvrdata12, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Ssvrid, s.Ssvrdtadded, s.Ssvrdtprocessed, s.Ssvrfilename, s.Ssvrsource, s.Ssvraccount, s.Ssvrmpxn, s.Ssvrdata1, s.Ssvrdata2, s.Ssvrdata3, s.Ssvrdata4, s.Ssvrdata5, s.Ssvrdata6, s.Ssvrdata7, s.Ssvrdata8, s.Ssvrdata9, s.Ssvrdata10, s.Ssvrdata11, s.Ssvrdata12, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Smartsvr from the database.
-func (s *Smartsvr) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.smartsvr WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SmartsvrByEquinoxLrn retrieves a row from 'equinox.smartsvr' as a Smartsvr.
@@ -192,9 +48,7 @@ func SmartsvrByEquinoxLrn(db XODB, equinoxLrn int64) (*Smartsvr, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Smartsvr{
-		_exists: true,
-	}
+	s := Smartsvr{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Ssvrid, &s.Ssvrdtadded, &s.Ssvrdtprocessed, &s.Ssvrfilename, &s.Ssvrsource, &s.Ssvraccount, &s.Ssvrmpxn, &s.Ssvrdata1, &s.Ssvrdata2, &s.Ssvrdata3, &s.Ssvrdata4, &s.Ssvrdata5, &s.Ssvrdata6, &s.Ssvrdata7, &s.Ssvrdata8, &s.Ssvrdata9, &s.Ssvrdata10, &s.Ssvrdata11, &s.Ssvrdata12, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

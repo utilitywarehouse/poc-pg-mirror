@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -28,149 +27,6 @@ type Cash4cus struct {
 	Cashsparechar2   sql.NullString  `json:"cashsparechar2"`   // cashsparechar2
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cash4cus exists in the database.
-func (c *Cash4cus) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cash4cus has been deleted from the database.
-func (c *Cash4cus) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cash4cus to the database.
-func (c *Cash4cus) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cash4cus (` +
-		`cashexecid, cashcustaccno, cashstatus, cashinitialamoun, cashinitialcrnum, cashinitialmonth, cashbalance, cashclosedcrnum, cashloaded, cashnotes, cashsparenum1, cashsparenum2, cashsparechar1, cashsparechar2, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cashexecid, c.Cashcustaccno, c.Cashstatus, c.Cashinitialamoun, c.Cashinitialcrnum, c.Cashinitialmonth, c.Cashbalance, c.Cashclosedcrnum, c.Cashloaded, c.Cashnotes, c.Cashsparenum1, c.Cashsparenum2, c.Cashsparechar1, c.Cashsparechar2, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cashexecid, c.Cashcustaccno, c.Cashstatus, c.Cashinitialamoun, c.Cashinitialcrnum, c.Cashinitialmonth, c.Cashbalance, c.Cashclosedcrnum, c.Cashloaded, c.Cashnotes, c.Cashsparenum1, c.Cashsparenum2, c.Cashsparechar1, c.Cashsparechar2, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cash4cus in the database.
-func (c *Cash4cus) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cash4cus SET (` +
-		`cashexecid, cashcustaccno, cashstatus, cashinitialamoun, cashinitialcrnum, cashinitialmonth, cashbalance, cashclosedcrnum, cashloaded, cashnotes, cashsparenum1, cashsparenum2, cashsparechar1, cashsparechar2, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) WHERE equinox_lrn = $16`
-
-	// run query
-	XOLog(sqlstr, c.Cashexecid, c.Cashcustaccno, c.Cashstatus, c.Cashinitialamoun, c.Cashinitialcrnum, c.Cashinitialmonth, c.Cashbalance, c.Cashclosedcrnum, c.Cashloaded, c.Cashnotes, c.Cashsparenum1, c.Cashsparenum2, c.Cashsparechar1, c.Cashsparechar2, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cashexecid, c.Cashcustaccno, c.Cashstatus, c.Cashinitialamoun, c.Cashinitialcrnum, c.Cashinitialmonth, c.Cashbalance, c.Cashclosedcrnum, c.Cashloaded, c.Cashnotes, c.Cashsparenum1, c.Cashsparenum2, c.Cashsparechar1, c.Cashsparechar2, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cash4cus to the database.
-func (c *Cash4cus) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cash4cus.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cash4cus) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cash4cus (` +
-		`cashexecid, cashcustaccno, cashstatus, cashinitialamoun, cashinitialcrnum, cashinitialmonth, cashbalance, cashclosedcrnum, cashloaded, cashnotes, cashsparenum1, cashsparenum2, cashsparechar1, cashsparechar2, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cashexecid, cashcustaccno, cashstatus, cashinitialamoun, cashinitialcrnum, cashinitialmonth, cashbalance, cashclosedcrnum, cashloaded, cashnotes, cashsparenum1, cashsparenum2, cashsparechar1, cashsparechar2, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cashexecid, EXCLUDED.cashcustaccno, EXCLUDED.cashstatus, EXCLUDED.cashinitialamoun, EXCLUDED.cashinitialcrnum, EXCLUDED.cashinitialmonth, EXCLUDED.cashbalance, EXCLUDED.cashclosedcrnum, EXCLUDED.cashloaded, EXCLUDED.cashnotes, EXCLUDED.cashsparenum1, EXCLUDED.cashsparenum2, EXCLUDED.cashsparechar1, EXCLUDED.cashsparechar2, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cashexecid, c.Cashcustaccno, c.Cashstatus, c.Cashinitialamoun, c.Cashinitialcrnum, c.Cashinitialmonth, c.Cashbalance, c.Cashclosedcrnum, c.Cashloaded, c.Cashnotes, c.Cashsparenum1, c.Cashsparenum2, c.Cashsparechar1, c.Cashsparechar2, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cashexecid, c.Cashcustaccno, c.Cashstatus, c.Cashinitialamoun, c.Cashinitialcrnum, c.Cashinitialmonth, c.Cashbalance, c.Cashclosedcrnum, c.Cashloaded, c.Cashnotes, c.Cashsparenum1, c.Cashsparenum2, c.Cashsparechar1, c.Cashsparechar2, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cash4cus from the database.
-func (c *Cash4cus) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cash4cus WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // Cash4cusByEquinoxLrn retrieves a row from 'equinox.cash4cus' as a Cash4cus.
@@ -187,9 +43,7 @@ func Cash4cusByEquinoxLrn(db XODB, equinoxLrn int64) (*Cash4cus, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cash4cus{
-		_exists: true,
-	}
+	c := Cash4cus{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cashexecid, &c.Cashcustaccno, &c.Cashstatus, &c.Cashinitialamoun, &c.Cashinitialcrnum, &c.Cashinitialmonth, &c.Cashbalance, &c.Cashclosedcrnum, &c.Cashloaded, &c.Cashnotes, &c.Cashsparenum1, &c.Cashsparenum2, &c.Cashsparechar1, &c.Cashsparechar2, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

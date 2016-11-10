@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -39,149 +38,6 @@ type Comentry struct {
 	EquinoxPrn      sql.NullInt64   `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Comentry exists in the database.
-func (c *Comentry) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Comentry has been deleted from the database.
-func (c *Comentry) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Comentry to the database.
-func (c *Comentry) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.comentry (` +
-		`ceperiod, cecrnumber, cedealer, cecode, ceccid, cesource, ceamount, cechar1, cechar2, cechar3, cechar4, cenum1, cenum2, cenum3, cenum4, cedate1, cedisplay1, cedisplay2, cedisplay3, cedisplay4, ceflags, comentrysparec1, cenum5, comentryspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Ceperiod, c.Cecrnumber, c.Cedealer, c.Cecode, c.Ceccid, c.Cesource, c.Ceamount, c.Cechar1, c.Cechar2, c.Cechar3, c.Cechar4, c.Cenum1, c.Cenum2, c.Cenum3, c.Cenum4, c.Cedate1, c.Cedisplay1, c.Cedisplay2, c.Cedisplay3, c.Cedisplay4, c.Ceflags, c.Comentrysparec1, c.Cenum5, c.Comentryspared1, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Ceperiod, c.Cecrnumber, c.Cedealer, c.Cecode, c.Ceccid, c.Cesource, c.Ceamount, c.Cechar1, c.Cechar2, c.Cechar3, c.Cechar4, c.Cenum1, c.Cenum2, c.Cenum3, c.Cenum4, c.Cedate1, c.Cedisplay1, c.Cedisplay2, c.Cedisplay3, c.Cedisplay4, c.Ceflags, c.Comentrysparec1, c.Cenum5, c.Comentryspared1, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Comentry in the database.
-func (c *Comentry) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.comentry SET (` +
-		`ceperiod, cecrnumber, cedealer, cecode, ceccid, cesource, ceamount, cechar1, cechar2, cechar3, cechar4, cenum1, cenum2, cenum3, cenum4, cedate1, cedisplay1, cedisplay2, cedisplay3, cedisplay4, ceflags, comentrysparec1, cenum5, comentryspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26` +
-		`) WHERE equinox_lrn = $27`
-
-	// run query
-	XOLog(sqlstr, c.Ceperiod, c.Cecrnumber, c.Cedealer, c.Cecode, c.Ceccid, c.Cesource, c.Ceamount, c.Cechar1, c.Cechar2, c.Cechar3, c.Cechar4, c.Cenum1, c.Cenum2, c.Cenum3, c.Cenum4, c.Cedate1, c.Cedisplay1, c.Cedisplay2, c.Cedisplay3, c.Cedisplay4, c.Ceflags, c.Comentrysparec1, c.Cenum5, c.Comentryspared1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Ceperiod, c.Cecrnumber, c.Cedealer, c.Cecode, c.Ceccid, c.Cesource, c.Ceamount, c.Cechar1, c.Cechar2, c.Cechar3, c.Cechar4, c.Cenum1, c.Cenum2, c.Cenum3, c.Cenum4, c.Cedate1, c.Cedisplay1, c.Cedisplay2, c.Cedisplay3, c.Cedisplay4, c.Ceflags, c.Comentrysparec1, c.Cenum5, c.Comentryspared1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Comentry to the database.
-func (c *Comentry) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Comentry.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Comentry) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.comentry (` +
-		`ceperiod, cecrnumber, cedealer, cecode, ceccid, cesource, ceamount, cechar1, cechar2, cechar3, cechar4, cenum1, cenum2, cenum3, cenum4, cedate1, cedisplay1, cedisplay2, cedisplay3, cedisplay4, ceflags, comentrysparec1, cenum5, comentryspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ceperiod, cecrnumber, cedealer, cecode, ceccid, cesource, ceamount, cechar1, cechar2, cechar3, cechar4, cenum1, cenum2, cenum3, cenum4, cedate1, cedisplay1, cedisplay2, cedisplay3, cedisplay4, ceflags, comentrysparec1, cenum5, comentryspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ceperiod, EXCLUDED.cecrnumber, EXCLUDED.cedealer, EXCLUDED.cecode, EXCLUDED.ceccid, EXCLUDED.cesource, EXCLUDED.ceamount, EXCLUDED.cechar1, EXCLUDED.cechar2, EXCLUDED.cechar3, EXCLUDED.cechar4, EXCLUDED.cenum1, EXCLUDED.cenum2, EXCLUDED.cenum3, EXCLUDED.cenum4, EXCLUDED.cedate1, EXCLUDED.cedisplay1, EXCLUDED.cedisplay2, EXCLUDED.cedisplay3, EXCLUDED.cedisplay4, EXCLUDED.ceflags, EXCLUDED.comentrysparec1, EXCLUDED.cenum5, EXCLUDED.comentryspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Ceperiod, c.Cecrnumber, c.Cedealer, c.Cecode, c.Ceccid, c.Cesource, c.Ceamount, c.Cechar1, c.Cechar2, c.Cechar3, c.Cechar4, c.Cenum1, c.Cenum2, c.Cenum3, c.Cenum4, c.Cedate1, c.Cedisplay1, c.Cedisplay2, c.Cedisplay3, c.Cedisplay4, c.Ceflags, c.Comentrysparec1, c.Cenum5, c.Comentryspared1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Ceperiod, c.Cecrnumber, c.Cedealer, c.Cecode, c.Ceccid, c.Cesource, c.Ceamount, c.Cechar1, c.Cechar2, c.Cechar3, c.Cechar4, c.Cenum1, c.Cenum2, c.Cenum3, c.Cenum4, c.Cedate1, c.Cedisplay1, c.Cedisplay2, c.Cedisplay3, c.Cedisplay4, c.Ceflags, c.Comentrysparec1, c.Cenum5, c.Comentryspared1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Comentry from the database.
-func (c *Comentry) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.comentry WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // ComentryByEquinoxLrn retrieves a row from 'equinox.comentry' as a Comentry.
@@ -198,9 +54,7 @@ func ComentryByEquinoxLrn(db XODB, equinoxLrn int64) (*Comentry, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Comentry{
-		_exists: true,
-	}
+	c := Comentry{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Ceperiod, &c.Cecrnumber, &c.Cedealer, &c.Cecode, &c.Ceccid, &c.Cesource, &c.Ceamount, &c.Cechar1, &c.Cechar2, &c.Cechar3, &c.Cechar4, &c.Cenum1, &c.Cenum2, &c.Cenum3, &c.Cenum4, &c.Cedate1, &c.Cedisplay1, &c.Cedisplay2, &c.Cedisplay3, &c.Cedisplay4, &c.Ceflags, &c.Comentrysparec1, &c.Cenum5, &c.Comentryspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

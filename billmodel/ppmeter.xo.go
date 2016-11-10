@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -37,149 +36,6 @@ type Ppmeter struct {
 	Prepayspared1    pq.NullTime     `json:"prepayspared1"`    // prepayspared1
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ppmeter exists in the database.
-func (p *Ppmeter) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Ppmeter has been deleted from the database.
-func (p *Ppmeter) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Ppmeter to the database.
-func (p *Ppmeter) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ppmeters (` +
-		`prepaystaticid, prepaycustid, prepaysupref, prepaymeterno, prepaympr, prepaystartdate, prepayenddate, prepaycustaccno, prepaygref, prepaycustdebt, prepaytype, prepaystatus, prepayoridebt, prepaynowdebt, prepayorinondebt, prepaynownondebt, prepayrecrate, prepayrecdate, prepayecused, prepaysparec1, prepaysaprec2, prepaysparen1, prepayspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Prepaystaticid, p.Prepaycustid, p.Prepaysupref, p.Prepaymeterno, p.Prepaympr, p.Prepaystartdate, p.Prepayenddate, p.Prepaycustaccno, p.Prepaygref, p.Prepaycustdebt, p.Prepaytype, p.Prepaystatus, p.Prepayoridebt, p.Prepaynowdebt, p.Prepayorinondebt, p.Prepaynownondebt, p.Prepayrecrate, p.Prepayrecdate, p.Prepayecused, p.Prepaysparec1, p.Prepaysaprec2, p.Prepaysparen1, p.Prepayspared1, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Prepaystaticid, p.Prepaycustid, p.Prepaysupref, p.Prepaymeterno, p.Prepaympr, p.Prepaystartdate, p.Prepayenddate, p.Prepaycustaccno, p.Prepaygref, p.Prepaycustdebt, p.Prepaytype, p.Prepaystatus, p.Prepayoridebt, p.Prepaynowdebt, p.Prepayorinondebt, p.Prepaynownondebt, p.Prepayrecrate, p.Prepayrecdate, p.Prepayecused, p.Prepaysparec1, p.Prepaysaprec2, p.Prepaysparen1, p.Prepayspared1, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Ppmeter in the database.
-func (p *Ppmeter) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ppmeters SET (` +
-		`prepaystaticid, prepaycustid, prepaysupref, prepaymeterno, prepaympr, prepaystartdate, prepayenddate, prepaycustaccno, prepaygref, prepaycustdebt, prepaytype, prepaystatus, prepayoridebt, prepaynowdebt, prepayorinondebt, prepaynownondebt, prepayrecrate, prepayrecdate, prepayecused, prepaysparec1, prepaysaprec2, prepaysparen1, prepayspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) WHERE equinox_lrn = $25`
-
-	// run query
-	XOLog(sqlstr, p.Prepaystaticid, p.Prepaycustid, p.Prepaysupref, p.Prepaymeterno, p.Prepaympr, p.Prepaystartdate, p.Prepayenddate, p.Prepaycustaccno, p.Prepaygref, p.Prepaycustdebt, p.Prepaytype, p.Prepaystatus, p.Prepayoridebt, p.Prepaynowdebt, p.Prepayorinondebt, p.Prepaynownondebt, p.Prepayrecrate, p.Prepayrecdate, p.Prepayecused, p.Prepaysparec1, p.Prepaysaprec2, p.Prepaysparen1, p.Prepayspared1, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Prepaystaticid, p.Prepaycustid, p.Prepaysupref, p.Prepaymeterno, p.Prepaympr, p.Prepaystartdate, p.Prepayenddate, p.Prepaycustaccno, p.Prepaygref, p.Prepaycustdebt, p.Prepaytype, p.Prepaystatus, p.Prepayoridebt, p.Prepaynowdebt, p.Prepayorinondebt, p.Prepaynownondebt, p.Prepayrecrate, p.Prepayrecdate, p.Prepayecused, p.Prepaysparec1, p.Prepaysaprec2, p.Prepaysparen1, p.Prepayspared1, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ppmeter to the database.
-func (p *Ppmeter) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Ppmeter.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Ppmeter) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ppmeters (` +
-		`prepaystaticid, prepaycustid, prepaysupref, prepaymeterno, prepaympr, prepaystartdate, prepayenddate, prepaycustaccno, prepaygref, prepaycustdebt, prepaytype, prepaystatus, prepayoridebt, prepaynowdebt, prepayorinondebt, prepaynownondebt, prepayrecrate, prepayrecdate, prepayecused, prepaysparec1, prepaysaprec2, prepaysparen1, prepayspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`prepaystaticid, prepaycustid, prepaysupref, prepaymeterno, prepaympr, prepaystartdate, prepayenddate, prepaycustaccno, prepaygref, prepaycustdebt, prepaytype, prepaystatus, prepayoridebt, prepaynowdebt, prepayorinondebt, prepaynownondebt, prepayrecrate, prepayrecdate, prepayecused, prepaysparec1, prepaysaprec2, prepaysparen1, prepayspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.prepaystaticid, EXCLUDED.prepaycustid, EXCLUDED.prepaysupref, EXCLUDED.prepaymeterno, EXCLUDED.prepaympr, EXCLUDED.prepaystartdate, EXCLUDED.prepayenddate, EXCLUDED.prepaycustaccno, EXCLUDED.prepaygref, EXCLUDED.prepaycustdebt, EXCLUDED.prepaytype, EXCLUDED.prepaystatus, EXCLUDED.prepayoridebt, EXCLUDED.prepaynowdebt, EXCLUDED.prepayorinondebt, EXCLUDED.prepaynownondebt, EXCLUDED.prepayrecrate, EXCLUDED.prepayrecdate, EXCLUDED.prepayecused, EXCLUDED.prepaysparec1, EXCLUDED.prepaysaprec2, EXCLUDED.prepaysparen1, EXCLUDED.prepayspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Prepaystaticid, p.Prepaycustid, p.Prepaysupref, p.Prepaymeterno, p.Prepaympr, p.Prepaystartdate, p.Prepayenddate, p.Prepaycustaccno, p.Prepaygref, p.Prepaycustdebt, p.Prepaytype, p.Prepaystatus, p.Prepayoridebt, p.Prepaynowdebt, p.Prepayorinondebt, p.Prepaynownondebt, p.Prepayrecrate, p.Prepayrecdate, p.Prepayecused, p.Prepaysparec1, p.Prepaysaprec2, p.Prepaysparen1, p.Prepayspared1, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Prepaystaticid, p.Prepaycustid, p.Prepaysupref, p.Prepaymeterno, p.Prepaympr, p.Prepaystartdate, p.Prepayenddate, p.Prepaycustaccno, p.Prepaygref, p.Prepaycustdebt, p.Prepaytype, p.Prepaystatus, p.Prepayoridebt, p.Prepaynowdebt, p.Prepayorinondebt, p.Prepaynownondebt, p.Prepayrecrate, p.Prepayrecdate, p.Prepayecused, p.Prepaysparec1, p.Prepaysaprec2, p.Prepaysparen1, p.Prepayspared1, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ppmeter from the database.
-func (p *Ppmeter) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ppmeters WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PpmeterByEquinoxLrn retrieves a row from 'equinox.ppmeters' as a Ppmeter.
@@ -196,9 +52,7 @@ func PpmeterByEquinoxLrn(db XODB, equinoxLrn int64) (*Ppmeter, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Ppmeter{
-		_exists: true,
-	}
+	p := Ppmeter{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Prepaystaticid, &p.Prepaycustid, &p.Prepaysupref, &p.Prepaymeterno, &p.Prepaympr, &p.Prepaystartdate, &p.Prepayenddate, &p.Prepaycustaccno, &p.Prepaygref, &p.Prepaycustdebt, &p.Prepaytype, &p.Prepaystatus, &p.Prepayoridebt, &p.Prepaynowdebt, &p.Prepayorinondebt, &p.Prepaynownondebt, &p.Prepayrecrate, &p.Prepayrecdate, &p.Prepayecused, &p.Prepaysparec1, &p.Prepaysaprec2, &p.Prepaysparen1, &p.Prepayspared1, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

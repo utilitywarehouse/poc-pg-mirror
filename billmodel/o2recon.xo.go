@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type O2recon struct {
 	O2Servoptions sql.NullString `json:"o2_servoptions"` // o2_servoptions
 	EquinoxLrn    int64          `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the O2recon exists in the database.
-func (o *O2recon) Exists() bool {
-	return o._exists
-}
-
-// Deleted provides information if the O2recon has been deleted from the database.
-func (o *O2recon) Deleted() bool {
-	return o._deleted
-}
-
-// Insert inserts the O2recon to the database.
-func (o *O2recon) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if o._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.o2recon (` +
-		`o2_cli, o2_sim, o2_status, o2_lastchgdate, o2_lastchgtype, o2_servoptions, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, o.O2Cli, o.O2Sim, o.O2Status, o.O2Lastchgdate, o.O2Lastchgtype, o.O2Servoptions, o.EquinoxSec)
-	err = db.QueryRow(sqlstr, o.O2Cli, o.O2Sim, o.O2Status, o.O2Lastchgdate, o.O2Lastchgtype, o.O2Servoptions, o.EquinoxSec).Scan(&o.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	o._exists = true
-
-	return nil
-}
-
-// Update updates the O2recon in the database.
-func (o *O2recon) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !o._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if o._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.o2recon SET (` +
-		`o2_cli, o2_sim, o2_status, o2_lastchgdate, o2_lastchgtype, o2_servoptions, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, o.O2Cli, o.O2Sim, o.O2Status, o.O2Lastchgdate, o.O2Lastchgtype, o.O2Servoptions, o.EquinoxSec, o.EquinoxLrn)
-	_, err = db.Exec(sqlstr, o.O2Cli, o.O2Sim, o.O2Status, o.O2Lastchgdate, o.O2Lastchgtype, o.O2Servoptions, o.EquinoxSec, o.EquinoxLrn)
-	return err
-}
-
-// Save saves the O2recon to the database.
-func (o *O2recon) Save(db XODB) error {
-	if o.Exists() {
-		return o.Update(db)
-	}
-
-	return o.Insert(db)
-}
-
-// Upsert performs an upsert for O2recon.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (o *O2recon) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if o._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.o2recon (` +
-		`o2_cli, o2_sim, o2_status, o2_lastchgdate, o2_lastchgtype, o2_servoptions, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`o2_cli, o2_sim, o2_status, o2_lastchgdate, o2_lastchgtype, o2_servoptions, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.o2_cli, EXCLUDED.o2_sim, EXCLUDED.o2_status, EXCLUDED.o2_lastchgdate, EXCLUDED.o2_lastchgtype, EXCLUDED.o2_servoptions, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, o.O2Cli, o.O2Sim, o.O2Status, o.O2Lastchgdate, o.O2Lastchgtype, o.O2Servoptions, o.EquinoxLrn, o.EquinoxSec)
-	_, err = db.Exec(sqlstr, o.O2Cli, o.O2Sim, o.O2Status, o.O2Lastchgdate, o.O2Lastchgtype, o.O2Servoptions, o.EquinoxLrn, o.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	o._exists = true
-
-	return nil
-}
-
-// Delete deletes the O2recon from the database.
-func (o *O2recon) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !o._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if o._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.o2recon WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, o.EquinoxLrn)
-	_, err = db.Exec(sqlstr, o.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	o._deleted = true
-
-	return nil
 }
 
 // O2reconByEquinoxLrn retrieves a row from 'equinox.o2recon' as a O2recon.
@@ -179,9 +35,7 @@ func O2reconByEquinoxLrn(db XODB, equinoxLrn int64) (*O2recon, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	o := O2recon{
-		_exists: true,
-	}
+	o := O2recon{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&o.O2Cli, &o.O2Sim, &o.O2Status, &o.O2Lastchgdate, &o.O2Lastchgtype, &o.O2Servoptions, &o.EquinoxLrn, &o.EquinoxSec)
 	if err != nil {

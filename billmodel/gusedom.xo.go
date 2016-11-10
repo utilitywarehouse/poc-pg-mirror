@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -44,149 +43,80 @@ type Gusedom struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
 }
 
-// Exists determines if the Gusedom exists in the database.
-func (g *Gusedom) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gusedom has been deleted from the database.
-func (g *Gusedom) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gusedom to the database.
-func (g *Gusedom) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gusedom (` +
-		`guduniquesys, guddate, gudpercentaqused, guderead, gudaread, gudcread, gudreading, gudreadtype, gudthroughzero, gudmeterexchange, gudpercentaq, gudkwhused, gudregister, gudbilled, gudtypeimpormet, gudmeterdials, gudmeterunits, gudsparen1, gudmeterserialno, gudopusreading, gudsendtotransco, gudsend, gudsuppressread, gudppkwh, gudcv, gudnett, gudunits, gudsupreadarb, gudtariff, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Guduniquesys, g.Guddate, g.Gudpercentaqused, g.Guderead, g.Gudaread, g.Gudcread, g.Gudreading, g.Gudreadtype, g.Gudthroughzero, g.Gudmeterexchange, g.Gudpercentaq, g.Gudkwhused, g.Gudregister, g.Gudbilled, g.Gudtypeimpormet, g.Gudmeterdials, g.Gudmeterunits, g.Gudsparen1, g.Gudmeterserialno, g.Gudopusreading, g.Gudsendtotransco, g.Gudsend, g.Gudsuppressread, g.Gudppkwh, g.Gudcv, g.Gudnett, g.Gudunits, g.Gudsupreadarb, g.Gudtariff, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Guduniquesys, g.Guddate, g.Gudpercentaqused, g.Guderead, g.Gudaread, g.Gudcread, g.Gudreading, g.Gudreadtype, g.Gudthroughzero, g.Gudmeterexchange, g.Gudpercentaq, g.Gudkwhused, g.Gudregister, g.Gudbilled, g.Gudtypeimpormet, g.Gudmeterdials, g.Gudmeterunits, g.Gudsparen1, g.Gudmeterserialno, g.Gudopusreading, g.Gudsendtotransco, g.Gudsend, g.Gudsuppressread, g.Gudppkwh, g.Gudcv, g.Gudnett, g.Gudunits, g.Gudsupreadarb, g.Gudtariff, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gusedom in the database.
-func (g *Gusedom) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gusedom SET (` +
-		`guduniquesys, guddate, gudpercentaqused, guderead, gudaread, gudcread, gudreading, gudreadtype, gudthroughzero, gudmeterexchange, gudpercentaq, gudkwhused, gudregister, gudbilled, gudtypeimpormet, gudmeterdials, gudmeterunits, gudsparen1, gudmeterserialno, gudopusreading, gudsendtotransco, gudsend, gudsuppressread, gudppkwh, gudcv, gudnett, gudunits, gudsupreadarb, gudtariff, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) WHERE equinox_lrn = $32`
-
-	// run query
-	XOLog(sqlstr, g.Guduniquesys, g.Guddate, g.Gudpercentaqused, g.Guderead, g.Gudaread, g.Gudcread, g.Gudreading, g.Gudreadtype, g.Gudthroughzero, g.Gudmeterexchange, g.Gudpercentaq, g.Gudkwhused, g.Gudregister, g.Gudbilled, g.Gudtypeimpormet, g.Gudmeterdials, g.Gudmeterunits, g.Gudsparen1, g.Gudmeterserialno, g.Gudopusreading, g.Gudsendtotransco, g.Gudsend, g.Gudsuppressread, g.Gudppkwh, g.Gudcv, g.Gudnett, g.Gudunits, g.Gudsupreadarb, g.Gudtariff, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Guduniquesys, g.Guddate, g.Gudpercentaqused, g.Guderead, g.Gudaread, g.Gudcread, g.Gudreading, g.Gudreadtype, g.Gudthroughzero, g.Gudmeterexchange, g.Gudpercentaq, g.Gudkwhused, g.Gudregister, g.Gudbilled, g.Gudtypeimpormet, g.Gudmeterdials, g.Gudmeterunits, g.Gudsparen1, g.Gudmeterserialno, g.Gudopusreading, g.Gudsendtotransco, g.Gudsend, g.Gudsuppressread, g.Gudppkwh, g.Gudcv, g.Gudnett, g.Gudunits, g.Gudsupreadarb, g.Gudtariff, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gusedom to the database.
-func (g *Gusedom) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gusedom.
+// GusedomsByEquinoxPrnGuddate retrieves a row from 'equinox.gusedom' as a Gusedom.
 //
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gusedom) Upsert(db XODB) error {
+// Generated from index 'gu_prm_guddate'.
+func GusedomsByEquinoxPrnGuddate(db XODB, equinoxPrn sql.NullInt64, guddate pq.NullTime) ([]*Gusedom, error) {
 	var err error
 
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
 	// sql query
-	const sqlstr = `INSERT INTO equinox.gusedom (` +
-		`guduniquesys, guddate, gudpercentaqused, guderead, gudaread, gudcread, gudreading, gudreadtype, gudthroughzero, gudmeterexchange, gudpercentaq, gudkwhused, gudregister, gudbilled, gudtypeimpormet, gudmeterdials, gudmeterunits, gudsparen1, gudmeterserialno, gudopusreading, gudsendtotransco, gudsend, gudsuppressread, gudppkwh, gudcv, gudnett, gudunits, gudsupreadarb, gudtariff, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`guduniquesys, guddate, gudpercentaqused, guderead, gudaread, gudcread, gudreading, gudreadtype, gudthroughzero, gudmeterexchange, gudpercentaq, gudkwhused, gudregister, gudbilled, gudtypeimpormet, gudmeterdials, gudmeterunits, gudsparen1, gudmeterserialno, gudopusreading, gudsendtotransco, gudsend, gudsuppressread, gudppkwh, gudcv, gudnett, gudunits, gudsupreadarb, gudtariff, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.guduniquesys, EXCLUDED.guddate, EXCLUDED.gudpercentaqused, EXCLUDED.guderead, EXCLUDED.gudaread, EXCLUDED.gudcread, EXCLUDED.gudreading, EXCLUDED.gudreadtype, EXCLUDED.gudthroughzero, EXCLUDED.gudmeterexchange, EXCLUDED.gudpercentaq, EXCLUDED.gudkwhused, EXCLUDED.gudregister, EXCLUDED.gudbilled, EXCLUDED.gudtypeimpormet, EXCLUDED.gudmeterdials, EXCLUDED.gudmeterunits, EXCLUDED.gudsparen1, EXCLUDED.gudmeterserialno, EXCLUDED.gudopusreading, EXCLUDED.gudsendtotransco, EXCLUDED.gudsend, EXCLUDED.gudsuppressread, EXCLUDED.gudppkwh, EXCLUDED.gudcv, EXCLUDED.gudnett, EXCLUDED.gudunits, EXCLUDED.gudsupreadarb, EXCLUDED.gudtariff, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
+	const sqlstr = `SELECT ` +
+		`guduniquesys, guddate, gudpercentaqused, guderead, gudaread, gudcread, gudreading, gudreadtype, gudthroughzero, gudmeterexchange, gudpercentaq, gudkwhused, gudregister, gudbilled, gudtypeimpormet, gudmeterdials, gudmeterunits, gudsparen1, gudmeterserialno, gudopusreading, gudsendtotransco, gudsend, gudsuppressread, gudppkwh, gudcv, gudnett, gudunits, gudsupreadarb, gudtariff, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gusedom ` +
+		`WHERE equinox_prn = $1 AND guddate = $2`
 
 	// run query
-	XOLog(sqlstr, g.Guduniquesys, g.Guddate, g.Gudpercentaqused, g.Guderead, g.Gudaread, g.Gudcread, g.Gudreading, g.Gudreadtype, g.Gudthroughzero, g.Gudmeterexchange, g.Gudpercentaq, g.Gudkwhused, g.Gudregister, g.Gudbilled, g.Gudtypeimpormet, g.Gudmeterdials, g.Gudmeterunits, g.Gudsparen1, g.Gudmeterserialno, g.Gudopusreading, g.Gudsendtotransco, g.Gudsend, g.Gudsuppressread, g.Gudppkwh, g.Gudcv, g.Gudnett, g.Gudunits, g.Gudsupreadarb, g.Gudtariff, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Guduniquesys, g.Guddate, g.Gudpercentaqused, g.Guderead, g.Gudaread, g.Gudcread, g.Gudreading, g.Gudreadtype, g.Gudthroughzero, g.Gudmeterexchange, g.Gudpercentaq, g.Gudkwhused, g.Gudregister, g.Gudbilled, g.Gudtypeimpormet, g.Gudmeterdials, g.Gudmeterunits, g.Gudsparen1, g.Gudmeterserialno, g.Gudopusreading, g.Gudsendtotransco, g.Gudsend, g.Gudsuppressread, g.Gudppkwh, g.Gudcv, g.Gudnett, g.Gudunits, g.Gudsupreadarb, g.Gudtariff, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
+	XOLog(sqlstr, equinoxPrn, guddate)
+	q, err := db.Query(sqlstr, equinoxPrn, guddate)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	defer q.Close()
+
+	// load results
+	res := []*Gusedom{}
+	for q.Next() {
+		g := Gusedom{}
+
+		// scan
+		err = q.Scan(&g.Guduniquesys, &g.Guddate, &g.Gudpercentaqused, &g.Guderead, &g.Gudaread, &g.Gudcread, &g.Gudreading, &g.Gudreadtype, &g.Gudthroughzero, &g.Gudmeterexchange, &g.Gudpercentaq, &g.Gudkwhused, &g.Gudregister, &g.Gudbilled, &g.Gudtypeimpormet, &g.Gudmeterdials, &g.Gudmeterunits, &g.Gudsparen1, &g.Gudmeterserialno, &g.Gudopusreading, &g.Gudsendtotransco, &g.Gudsend, &g.Gudsuppressread, &g.Gudppkwh, &g.Gudcv, &g.Gudnett, &g.Gudunits, &g.Gudsupreadarb, &g.Gudtariff, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, &g)
 	}
 
-	// set existence
-	g._exists = true
-
-	return nil
+	return res, nil
 }
 
-// Delete deletes the Gusedom from the database.
-func (g *Gusedom) Delete(db XODB) error {
+// GusedomsByEquinoxPrn retrieves a row from 'equinox.gusedom' as a Gusedom.
+//
+// Generated from index 'gu_prn'.
+func GusedomsByEquinoxPrn(db XODB, equinoxPrn sql.NullInt64) ([]*Gusedom, error) {
 	var err error
 
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
 	// sql query
-	const sqlstr = `DELETE FROM equinox.gusedom WHERE equinox_lrn = $1`
+	const sqlstr = `SELECT ` +
+		`guduniquesys, guddate, gudpercentaqused, guderead, gudaread, gudcread, gudreading, gudreadtype, gudthroughzero, gudmeterexchange, gudpercentaq, gudkwhused, gudregister, gudbilled, gudtypeimpormet, gudmeterdials, gudmeterunits, gudsparen1, gudmeterserialno, gudopusreading, gudsendtotransco, gudsend, gudsuppressread, gudppkwh, gudcv, gudnett, gudunits, gudsupreadarb, gudtariff, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gusedom ` +
+		`WHERE equinox_prn = $1`
 
 	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
+	XOLog(sqlstr, equinoxPrn)
+	q, err := db.Query(sqlstr, equinoxPrn)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	defer q.Close()
+
+	// load results
+	res := []*Gusedom{}
+	for q.Next() {
+		g := Gusedom{}
+
+		// scan
+		err = q.Scan(&g.Guduniquesys, &g.Guddate, &g.Gudpercentaqused, &g.Guderead, &g.Gudaread, &g.Gudcread, &g.Gudreading, &g.Gudreadtype, &g.Gudthroughzero, &g.Gudmeterexchange, &g.Gudpercentaq, &g.Gudkwhused, &g.Gudregister, &g.Gudbilled, &g.Gudtypeimpormet, &g.Gudmeterdials, &g.Gudmeterunits, &g.Gudsparen1, &g.Gudmeterserialno, &g.Gudopusreading, &g.Gudsendtotransco, &g.Gudsend, &g.Gudsuppressread, &g.Gudppkwh, &g.Gudcv, &g.Gudnett, &g.Gudunits, &g.Gudsupreadarb, &g.Gudtariff, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, &g)
 	}
 
-	// set deleted
-	g._deleted = true
-
-	return nil
+	return res, nil
 }
 
 // GusedomByEquinoxLrn retrieves a row from 'equinox.gusedom' as a Gusedom.
@@ -203,9 +133,7 @@ func GusedomByEquinoxLrn(db XODB, equinoxLrn int64) (*Gusedom, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gusedom{
-		_exists: true,
-	}
+	g := Gusedom{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Guduniquesys, &g.Guddate, &g.Gudpercentaqused, &g.Guderead, &g.Gudaread, &g.Gudcread, &g.Gudreading, &g.Gudreadtype, &g.Gudthroughzero, &g.Gudmeterexchange, &g.Gudpercentaq, &g.Gudkwhused, &g.Gudregister, &g.Gudbilled, &g.Gudtypeimpormet, &g.Gudmeterdials, &g.Gudmeterunits, &g.Gudsparen1, &g.Gudmeterserialno, &g.Gudopusreading, &g.Gudsendtotransco, &g.Gudsend, &g.Gudsuppressread, &g.Gudppkwh, &g.Gudcv, &g.Gudnett, &g.Gudunits, &g.Gudsupreadarb, &g.Gudtariff, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

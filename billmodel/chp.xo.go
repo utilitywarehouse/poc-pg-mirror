@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -50,149 +49,6 @@ type Chp struct {
 	Chpthirdparty   sql.NullInt64  `json:"chpthirdparty"`   // chpthirdparty
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Chp exists in the database.
-func (c *Chp) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Chp has been deleted from the database.
-func (c *Chp) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Chp to the database.
-func (c *Chp) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.chp (` +
-		`chpid, chpcustaccno, chpispartner, chpstatus, chptype, chpdept, chpdebtsubgrp, chpisdup, chpservice, chpsource, chpexcaseref, chpemmaid, chpcategory, chpowner, chpcreatedby, chpopendate, chpopentime, chpclosedate, chpclosetime, chpreopened, chpreopreason, chpcontname, chpcontemail, chpcontphone, chpnotes, chpnxtdayletter, chp8weekletter, chpescto, chpsparec1, chpsparec2, chpspared1, chp4weekletter, chpsparen1, chpsparen2, chpsparel1, chpthirdparty, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Chpid, c.Chpcustaccno, c.Chpispartner, c.Chpstatus, c.Chptype, c.Chpdept, c.Chpdebtsubgrp, c.Chpisdup, c.Chpservice, c.Chpsource, c.Chpexcaseref, c.Chpemmaid, c.Chpcategory, c.Chpowner, c.Chpcreatedby, c.Chpopendate, c.Chpopentime, c.Chpclosedate, c.Chpclosetime, c.Chpreopened, c.Chpreopreason, c.Chpcontname, c.Chpcontemail, c.Chpcontphone, c.Chpnotes, c.Chpnxtdayletter, c.Chp8weekletter, c.Chpescto, c.Chpsparec1, c.Chpsparec2, c.Chpspared1, c.Chp4weekletter, c.Chpsparen1, c.Chpsparen2, c.Chpsparel1, c.Chpthirdparty, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Chpid, c.Chpcustaccno, c.Chpispartner, c.Chpstatus, c.Chptype, c.Chpdept, c.Chpdebtsubgrp, c.Chpisdup, c.Chpservice, c.Chpsource, c.Chpexcaseref, c.Chpemmaid, c.Chpcategory, c.Chpowner, c.Chpcreatedby, c.Chpopendate, c.Chpopentime, c.Chpclosedate, c.Chpclosetime, c.Chpreopened, c.Chpreopreason, c.Chpcontname, c.Chpcontemail, c.Chpcontphone, c.Chpnotes, c.Chpnxtdayletter, c.Chp8weekletter, c.Chpescto, c.Chpsparec1, c.Chpsparec2, c.Chpspared1, c.Chp4weekletter, c.Chpsparen1, c.Chpsparen2, c.Chpsparel1, c.Chpthirdparty, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Chp in the database.
-func (c *Chp) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.chp SET (` +
-		`chpid, chpcustaccno, chpispartner, chpstatus, chptype, chpdept, chpdebtsubgrp, chpisdup, chpservice, chpsource, chpexcaseref, chpemmaid, chpcategory, chpowner, chpcreatedby, chpopendate, chpopentime, chpclosedate, chpclosetime, chpreopened, chpreopreason, chpcontname, chpcontemail, chpcontphone, chpnotes, chpnxtdayletter, chp8weekletter, chpescto, chpsparec1, chpsparec2, chpspared1, chp4weekletter, chpsparen1, chpsparen2, chpsparel1, chpthirdparty, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37` +
-		`) WHERE equinox_lrn = $38`
-
-	// run query
-	XOLog(sqlstr, c.Chpid, c.Chpcustaccno, c.Chpispartner, c.Chpstatus, c.Chptype, c.Chpdept, c.Chpdebtsubgrp, c.Chpisdup, c.Chpservice, c.Chpsource, c.Chpexcaseref, c.Chpemmaid, c.Chpcategory, c.Chpowner, c.Chpcreatedby, c.Chpopendate, c.Chpopentime, c.Chpclosedate, c.Chpclosetime, c.Chpreopened, c.Chpreopreason, c.Chpcontname, c.Chpcontemail, c.Chpcontphone, c.Chpnotes, c.Chpnxtdayletter, c.Chp8weekletter, c.Chpescto, c.Chpsparec1, c.Chpsparec2, c.Chpspared1, c.Chp4weekletter, c.Chpsparen1, c.Chpsparen2, c.Chpsparel1, c.Chpthirdparty, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Chpid, c.Chpcustaccno, c.Chpispartner, c.Chpstatus, c.Chptype, c.Chpdept, c.Chpdebtsubgrp, c.Chpisdup, c.Chpservice, c.Chpsource, c.Chpexcaseref, c.Chpemmaid, c.Chpcategory, c.Chpowner, c.Chpcreatedby, c.Chpopendate, c.Chpopentime, c.Chpclosedate, c.Chpclosetime, c.Chpreopened, c.Chpreopreason, c.Chpcontname, c.Chpcontemail, c.Chpcontphone, c.Chpnotes, c.Chpnxtdayletter, c.Chp8weekletter, c.Chpescto, c.Chpsparec1, c.Chpsparec2, c.Chpspared1, c.Chp4weekletter, c.Chpsparen1, c.Chpsparen2, c.Chpsparel1, c.Chpthirdparty, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Chp to the database.
-func (c *Chp) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Chp.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Chp) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.chp (` +
-		`chpid, chpcustaccno, chpispartner, chpstatus, chptype, chpdept, chpdebtsubgrp, chpisdup, chpservice, chpsource, chpexcaseref, chpemmaid, chpcategory, chpowner, chpcreatedby, chpopendate, chpopentime, chpclosedate, chpclosetime, chpreopened, chpreopreason, chpcontname, chpcontemail, chpcontphone, chpnotes, chpnxtdayletter, chp8weekletter, chpescto, chpsparec1, chpsparec2, chpspared1, chp4weekletter, chpsparen1, chpsparen2, chpsparel1, chpthirdparty, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`chpid, chpcustaccno, chpispartner, chpstatus, chptype, chpdept, chpdebtsubgrp, chpisdup, chpservice, chpsource, chpexcaseref, chpemmaid, chpcategory, chpowner, chpcreatedby, chpopendate, chpopentime, chpclosedate, chpclosetime, chpreopened, chpreopreason, chpcontname, chpcontemail, chpcontphone, chpnotes, chpnxtdayletter, chp8weekletter, chpescto, chpsparec1, chpsparec2, chpspared1, chp4weekletter, chpsparen1, chpsparen2, chpsparel1, chpthirdparty, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.chpid, EXCLUDED.chpcustaccno, EXCLUDED.chpispartner, EXCLUDED.chpstatus, EXCLUDED.chptype, EXCLUDED.chpdept, EXCLUDED.chpdebtsubgrp, EXCLUDED.chpisdup, EXCLUDED.chpservice, EXCLUDED.chpsource, EXCLUDED.chpexcaseref, EXCLUDED.chpemmaid, EXCLUDED.chpcategory, EXCLUDED.chpowner, EXCLUDED.chpcreatedby, EXCLUDED.chpopendate, EXCLUDED.chpopentime, EXCLUDED.chpclosedate, EXCLUDED.chpclosetime, EXCLUDED.chpreopened, EXCLUDED.chpreopreason, EXCLUDED.chpcontname, EXCLUDED.chpcontemail, EXCLUDED.chpcontphone, EXCLUDED.chpnotes, EXCLUDED.chpnxtdayletter, EXCLUDED.chp8weekletter, EXCLUDED.chpescto, EXCLUDED.chpsparec1, EXCLUDED.chpsparec2, EXCLUDED.chpspared1, EXCLUDED.chp4weekletter, EXCLUDED.chpsparen1, EXCLUDED.chpsparen2, EXCLUDED.chpsparel1, EXCLUDED.chpthirdparty, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Chpid, c.Chpcustaccno, c.Chpispartner, c.Chpstatus, c.Chptype, c.Chpdept, c.Chpdebtsubgrp, c.Chpisdup, c.Chpservice, c.Chpsource, c.Chpexcaseref, c.Chpemmaid, c.Chpcategory, c.Chpowner, c.Chpcreatedby, c.Chpopendate, c.Chpopentime, c.Chpclosedate, c.Chpclosetime, c.Chpreopened, c.Chpreopreason, c.Chpcontname, c.Chpcontemail, c.Chpcontphone, c.Chpnotes, c.Chpnxtdayletter, c.Chp8weekletter, c.Chpescto, c.Chpsparec1, c.Chpsparec2, c.Chpspared1, c.Chp4weekletter, c.Chpsparen1, c.Chpsparen2, c.Chpsparel1, c.Chpthirdparty, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Chpid, c.Chpcustaccno, c.Chpispartner, c.Chpstatus, c.Chptype, c.Chpdept, c.Chpdebtsubgrp, c.Chpisdup, c.Chpservice, c.Chpsource, c.Chpexcaseref, c.Chpemmaid, c.Chpcategory, c.Chpowner, c.Chpcreatedby, c.Chpopendate, c.Chpopentime, c.Chpclosedate, c.Chpclosetime, c.Chpreopened, c.Chpreopreason, c.Chpcontname, c.Chpcontemail, c.Chpcontphone, c.Chpnotes, c.Chpnxtdayletter, c.Chp8weekletter, c.Chpescto, c.Chpsparec1, c.Chpsparec2, c.Chpspared1, c.Chp4weekletter, c.Chpsparen1, c.Chpsparen2, c.Chpsparel1, c.Chpthirdparty, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Chp from the database.
-func (c *Chp) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.chp WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // ChpByEquinoxLrn retrieves a row from 'equinox.chp' as a Chp.
@@ -209,9 +65,7 @@ func ChpByEquinoxLrn(db XODB, equinoxLrn int64) (*Chp, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Chp{
-		_exists: true,
-	}
+	c := Chp{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Chpid, &c.Chpcustaccno, &c.Chpispartner, &c.Chpstatus, &c.Chptype, &c.Chpdept, &c.Chpdebtsubgrp, &c.Chpisdup, &c.Chpservice, &c.Chpsource, &c.Chpexcaseref, &c.Chpemmaid, &c.Chpcategory, &c.Chpowner, &c.Chpcreatedby, &c.Chpopendate, &c.Chpopentime, &c.Chpclosedate, &c.Chpclosetime, &c.Chpreopened, &c.Chpreopreason, &c.Chpcontname, &c.Chpcontemail, &c.Chpcontphone, &c.Chpnotes, &c.Chpnxtdayletter, &c.Chp8weekletter, &c.Chpescto, &c.Chpsparec1, &c.Chpsparec2, &c.Chpspared1, &c.Chp4weekletter, &c.Chpsparen1, &c.Chpsparen2, &c.Chpsparel1, &c.Chpthirdparty, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

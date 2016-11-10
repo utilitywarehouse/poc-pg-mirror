@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -35,149 +34,6 @@ type Exfitter struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exfitter exists in the database.
-func (e *Exfitter) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exfitter has been deleted from the database.
-func (e *Exfitter) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exfitter to the database.
-func (e *Exfitter) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exfitter (` +
-		`efid, efcaptstatus, efnotification, efappname, efvanid, efcontractsigned, efpassedexam, efpassedeyetest, eftrainingatt, efdate, efappid, eftype, efvatreg, efvatno, efmobileno, efemailaddress, effirstname, efsurname, effitstatus, efwelcsent, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Efid, e.Efcaptstatus, e.Efnotification, e.Efappname, e.Efvanid, e.Efcontractsigned, e.Efpassedexam, e.Efpassedeyetest, e.Eftrainingatt, e.Efdate, e.Efappid, e.Eftype, e.Efvatreg, e.Efvatno, e.Efmobileno, e.Efemailaddress, e.Effirstname, e.Efsurname, e.Effitstatus, e.Efwelcsent, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Efid, e.Efcaptstatus, e.Efnotification, e.Efappname, e.Efvanid, e.Efcontractsigned, e.Efpassedexam, e.Efpassedeyetest, e.Eftrainingatt, e.Efdate, e.Efappid, e.Eftype, e.Efvatreg, e.Efvatno, e.Efmobileno, e.Efemailaddress, e.Effirstname, e.Efsurname, e.Effitstatus, e.Efwelcsent, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exfitter in the database.
-func (e *Exfitter) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exfitter SET (` +
-		`efid, efcaptstatus, efnotification, efappname, efvanid, efcontractsigned, efpassedexam, efpassedeyetest, eftrainingatt, efdate, efappid, eftype, efvatreg, efvatno, efmobileno, efemailaddress, effirstname, efsurname, effitstatus, efwelcsent, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22` +
-		`) WHERE equinox_lrn = $23`
-
-	// run query
-	XOLog(sqlstr, e.Efid, e.Efcaptstatus, e.Efnotification, e.Efappname, e.Efvanid, e.Efcontractsigned, e.Efpassedexam, e.Efpassedeyetest, e.Eftrainingatt, e.Efdate, e.Efappid, e.Eftype, e.Efvatreg, e.Efvatno, e.Efmobileno, e.Efemailaddress, e.Effirstname, e.Efsurname, e.Effitstatus, e.Efwelcsent, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Efid, e.Efcaptstatus, e.Efnotification, e.Efappname, e.Efvanid, e.Efcontractsigned, e.Efpassedexam, e.Efpassedeyetest, e.Eftrainingatt, e.Efdate, e.Efappid, e.Eftype, e.Efvatreg, e.Efvatno, e.Efmobileno, e.Efemailaddress, e.Effirstname, e.Efsurname, e.Effitstatus, e.Efwelcsent, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exfitter to the database.
-func (e *Exfitter) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exfitter.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exfitter) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exfitter (` +
-		`efid, efcaptstatus, efnotification, efappname, efvanid, efcontractsigned, efpassedexam, efpassedeyetest, eftrainingatt, efdate, efappid, eftype, efvatreg, efvatno, efmobileno, efemailaddress, effirstname, efsurname, effitstatus, efwelcsent, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`efid, efcaptstatus, efnotification, efappname, efvanid, efcontractsigned, efpassedexam, efpassedeyetest, eftrainingatt, efdate, efappid, eftype, efvatreg, efvatno, efmobileno, efemailaddress, effirstname, efsurname, effitstatus, efwelcsent, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.efid, EXCLUDED.efcaptstatus, EXCLUDED.efnotification, EXCLUDED.efappname, EXCLUDED.efvanid, EXCLUDED.efcontractsigned, EXCLUDED.efpassedexam, EXCLUDED.efpassedeyetest, EXCLUDED.eftrainingatt, EXCLUDED.efdate, EXCLUDED.efappid, EXCLUDED.eftype, EXCLUDED.efvatreg, EXCLUDED.efvatno, EXCLUDED.efmobileno, EXCLUDED.efemailaddress, EXCLUDED.effirstname, EXCLUDED.efsurname, EXCLUDED.effitstatus, EXCLUDED.efwelcsent, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Efid, e.Efcaptstatus, e.Efnotification, e.Efappname, e.Efvanid, e.Efcontractsigned, e.Efpassedexam, e.Efpassedeyetest, e.Eftrainingatt, e.Efdate, e.Efappid, e.Eftype, e.Efvatreg, e.Efvatno, e.Efmobileno, e.Efemailaddress, e.Effirstname, e.Efsurname, e.Effitstatus, e.Efwelcsent, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Efid, e.Efcaptstatus, e.Efnotification, e.Efappname, e.Efvanid, e.Efcontractsigned, e.Efpassedexam, e.Efpassedeyetest, e.Eftrainingatt, e.Efdate, e.Efappid, e.Eftype, e.Efvatreg, e.Efvatno, e.Efmobileno, e.Efemailaddress, e.Effirstname, e.Efsurname, e.Effitstatus, e.Efwelcsent, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exfitter from the database.
-func (e *Exfitter) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exfitter WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExfitterByEquinoxLrn retrieves a row from 'equinox.exfitter' as a Exfitter.
@@ -194,9 +50,7 @@ func ExfitterByEquinoxLrn(db XODB, equinoxLrn int64) (*Exfitter, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exfitter{
-		_exists: true,
-	}
+	e := Exfitter{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Efid, &e.Efcaptstatus, &e.Efnotification, &e.Efappname, &e.Efvanid, &e.Efcontractsigned, &e.Efpassedexam, &e.Efpassedeyetest, &e.Eftrainingatt, &e.Efdate, &e.Efappid, &e.Eftype, &e.Efvatreg, &e.Efvatno, &e.Efmobileno, &e.Efemailaddress, &e.Effirstname, &e.Efsurname, &e.Effitstatus, &e.Efwelcsent, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

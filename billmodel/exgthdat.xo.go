@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -21,149 +20,6 @@ type Exgthdat struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exgthdat exists in the database.
-func (e *Exgthdat) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exgthdat has been deleted from the database.
-func (e *Exgthdat) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exgthdat to the database.
-func (e *Exgthdat) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exgthdat (` +
-		`exgthdatyr, exgthdatert, exgthdatnert, exgthdatdebt, exgthdatpfact, exgthlastbilldat, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Exgthdatyr, e.Exgthdatert, e.Exgthdatnert, e.Exgthdatdebt, e.Exgthdatpfact, e.Exgthlastbilldat, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Exgthdatyr, e.Exgthdatert, e.Exgthdatnert, e.Exgthdatdebt, e.Exgthdatpfact, e.Exgthlastbilldat, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exgthdat in the database.
-func (e *Exgthdat) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exgthdat SET (` +
-		`exgthdatyr, exgthdatert, exgthdatnert, exgthdatdebt, exgthdatpfact, exgthlastbilldat, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) WHERE equinox_lrn = $9`
-
-	// run query
-	XOLog(sqlstr, e.Exgthdatyr, e.Exgthdatert, e.Exgthdatnert, e.Exgthdatdebt, e.Exgthdatpfact, e.Exgthlastbilldat, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Exgthdatyr, e.Exgthdatert, e.Exgthdatnert, e.Exgthdatdebt, e.Exgthdatpfact, e.Exgthlastbilldat, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exgthdat to the database.
-func (e *Exgthdat) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exgthdat.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exgthdat) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exgthdat (` +
-		`exgthdatyr, exgthdatert, exgthdatnert, exgthdatdebt, exgthdatpfact, exgthlastbilldat, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`exgthdatyr, exgthdatert, exgthdatnert, exgthdatdebt, exgthdatpfact, exgthlastbilldat, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.exgthdatyr, EXCLUDED.exgthdatert, EXCLUDED.exgthdatnert, EXCLUDED.exgthdatdebt, EXCLUDED.exgthdatpfact, EXCLUDED.exgthlastbilldat, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Exgthdatyr, e.Exgthdatert, e.Exgthdatnert, e.Exgthdatdebt, e.Exgthdatpfact, e.Exgthlastbilldat, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Exgthdatyr, e.Exgthdatert, e.Exgthdatnert, e.Exgthdatdebt, e.Exgthdatpfact, e.Exgthlastbilldat, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exgthdat from the database.
-func (e *Exgthdat) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exgthdat WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExgthdatByEquinoxLrn retrieves a row from 'equinox.exgthdat' as a Exgthdat.
@@ -180,9 +36,7 @@ func ExgthdatByEquinoxLrn(db XODB, equinoxLrn int64) (*Exgthdat, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exgthdat{
-		_exists: true,
-	}
+	e := Exgthdat{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Exgthdatyr, &e.Exgthdatert, &e.Exgthdatnert, &e.Exgthdatdebt, &e.Exgthdatpfact, &e.Exgthlastbilldat, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

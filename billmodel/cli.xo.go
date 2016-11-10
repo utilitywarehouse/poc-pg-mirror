@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -86,149 +85,6 @@ type Cli struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cli exists in the database.
-func (c *Cli) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cli has been deleted from the database.
-func (c *Cli) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cli to the database.
-func (c *Cli) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cli (` +
-		`cliuniquesys, clinumber, clicallchrgopt, clianumber1, clianumber2, clianumber3, clilivedate, clibarreddate, clibarredreason, clicpsdate, clicpspostcode, cliwlrdate, clienddate, cliendreason, cliloyaltystart, cliloyaltynxtcng, cliloyaltylevel, cliownership, clicarriertariff, clitariff, clisubtariff, cliactpending, cliserialnumber1, cliserialnumber2, cliserialnumber3, cliserialnumber4, cliservicetype, cliservicelvl, clioptimalplan, climinitemised, clifreetexts, clinumofunits, clivatrate1split, clivatrate2split, clinoofclaims, clipassword, clibudgetstart, clibudgetamount, clibudgettotalpd, clibudgetusage, clibudgetthismon, clienthisbillnet, clibudgetadjust, climinspend, clicallcontrol, clicreditlimit, cliexsubid, clipromocode, clideladdr, climintermend, clilastupgrade, clicontractterm, cliusername_id, cliflag, clietfamount, climobprice, clivirtuallive, cligpdate, clialk, clipeaksavecalls, cliinstallend, cliequipsupplied, clisparec1, clisparec2, clisparec3, clisparec4, clispared1, clispared2, clisparen1, clisparen2, clicpwnref, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cliuniquesys, c.Clinumber, c.Clicallchrgopt, c.Clianumber1, c.Clianumber2, c.Clianumber3, c.Clilivedate, c.Clibarreddate, c.Clibarredreason, c.Clicpsdate, c.Clicpspostcode, c.Cliwlrdate, c.Clienddate, c.Cliendreason, c.Cliloyaltystart, c.Cliloyaltynxtcng, c.Cliloyaltylevel, c.Cliownership, c.Clicarriertariff, c.Clitariff, c.Clisubtariff, c.Cliactpending, c.Cliserialnumber1, c.Cliserialnumber2, c.Cliserialnumber3, c.Cliserialnumber4, c.Cliservicetype, c.Cliservicelvl, c.Clioptimalplan, c.Climinitemised, c.Clifreetexts, c.Clinumofunits, c.Clivatrate1split, c.Clivatrate2split, c.Clinoofclaims, c.Clipassword, c.Clibudgetstart, c.Clibudgetamount, c.Clibudgettotalpd, c.Clibudgetusage, c.Clibudgetthismon, c.Clienthisbillnet, c.Clibudgetadjust, c.Climinspend, c.Clicallcontrol, c.Clicreditlimit, c.Cliexsubid, c.Clipromocode, c.Clideladdr, c.Climintermend, c.Clilastupgrade, c.Clicontractterm, c.CliusernameID, c.Cliflag, c.Clietfamount, c.Climobprice, c.Clivirtuallive, c.Cligpdate, c.Clialk, c.Clipeaksavecalls, c.Cliinstallend, c.Cliequipsupplied, c.Clisparec1, c.Clisparec2, c.Clisparec3, c.Clisparec4, c.Clispared1, c.Clispared2, c.Clisparen1, c.Clisparen2, c.Clicpwnref, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cliuniquesys, c.Clinumber, c.Clicallchrgopt, c.Clianumber1, c.Clianumber2, c.Clianumber3, c.Clilivedate, c.Clibarreddate, c.Clibarredreason, c.Clicpsdate, c.Clicpspostcode, c.Cliwlrdate, c.Clienddate, c.Cliendreason, c.Cliloyaltystart, c.Cliloyaltynxtcng, c.Cliloyaltylevel, c.Cliownership, c.Clicarriertariff, c.Clitariff, c.Clisubtariff, c.Cliactpending, c.Cliserialnumber1, c.Cliserialnumber2, c.Cliserialnumber3, c.Cliserialnumber4, c.Cliservicetype, c.Cliservicelvl, c.Clioptimalplan, c.Climinitemised, c.Clifreetexts, c.Clinumofunits, c.Clivatrate1split, c.Clivatrate2split, c.Clinoofclaims, c.Clipassword, c.Clibudgetstart, c.Clibudgetamount, c.Clibudgettotalpd, c.Clibudgetusage, c.Clibudgetthismon, c.Clienthisbillnet, c.Clibudgetadjust, c.Climinspend, c.Clicallcontrol, c.Clicreditlimit, c.Cliexsubid, c.Clipromocode, c.Clideladdr, c.Climintermend, c.Clilastupgrade, c.Clicontractterm, c.CliusernameID, c.Cliflag, c.Clietfamount, c.Climobprice, c.Clivirtuallive, c.Cligpdate, c.Clialk, c.Clipeaksavecalls, c.Cliinstallend, c.Cliequipsupplied, c.Clisparec1, c.Clisparec2, c.Clisparec3, c.Clisparec4, c.Clispared1, c.Clispared2, c.Clisparen1, c.Clisparen2, c.Clicpwnref, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cli in the database.
-func (c *Cli) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cli SET (` +
-		`cliuniquesys, clinumber, clicallchrgopt, clianumber1, clianumber2, clianumber3, clilivedate, clibarreddate, clibarredreason, clicpsdate, clicpspostcode, cliwlrdate, clienddate, cliendreason, cliloyaltystart, cliloyaltynxtcng, cliloyaltylevel, cliownership, clicarriertariff, clitariff, clisubtariff, cliactpending, cliserialnumber1, cliserialnumber2, cliserialnumber3, cliserialnumber4, cliservicetype, cliservicelvl, clioptimalplan, climinitemised, clifreetexts, clinumofunits, clivatrate1split, clivatrate2split, clinoofclaims, clipassword, clibudgetstart, clibudgetamount, clibudgettotalpd, clibudgetusage, clibudgetthismon, clienthisbillnet, clibudgetadjust, climinspend, clicallcontrol, clicreditlimit, cliexsubid, clipromocode, clideladdr, climintermend, clilastupgrade, clicontractterm, cliusername_id, cliflag, clietfamount, climobprice, clivirtuallive, cligpdate, clialk, clipeaksavecalls, cliinstallend, cliequipsupplied, clisparec1, clisparec2, clisparec3, clisparec4, clispared1, clispared2, clisparen1, clisparen2, clicpwnref, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73` +
-		`) WHERE equinox_lrn = $74`
-
-	// run query
-	XOLog(sqlstr, c.Cliuniquesys, c.Clinumber, c.Clicallchrgopt, c.Clianumber1, c.Clianumber2, c.Clianumber3, c.Clilivedate, c.Clibarreddate, c.Clibarredreason, c.Clicpsdate, c.Clicpspostcode, c.Cliwlrdate, c.Clienddate, c.Cliendreason, c.Cliloyaltystart, c.Cliloyaltynxtcng, c.Cliloyaltylevel, c.Cliownership, c.Clicarriertariff, c.Clitariff, c.Clisubtariff, c.Cliactpending, c.Cliserialnumber1, c.Cliserialnumber2, c.Cliserialnumber3, c.Cliserialnumber4, c.Cliservicetype, c.Cliservicelvl, c.Clioptimalplan, c.Climinitemised, c.Clifreetexts, c.Clinumofunits, c.Clivatrate1split, c.Clivatrate2split, c.Clinoofclaims, c.Clipassword, c.Clibudgetstart, c.Clibudgetamount, c.Clibudgettotalpd, c.Clibudgetusage, c.Clibudgetthismon, c.Clienthisbillnet, c.Clibudgetadjust, c.Climinspend, c.Clicallcontrol, c.Clicreditlimit, c.Cliexsubid, c.Clipromocode, c.Clideladdr, c.Climintermend, c.Clilastupgrade, c.Clicontractterm, c.CliusernameID, c.Cliflag, c.Clietfamount, c.Climobprice, c.Clivirtuallive, c.Cligpdate, c.Clialk, c.Clipeaksavecalls, c.Cliinstallend, c.Cliequipsupplied, c.Clisparec1, c.Clisparec2, c.Clisparec3, c.Clisparec4, c.Clispared1, c.Clispared2, c.Clisparen1, c.Clisparen2, c.Clicpwnref, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cliuniquesys, c.Clinumber, c.Clicallchrgopt, c.Clianumber1, c.Clianumber2, c.Clianumber3, c.Clilivedate, c.Clibarreddate, c.Clibarredreason, c.Clicpsdate, c.Clicpspostcode, c.Cliwlrdate, c.Clienddate, c.Cliendreason, c.Cliloyaltystart, c.Cliloyaltynxtcng, c.Cliloyaltylevel, c.Cliownership, c.Clicarriertariff, c.Clitariff, c.Clisubtariff, c.Cliactpending, c.Cliserialnumber1, c.Cliserialnumber2, c.Cliserialnumber3, c.Cliserialnumber4, c.Cliservicetype, c.Cliservicelvl, c.Clioptimalplan, c.Climinitemised, c.Clifreetexts, c.Clinumofunits, c.Clivatrate1split, c.Clivatrate2split, c.Clinoofclaims, c.Clipassword, c.Clibudgetstart, c.Clibudgetamount, c.Clibudgettotalpd, c.Clibudgetusage, c.Clibudgetthismon, c.Clienthisbillnet, c.Clibudgetadjust, c.Climinspend, c.Clicallcontrol, c.Clicreditlimit, c.Cliexsubid, c.Clipromocode, c.Clideladdr, c.Climintermend, c.Clilastupgrade, c.Clicontractterm, c.CliusernameID, c.Cliflag, c.Clietfamount, c.Climobprice, c.Clivirtuallive, c.Cligpdate, c.Clialk, c.Clipeaksavecalls, c.Cliinstallend, c.Cliequipsupplied, c.Clisparec1, c.Clisparec2, c.Clisparec3, c.Clisparec4, c.Clispared1, c.Clispared2, c.Clisparen1, c.Clisparen2, c.Clicpwnref, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cli to the database.
-func (c *Cli) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cli.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cli) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cli (` +
-		`cliuniquesys, clinumber, clicallchrgopt, clianumber1, clianumber2, clianumber3, clilivedate, clibarreddate, clibarredreason, clicpsdate, clicpspostcode, cliwlrdate, clienddate, cliendreason, cliloyaltystart, cliloyaltynxtcng, cliloyaltylevel, cliownership, clicarriertariff, clitariff, clisubtariff, cliactpending, cliserialnumber1, cliserialnumber2, cliserialnumber3, cliserialnumber4, cliservicetype, cliservicelvl, clioptimalplan, climinitemised, clifreetexts, clinumofunits, clivatrate1split, clivatrate2split, clinoofclaims, clipassword, clibudgetstart, clibudgetamount, clibudgettotalpd, clibudgetusage, clibudgetthismon, clienthisbillnet, clibudgetadjust, climinspend, clicallcontrol, clicreditlimit, cliexsubid, clipromocode, clideladdr, climintermend, clilastupgrade, clicontractterm, cliusername_id, cliflag, clietfamount, climobprice, clivirtuallive, cligpdate, clialk, clipeaksavecalls, cliinstallend, cliequipsupplied, clisparec1, clisparec2, clisparec3, clisparec4, clispared1, clispared2, clisparen1, clisparen2, clicpwnref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cliuniquesys, clinumber, clicallchrgopt, clianumber1, clianumber2, clianumber3, clilivedate, clibarreddate, clibarredreason, clicpsdate, clicpspostcode, cliwlrdate, clienddate, cliendreason, cliloyaltystart, cliloyaltynxtcng, cliloyaltylevel, cliownership, clicarriertariff, clitariff, clisubtariff, cliactpending, cliserialnumber1, cliserialnumber2, cliserialnumber3, cliserialnumber4, cliservicetype, cliservicelvl, clioptimalplan, climinitemised, clifreetexts, clinumofunits, clivatrate1split, clivatrate2split, clinoofclaims, clipassword, clibudgetstart, clibudgetamount, clibudgettotalpd, clibudgetusage, clibudgetthismon, clienthisbillnet, clibudgetadjust, climinspend, clicallcontrol, clicreditlimit, cliexsubid, clipromocode, clideladdr, climintermend, clilastupgrade, clicontractterm, cliusername_id, cliflag, clietfamount, climobprice, clivirtuallive, cligpdate, clialk, clipeaksavecalls, cliinstallend, cliequipsupplied, clisparec1, clisparec2, clisparec3, clisparec4, clispared1, clispared2, clisparen1, clisparen2, clicpwnref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cliuniquesys, EXCLUDED.clinumber, EXCLUDED.clicallchrgopt, EXCLUDED.clianumber1, EXCLUDED.clianumber2, EXCLUDED.clianumber3, EXCLUDED.clilivedate, EXCLUDED.clibarreddate, EXCLUDED.clibarredreason, EXCLUDED.clicpsdate, EXCLUDED.clicpspostcode, EXCLUDED.cliwlrdate, EXCLUDED.clienddate, EXCLUDED.cliendreason, EXCLUDED.cliloyaltystart, EXCLUDED.cliloyaltynxtcng, EXCLUDED.cliloyaltylevel, EXCLUDED.cliownership, EXCLUDED.clicarriertariff, EXCLUDED.clitariff, EXCLUDED.clisubtariff, EXCLUDED.cliactpending, EXCLUDED.cliserialnumber1, EXCLUDED.cliserialnumber2, EXCLUDED.cliserialnumber3, EXCLUDED.cliserialnumber4, EXCLUDED.cliservicetype, EXCLUDED.cliservicelvl, EXCLUDED.clioptimalplan, EXCLUDED.climinitemised, EXCLUDED.clifreetexts, EXCLUDED.clinumofunits, EXCLUDED.clivatrate1split, EXCLUDED.clivatrate2split, EXCLUDED.clinoofclaims, EXCLUDED.clipassword, EXCLUDED.clibudgetstart, EXCLUDED.clibudgetamount, EXCLUDED.clibudgettotalpd, EXCLUDED.clibudgetusage, EXCLUDED.clibudgetthismon, EXCLUDED.clienthisbillnet, EXCLUDED.clibudgetadjust, EXCLUDED.climinspend, EXCLUDED.clicallcontrol, EXCLUDED.clicreditlimit, EXCLUDED.cliexsubid, EXCLUDED.clipromocode, EXCLUDED.clideladdr, EXCLUDED.climintermend, EXCLUDED.clilastupgrade, EXCLUDED.clicontractterm, EXCLUDED.cliusername_id, EXCLUDED.cliflag, EXCLUDED.clietfamount, EXCLUDED.climobprice, EXCLUDED.clivirtuallive, EXCLUDED.cligpdate, EXCLUDED.clialk, EXCLUDED.clipeaksavecalls, EXCLUDED.cliinstallend, EXCLUDED.cliequipsupplied, EXCLUDED.clisparec1, EXCLUDED.clisparec2, EXCLUDED.clisparec3, EXCLUDED.clisparec4, EXCLUDED.clispared1, EXCLUDED.clispared2, EXCLUDED.clisparen1, EXCLUDED.clisparen2, EXCLUDED.clicpwnref, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cliuniquesys, c.Clinumber, c.Clicallchrgopt, c.Clianumber1, c.Clianumber2, c.Clianumber3, c.Clilivedate, c.Clibarreddate, c.Clibarredreason, c.Clicpsdate, c.Clicpspostcode, c.Cliwlrdate, c.Clienddate, c.Cliendreason, c.Cliloyaltystart, c.Cliloyaltynxtcng, c.Cliloyaltylevel, c.Cliownership, c.Clicarriertariff, c.Clitariff, c.Clisubtariff, c.Cliactpending, c.Cliserialnumber1, c.Cliserialnumber2, c.Cliserialnumber3, c.Cliserialnumber4, c.Cliservicetype, c.Cliservicelvl, c.Clioptimalplan, c.Climinitemised, c.Clifreetexts, c.Clinumofunits, c.Clivatrate1split, c.Clivatrate2split, c.Clinoofclaims, c.Clipassword, c.Clibudgetstart, c.Clibudgetamount, c.Clibudgettotalpd, c.Clibudgetusage, c.Clibudgetthismon, c.Clienthisbillnet, c.Clibudgetadjust, c.Climinspend, c.Clicallcontrol, c.Clicreditlimit, c.Cliexsubid, c.Clipromocode, c.Clideladdr, c.Climintermend, c.Clilastupgrade, c.Clicontractterm, c.CliusernameID, c.Cliflag, c.Clietfamount, c.Climobprice, c.Clivirtuallive, c.Cligpdate, c.Clialk, c.Clipeaksavecalls, c.Cliinstallend, c.Cliequipsupplied, c.Clisparec1, c.Clisparec2, c.Clisparec3, c.Clisparec4, c.Clispared1, c.Clispared2, c.Clisparen1, c.Clisparen2, c.Clicpwnref, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cliuniquesys, c.Clinumber, c.Clicallchrgopt, c.Clianumber1, c.Clianumber2, c.Clianumber3, c.Clilivedate, c.Clibarreddate, c.Clibarredreason, c.Clicpsdate, c.Clicpspostcode, c.Cliwlrdate, c.Clienddate, c.Cliendreason, c.Cliloyaltystart, c.Cliloyaltynxtcng, c.Cliloyaltylevel, c.Cliownership, c.Clicarriertariff, c.Clitariff, c.Clisubtariff, c.Cliactpending, c.Cliserialnumber1, c.Cliserialnumber2, c.Cliserialnumber3, c.Cliserialnumber4, c.Cliservicetype, c.Cliservicelvl, c.Clioptimalplan, c.Climinitemised, c.Clifreetexts, c.Clinumofunits, c.Clivatrate1split, c.Clivatrate2split, c.Clinoofclaims, c.Clipassword, c.Clibudgetstart, c.Clibudgetamount, c.Clibudgettotalpd, c.Clibudgetusage, c.Clibudgetthismon, c.Clienthisbillnet, c.Clibudgetadjust, c.Climinspend, c.Clicallcontrol, c.Clicreditlimit, c.Cliexsubid, c.Clipromocode, c.Clideladdr, c.Climintermend, c.Clilastupgrade, c.Clicontractterm, c.CliusernameID, c.Cliflag, c.Clietfamount, c.Climobprice, c.Clivirtuallive, c.Cligpdate, c.Clialk, c.Clipeaksavecalls, c.Cliinstallend, c.Cliequipsupplied, c.Clisparec1, c.Clisparec2, c.Clisparec3, c.Clisparec4, c.Clispared1, c.Clispared2, c.Clisparen1, c.Clisparen2, c.Clicpwnref, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cli from the database.
-func (c *Cli) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cli WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CliByEquinoxLrn retrieves a row from 'equinox.cli' as a Cli.
@@ -245,9 +101,7 @@ func CliByEquinoxLrn(db XODB, equinoxLrn int64) (*Cli, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cli{
-		_exists: true,
-	}
+	c := Cli{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cliuniquesys, &c.Clinumber, &c.Clicallchrgopt, &c.Clianumber1, &c.Clianumber2, &c.Clianumber3, &c.Clilivedate, &c.Clibarreddate, &c.Clibarredreason, &c.Clicpsdate, &c.Clicpspostcode, &c.Cliwlrdate, &c.Clienddate, &c.Cliendreason, &c.Cliloyaltystart, &c.Cliloyaltynxtcng, &c.Cliloyaltylevel, &c.Cliownership, &c.Clicarriertariff, &c.Clitariff, &c.Clisubtariff, &c.Cliactpending, &c.Cliserialnumber1, &c.Cliserialnumber2, &c.Cliserialnumber3, &c.Cliserialnumber4, &c.Cliservicetype, &c.Cliservicelvl, &c.Clioptimalplan, &c.Climinitemised, &c.Clifreetexts, &c.Clinumofunits, &c.Clivatrate1split, &c.Clivatrate2split, &c.Clinoofclaims, &c.Clipassword, &c.Clibudgetstart, &c.Clibudgetamount, &c.Clibudgettotalpd, &c.Clibudgetusage, &c.Clibudgetthismon, &c.Clienthisbillnet, &c.Clibudgetadjust, &c.Climinspend, &c.Clicallcontrol, &c.Clicreditlimit, &c.Cliexsubid, &c.Clipromocode, &c.Clideladdr, &c.Climintermend, &c.Clilastupgrade, &c.Clicontractterm, &c.CliusernameID, &c.Cliflag, &c.Clietfamount, &c.Climobprice, &c.Clivirtuallive, &c.Cligpdate, &c.Clialk, &c.Clipeaksavecalls, &c.Cliinstallend, &c.Cliequipsupplied, &c.Clisparec1, &c.Clisparec2, &c.Clisparec3, &c.Clisparec4, &c.Clispared1, &c.Clispared2, &c.Clisparen1, &c.Clisparen2, &c.Clicpwnref, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

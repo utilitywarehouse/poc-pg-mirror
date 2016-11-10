@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type Bishist struct {
 	EquinoxPrn    sql.NullInt64  `json:"equinox_prn"`   // equinox_prn
 	EquinoxLrn    int64          `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Bishist exists in the database.
-func (b *Bishist) Exists() bool {
-	return b._exists
-}
-
-// Deleted provides information if the Bishist has been deleted from the database.
-func (b *Bishist) Deleted() bool {
-	return b._deleted
-}
-
-// Insert inserts the Bishist to the database.
-func (b *Bishist) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.bishist (` +
-		`bishfilename, bishfileid, bishdate, bishfiletype, bishfileacrj, bishread, bishresponse, bishrecacrj, bishmemo, bishhandshake, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, b.Bishfilename, b.Bishfileid, b.Bishdate, b.Bishfiletype, b.Bishfileacrj, b.Bishread, b.Bishresponse, b.Bishrecacrj, b.Bishmemo, b.Bishhandshake, b.EquinoxPrn, b.EquinoxSec)
-	err = db.QueryRow(sqlstr, b.Bishfilename, b.Bishfileid, b.Bishdate, b.Bishfiletype, b.Bishfileacrj, b.Bishread, b.Bishresponse, b.Bishrecacrj, b.Bishmemo, b.Bishhandshake, b.EquinoxPrn, b.EquinoxSec).Scan(&b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Update updates the Bishist in the database.
-func (b *Bishist) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.bishist SET (` +
-		`bishfilename, bishfileid, bishdate, bishfiletype, bishfileacrj, bishread, bishresponse, bishrecacrj, bishmemo, bishhandshake, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, b.Bishfilename, b.Bishfileid, b.Bishdate, b.Bishfiletype, b.Bishfileacrj, b.Bishread, b.Bishresponse, b.Bishrecacrj, b.Bishmemo, b.Bishhandshake, b.EquinoxPrn, b.EquinoxSec, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.Bishfilename, b.Bishfileid, b.Bishdate, b.Bishfiletype, b.Bishfileacrj, b.Bishread, b.Bishresponse, b.Bishrecacrj, b.Bishmemo, b.Bishhandshake, b.EquinoxPrn, b.EquinoxSec, b.EquinoxLrn)
-	return err
-}
-
-// Save saves the Bishist to the database.
-func (b *Bishist) Save(db XODB) error {
-	if b.Exists() {
-		return b.Update(db)
-	}
-
-	return b.Insert(db)
-}
-
-// Upsert performs an upsert for Bishist.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (b *Bishist) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.bishist (` +
-		`bishfilename, bishfileid, bishdate, bishfiletype, bishfileacrj, bishread, bishresponse, bishrecacrj, bishmemo, bishhandshake, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`bishfilename, bishfileid, bishdate, bishfiletype, bishfileacrj, bishread, bishresponse, bishrecacrj, bishmemo, bishhandshake, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.bishfilename, EXCLUDED.bishfileid, EXCLUDED.bishdate, EXCLUDED.bishfiletype, EXCLUDED.bishfileacrj, EXCLUDED.bishread, EXCLUDED.bishresponse, EXCLUDED.bishrecacrj, EXCLUDED.bishmemo, EXCLUDED.bishhandshake, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, b.Bishfilename, b.Bishfileid, b.Bishdate, b.Bishfiletype, b.Bishfileacrj, b.Bishread, b.Bishresponse, b.Bishrecacrj, b.Bishmemo, b.Bishhandshake, b.EquinoxPrn, b.EquinoxLrn, b.EquinoxSec)
-	_, err = db.Exec(sqlstr, b.Bishfilename, b.Bishfileid, b.Bishdate, b.Bishfiletype, b.Bishfileacrj, b.Bishread, b.Bishresponse, b.Bishrecacrj, b.Bishmemo, b.Bishhandshake, b.EquinoxPrn, b.EquinoxLrn, b.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Delete deletes the Bishist from the database.
-func (b *Bishist) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.bishist WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	b._deleted = true
-
-	return nil
 }
 
 // BishistByEquinoxLrn retrieves a row from 'equinox.bishist' as a Bishist.
@@ -184,9 +40,7 @@ func BishistByEquinoxLrn(db XODB, equinoxLrn int64) (*Bishist, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	b := Bishist{
-		_exists: true,
-	}
+	b := Bishist{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&b.Bishfilename, &b.Bishfileid, &b.Bishdate, &b.Bishfiletype, &b.Bishfileacrj, &b.Bishread, &b.Bishresponse, &b.Bishrecacrj, &b.Bishmemo, &b.Bishhandshake, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
 	if err != nil {

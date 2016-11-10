@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -28,149 +27,6 @@ type My800 struct {
 	My8sparen3       sql.NullFloat64 `json:"my8sparen3"`       // my8sparen3
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the My800 exists in the database.
-func (m *My800) Exists() bool {
-	return m._exists
-}
-
-// Deleted provides information if the My800 has been deleted from the database.
-func (m *My800) Deleted() bool {
-	return m._deleted
-}
-
-// Insert inserts the My800 to the database.
-func (m *My800) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if m._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.my800 (` +
-		`my800cli, my8termcli, my8dateassigned, my8customerid, my8cwreservation, my8sparec1, my8sparec2, my8sparec3, my8spared1, my8spared2, my8spared3, my8sparen1, my8sparen2, my8sparen3, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, m.My800cli, m.My8termcli, m.My8dateassigned, m.My8customerid, m.My8cwreservation, m.My8sparec1, m.My8sparec2, m.My8sparec3, m.My8spared1, m.My8spared2, m.My8spared3, m.My8sparen1, m.My8sparen2, m.My8sparen3, m.EquinoxSec)
-	err = db.QueryRow(sqlstr, m.My800cli, m.My8termcli, m.My8dateassigned, m.My8customerid, m.My8cwreservation, m.My8sparec1, m.My8sparec2, m.My8sparec3, m.My8spared1, m.My8spared2, m.My8spared3, m.My8sparen1, m.My8sparen2, m.My8sparen3, m.EquinoxSec).Scan(&m.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	m._exists = true
-
-	return nil
-}
-
-// Update updates the My800 in the database.
-func (m *My800) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !m._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if m._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.my800 SET (` +
-		`my800cli, my8termcli, my8dateassigned, my8customerid, my8cwreservation, my8sparec1, my8sparec2, my8sparec3, my8spared1, my8spared2, my8spared3, my8sparen1, my8sparen2, my8sparen3, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) WHERE equinox_lrn = $16`
-
-	// run query
-	XOLog(sqlstr, m.My800cli, m.My8termcli, m.My8dateassigned, m.My8customerid, m.My8cwreservation, m.My8sparec1, m.My8sparec2, m.My8sparec3, m.My8spared1, m.My8spared2, m.My8spared3, m.My8sparen1, m.My8sparen2, m.My8sparen3, m.EquinoxSec, m.EquinoxLrn)
-	_, err = db.Exec(sqlstr, m.My800cli, m.My8termcli, m.My8dateassigned, m.My8customerid, m.My8cwreservation, m.My8sparec1, m.My8sparec2, m.My8sparec3, m.My8spared1, m.My8spared2, m.My8spared3, m.My8sparen1, m.My8sparen2, m.My8sparen3, m.EquinoxSec, m.EquinoxLrn)
-	return err
-}
-
-// Save saves the My800 to the database.
-func (m *My800) Save(db XODB) error {
-	if m.Exists() {
-		return m.Update(db)
-	}
-
-	return m.Insert(db)
-}
-
-// Upsert performs an upsert for My800.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (m *My800) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if m._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.my800 (` +
-		`my800cli, my8termcli, my8dateassigned, my8customerid, my8cwreservation, my8sparec1, my8sparec2, my8sparec3, my8spared1, my8spared2, my8spared3, my8sparen1, my8sparen2, my8sparen3, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`my800cli, my8termcli, my8dateassigned, my8customerid, my8cwreservation, my8sparec1, my8sparec2, my8sparec3, my8spared1, my8spared2, my8spared3, my8sparen1, my8sparen2, my8sparen3, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.my800cli, EXCLUDED.my8termcli, EXCLUDED.my8dateassigned, EXCLUDED.my8customerid, EXCLUDED.my8cwreservation, EXCLUDED.my8sparec1, EXCLUDED.my8sparec2, EXCLUDED.my8sparec3, EXCLUDED.my8spared1, EXCLUDED.my8spared2, EXCLUDED.my8spared3, EXCLUDED.my8sparen1, EXCLUDED.my8sparen2, EXCLUDED.my8sparen3, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, m.My800cli, m.My8termcli, m.My8dateassigned, m.My8customerid, m.My8cwreservation, m.My8sparec1, m.My8sparec2, m.My8sparec3, m.My8spared1, m.My8spared2, m.My8spared3, m.My8sparen1, m.My8sparen2, m.My8sparen3, m.EquinoxLrn, m.EquinoxSec)
-	_, err = db.Exec(sqlstr, m.My800cli, m.My8termcli, m.My8dateassigned, m.My8customerid, m.My8cwreservation, m.My8sparec1, m.My8sparec2, m.My8sparec3, m.My8spared1, m.My8spared2, m.My8spared3, m.My8sparen1, m.My8sparen2, m.My8sparen3, m.EquinoxLrn, m.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	m._exists = true
-
-	return nil
-}
-
-// Delete deletes the My800 from the database.
-func (m *My800) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !m._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if m._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.my800 WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, m.EquinoxLrn)
-	_, err = db.Exec(sqlstr, m.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	m._deleted = true
-
-	return nil
 }
 
 // My800ByEquinoxLrn retrieves a row from 'equinox.my800' as a My800.
@@ -187,9 +43,7 @@ func My800ByEquinoxLrn(db XODB, equinoxLrn int64) (*My800, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	m := My800{
-		_exists: true,
-	}
+	m := My800{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&m.My800cli, &m.My8termcli, &m.My8dateassigned, &m.My8customerid, &m.My8cwreservation, &m.My8sparec1, &m.My8sparec2, &m.My8sparec3, &m.My8spared1, &m.My8spared2, &m.My8spared3, &m.My8sparen1, &m.My8sparen2, &m.My8sparen3, &m.EquinoxLrn, &m.EquinoxSec)
 	if err != nil {

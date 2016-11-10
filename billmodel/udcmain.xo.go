@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -72,149 +71,6 @@ type Udcmain struct {
 	Udcdatesent      pq.NullTime     `json:"udcdatesent"`      // udcdatesent
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Udcmain exists in the database.
-func (u *Udcmain) Exists() bool {
-	return u._exists
-}
-
-// Deleted provides information if the Udcmain has been deleted from the database.
-func (u *Udcmain) Deleted() bool {
-	return u._deleted
-}
-
-// Insert inserts the Udcmain to the database.
-func (u *Udcmain) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if u._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.udcmain (` +
-		`udccustaccountno, udcaccountstatus, udcaccmanager, udcbatchnumber, udcimportbalance, udcnewchase, udcdatetoudc, udcagency, udcpdvsent, udcpdvreturned, udccourtdategas, udccourtdateelec, udcisodategas, udcisodateelec, udcrebookisogas, udcrebookisoelec, udcisocancelgas, udcisocancelelec, udcisoreasongas, udcisoreasonelec, udcppmetermsngas, udcppmetermsnele, udcmetertypegas, udcmetertypeelec, udcprrgas, udcprrelec, udcfinaldebtgas, udcfinaldebtelec, udcppagreefeegas, udppagreefeeelec, udcisolationfgas, udcisolationfele, udcppstartdate, udcppduration, udcppenddate, udcagreedpayment, udcpaymentfreq, udcpaymentmethod, udcpaymonth, udcexpectedpdate, udcamountpaid, udcexecfailgas, udcexecfailelec, udcactionreviewd, udcimportseq, udcmodifieddate, udcmodifiedtime, udcmodifiedby, udcprogstatus, udccustomersalu, udcaccounttype, udcpdvdate, udcpropertytype, udccourtfee, udcinterest, udcmartsonfee, udclast4digits, udcdatesent, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, u.Udccustaccountno, u.Udcaccountstatus, u.Udcaccmanager, u.Udcbatchnumber, u.Udcimportbalance, u.Udcnewchase, u.Udcdatetoudc, u.Udcagency, u.Udcpdvsent, u.Udcpdvreturned, u.Udccourtdategas, u.Udccourtdateelec, u.Udcisodategas, u.Udcisodateelec, u.Udcrebookisogas, u.Udcrebookisoelec, u.Udcisocancelgas, u.Udcisocancelelec, u.Udcisoreasongas, u.Udcisoreasonelec, u.Udcppmetermsngas, u.Udcppmetermsnele, u.Udcmetertypegas, u.Udcmetertypeelec, u.Udcprrgas, u.Udcprrelec, u.Udcfinaldebtgas, u.Udcfinaldebtelec, u.Udcppagreefeegas, u.Udppagreefeeelec, u.Udcisolationfgas, u.Udcisolationfele, u.Udcppstartdate, u.Udcppduration, u.Udcppenddate, u.Udcagreedpayment, u.Udcpaymentfreq, u.Udcpaymentmethod, u.Udcpaymonth, u.Udcexpectedpdate, u.Udcamountpaid, u.Udcexecfailgas, u.Udcexecfailelec, u.Udcactionreviewd, u.Udcimportseq, u.Udcmodifieddate, u.Udcmodifiedtime, u.Udcmodifiedby, u.Udcprogstatus, u.Udccustomersalu, u.Udcaccounttype, u.Udcpdvdate, u.Udcpropertytype, u.Udccourtfee, u.Udcinterest, u.Udcmartsonfee, u.Udclast4digits, u.Udcdatesent, u.EquinoxSec)
-	err = db.QueryRow(sqlstr, u.Udccustaccountno, u.Udcaccountstatus, u.Udcaccmanager, u.Udcbatchnumber, u.Udcimportbalance, u.Udcnewchase, u.Udcdatetoudc, u.Udcagency, u.Udcpdvsent, u.Udcpdvreturned, u.Udccourtdategas, u.Udccourtdateelec, u.Udcisodategas, u.Udcisodateelec, u.Udcrebookisogas, u.Udcrebookisoelec, u.Udcisocancelgas, u.Udcisocancelelec, u.Udcisoreasongas, u.Udcisoreasonelec, u.Udcppmetermsngas, u.Udcppmetermsnele, u.Udcmetertypegas, u.Udcmetertypeelec, u.Udcprrgas, u.Udcprrelec, u.Udcfinaldebtgas, u.Udcfinaldebtelec, u.Udcppagreefeegas, u.Udppagreefeeelec, u.Udcisolationfgas, u.Udcisolationfele, u.Udcppstartdate, u.Udcppduration, u.Udcppenddate, u.Udcagreedpayment, u.Udcpaymentfreq, u.Udcpaymentmethod, u.Udcpaymonth, u.Udcexpectedpdate, u.Udcamountpaid, u.Udcexecfailgas, u.Udcexecfailelec, u.Udcactionreviewd, u.Udcimportseq, u.Udcmodifieddate, u.Udcmodifiedtime, u.Udcmodifiedby, u.Udcprogstatus, u.Udccustomersalu, u.Udcaccounttype, u.Udcpdvdate, u.Udcpropertytype, u.Udccourtfee, u.Udcinterest, u.Udcmartsonfee, u.Udclast4digits, u.Udcdatesent, u.EquinoxSec).Scan(&u.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	u._exists = true
-
-	return nil
-}
-
-// Update updates the Udcmain in the database.
-func (u *Udcmain) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !u._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if u._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.udcmain SET (` +
-		`udccustaccountno, udcaccountstatus, udcaccmanager, udcbatchnumber, udcimportbalance, udcnewchase, udcdatetoudc, udcagency, udcpdvsent, udcpdvreturned, udccourtdategas, udccourtdateelec, udcisodategas, udcisodateelec, udcrebookisogas, udcrebookisoelec, udcisocancelgas, udcisocancelelec, udcisoreasongas, udcisoreasonelec, udcppmetermsngas, udcppmetermsnele, udcmetertypegas, udcmetertypeelec, udcprrgas, udcprrelec, udcfinaldebtgas, udcfinaldebtelec, udcppagreefeegas, udppagreefeeelec, udcisolationfgas, udcisolationfele, udcppstartdate, udcppduration, udcppenddate, udcagreedpayment, udcpaymentfreq, udcpaymentmethod, udcpaymonth, udcexpectedpdate, udcamountpaid, udcexecfailgas, udcexecfailelec, udcactionreviewd, udcimportseq, udcmodifieddate, udcmodifiedtime, udcmodifiedby, udcprogstatus, udccustomersalu, udcaccounttype, udcpdvdate, udcpropertytype, udccourtfee, udcinterest, udcmartsonfee, udclast4digits, udcdatesent, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59` +
-		`) WHERE equinox_lrn = $60`
-
-	// run query
-	XOLog(sqlstr, u.Udccustaccountno, u.Udcaccountstatus, u.Udcaccmanager, u.Udcbatchnumber, u.Udcimportbalance, u.Udcnewchase, u.Udcdatetoudc, u.Udcagency, u.Udcpdvsent, u.Udcpdvreturned, u.Udccourtdategas, u.Udccourtdateelec, u.Udcisodategas, u.Udcisodateelec, u.Udcrebookisogas, u.Udcrebookisoelec, u.Udcisocancelgas, u.Udcisocancelelec, u.Udcisoreasongas, u.Udcisoreasonelec, u.Udcppmetermsngas, u.Udcppmetermsnele, u.Udcmetertypegas, u.Udcmetertypeelec, u.Udcprrgas, u.Udcprrelec, u.Udcfinaldebtgas, u.Udcfinaldebtelec, u.Udcppagreefeegas, u.Udppagreefeeelec, u.Udcisolationfgas, u.Udcisolationfele, u.Udcppstartdate, u.Udcppduration, u.Udcppenddate, u.Udcagreedpayment, u.Udcpaymentfreq, u.Udcpaymentmethod, u.Udcpaymonth, u.Udcexpectedpdate, u.Udcamountpaid, u.Udcexecfailgas, u.Udcexecfailelec, u.Udcactionreviewd, u.Udcimportseq, u.Udcmodifieddate, u.Udcmodifiedtime, u.Udcmodifiedby, u.Udcprogstatus, u.Udccustomersalu, u.Udcaccounttype, u.Udcpdvdate, u.Udcpropertytype, u.Udccourtfee, u.Udcinterest, u.Udcmartsonfee, u.Udclast4digits, u.Udcdatesent, u.EquinoxSec, u.EquinoxLrn)
-	_, err = db.Exec(sqlstr, u.Udccustaccountno, u.Udcaccountstatus, u.Udcaccmanager, u.Udcbatchnumber, u.Udcimportbalance, u.Udcnewchase, u.Udcdatetoudc, u.Udcagency, u.Udcpdvsent, u.Udcpdvreturned, u.Udccourtdategas, u.Udccourtdateelec, u.Udcisodategas, u.Udcisodateelec, u.Udcrebookisogas, u.Udcrebookisoelec, u.Udcisocancelgas, u.Udcisocancelelec, u.Udcisoreasongas, u.Udcisoreasonelec, u.Udcppmetermsngas, u.Udcppmetermsnele, u.Udcmetertypegas, u.Udcmetertypeelec, u.Udcprrgas, u.Udcprrelec, u.Udcfinaldebtgas, u.Udcfinaldebtelec, u.Udcppagreefeegas, u.Udppagreefeeelec, u.Udcisolationfgas, u.Udcisolationfele, u.Udcppstartdate, u.Udcppduration, u.Udcppenddate, u.Udcagreedpayment, u.Udcpaymentfreq, u.Udcpaymentmethod, u.Udcpaymonth, u.Udcexpectedpdate, u.Udcamountpaid, u.Udcexecfailgas, u.Udcexecfailelec, u.Udcactionreviewd, u.Udcimportseq, u.Udcmodifieddate, u.Udcmodifiedtime, u.Udcmodifiedby, u.Udcprogstatus, u.Udccustomersalu, u.Udcaccounttype, u.Udcpdvdate, u.Udcpropertytype, u.Udccourtfee, u.Udcinterest, u.Udcmartsonfee, u.Udclast4digits, u.Udcdatesent, u.EquinoxSec, u.EquinoxLrn)
-	return err
-}
-
-// Save saves the Udcmain to the database.
-func (u *Udcmain) Save(db XODB) error {
-	if u.Exists() {
-		return u.Update(db)
-	}
-
-	return u.Insert(db)
-}
-
-// Upsert performs an upsert for Udcmain.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (u *Udcmain) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if u._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.udcmain (` +
-		`udccustaccountno, udcaccountstatus, udcaccmanager, udcbatchnumber, udcimportbalance, udcnewchase, udcdatetoudc, udcagency, udcpdvsent, udcpdvreturned, udccourtdategas, udccourtdateelec, udcisodategas, udcisodateelec, udcrebookisogas, udcrebookisoelec, udcisocancelgas, udcisocancelelec, udcisoreasongas, udcisoreasonelec, udcppmetermsngas, udcppmetermsnele, udcmetertypegas, udcmetertypeelec, udcprrgas, udcprrelec, udcfinaldebtgas, udcfinaldebtelec, udcppagreefeegas, udppagreefeeelec, udcisolationfgas, udcisolationfele, udcppstartdate, udcppduration, udcppenddate, udcagreedpayment, udcpaymentfreq, udcpaymentmethod, udcpaymonth, udcexpectedpdate, udcamountpaid, udcexecfailgas, udcexecfailelec, udcactionreviewd, udcimportseq, udcmodifieddate, udcmodifiedtime, udcmodifiedby, udcprogstatus, udccustomersalu, udcaccounttype, udcpdvdate, udcpropertytype, udccourtfee, udcinterest, udcmartsonfee, udclast4digits, udcdatesent, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`udccustaccountno, udcaccountstatus, udcaccmanager, udcbatchnumber, udcimportbalance, udcnewchase, udcdatetoudc, udcagency, udcpdvsent, udcpdvreturned, udccourtdategas, udccourtdateelec, udcisodategas, udcisodateelec, udcrebookisogas, udcrebookisoelec, udcisocancelgas, udcisocancelelec, udcisoreasongas, udcisoreasonelec, udcppmetermsngas, udcppmetermsnele, udcmetertypegas, udcmetertypeelec, udcprrgas, udcprrelec, udcfinaldebtgas, udcfinaldebtelec, udcppagreefeegas, udppagreefeeelec, udcisolationfgas, udcisolationfele, udcppstartdate, udcppduration, udcppenddate, udcagreedpayment, udcpaymentfreq, udcpaymentmethod, udcpaymonth, udcexpectedpdate, udcamountpaid, udcexecfailgas, udcexecfailelec, udcactionreviewd, udcimportseq, udcmodifieddate, udcmodifiedtime, udcmodifiedby, udcprogstatus, udccustomersalu, udcaccounttype, udcpdvdate, udcpropertytype, udccourtfee, udcinterest, udcmartsonfee, udclast4digits, udcdatesent, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.udccustaccountno, EXCLUDED.udcaccountstatus, EXCLUDED.udcaccmanager, EXCLUDED.udcbatchnumber, EXCLUDED.udcimportbalance, EXCLUDED.udcnewchase, EXCLUDED.udcdatetoudc, EXCLUDED.udcagency, EXCLUDED.udcpdvsent, EXCLUDED.udcpdvreturned, EXCLUDED.udccourtdategas, EXCLUDED.udccourtdateelec, EXCLUDED.udcisodategas, EXCLUDED.udcisodateelec, EXCLUDED.udcrebookisogas, EXCLUDED.udcrebookisoelec, EXCLUDED.udcisocancelgas, EXCLUDED.udcisocancelelec, EXCLUDED.udcisoreasongas, EXCLUDED.udcisoreasonelec, EXCLUDED.udcppmetermsngas, EXCLUDED.udcppmetermsnele, EXCLUDED.udcmetertypegas, EXCLUDED.udcmetertypeelec, EXCLUDED.udcprrgas, EXCLUDED.udcprrelec, EXCLUDED.udcfinaldebtgas, EXCLUDED.udcfinaldebtelec, EXCLUDED.udcppagreefeegas, EXCLUDED.udppagreefeeelec, EXCLUDED.udcisolationfgas, EXCLUDED.udcisolationfele, EXCLUDED.udcppstartdate, EXCLUDED.udcppduration, EXCLUDED.udcppenddate, EXCLUDED.udcagreedpayment, EXCLUDED.udcpaymentfreq, EXCLUDED.udcpaymentmethod, EXCLUDED.udcpaymonth, EXCLUDED.udcexpectedpdate, EXCLUDED.udcamountpaid, EXCLUDED.udcexecfailgas, EXCLUDED.udcexecfailelec, EXCLUDED.udcactionreviewd, EXCLUDED.udcimportseq, EXCLUDED.udcmodifieddate, EXCLUDED.udcmodifiedtime, EXCLUDED.udcmodifiedby, EXCLUDED.udcprogstatus, EXCLUDED.udccustomersalu, EXCLUDED.udcaccounttype, EXCLUDED.udcpdvdate, EXCLUDED.udcpropertytype, EXCLUDED.udccourtfee, EXCLUDED.udcinterest, EXCLUDED.udcmartsonfee, EXCLUDED.udclast4digits, EXCLUDED.udcdatesent, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, u.Udccustaccountno, u.Udcaccountstatus, u.Udcaccmanager, u.Udcbatchnumber, u.Udcimportbalance, u.Udcnewchase, u.Udcdatetoudc, u.Udcagency, u.Udcpdvsent, u.Udcpdvreturned, u.Udccourtdategas, u.Udccourtdateelec, u.Udcisodategas, u.Udcisodateelec, u.Udcrebookisogas, u.Udcrebookisoelec, u.Udcisocancelgas, u.Udcisocancelelec, u.Udcisoreasongas, u.Udcisoreasonelec, u.Udcppmetermsngas, u.Udcppmetermsnele, u.Udcmetertypegas, u.Udcmetertypeelec, u.Udcprrgas, u.Udcprrelec, u.Udcfinaldebtgas, u.Udcfinaldebtelec, u.Udcppagreefeegas, u.Udppagreefeeelec, u.Udcisolationfgas, u.Udcisolationfele, u.Udcppstartdate, u.Udcppduration, u.Udcppenddate, u.Udcagreedpayment, u.Udcpaymentfreq, u.Udcpaymentmethod, u.Udcpaymonth, u.Udcexpectedpdate, u.Udcamountpaid, u.Udcexecfailgas, u.Udcexecfailelec, u.Udcactionreviewd, u.Udcimportseq, u.Udcmodifieddate, u.Udcmodifiedtime, u.Udcmodifiedby, u.Udcprogstatus, u.Udccustomersalu, u.Udcaccounttype, u.Udcpdvdate, u.Udcpropertytype, u.Udccourtfee, u.Udcinterest, u.Udcmartsonfee, u.Udclast4digits, u.Udcdatesent, u.EquinoxLrn, u.EquinoxSec)
-	_, err = db.Exec(sqlstr, u.Udccustaccountno, u.Udcaccountstatus, u.Udcaccmanager, u.Udcbatchnumber, u.Udcimportbalance, u.Udcnewchase, u.Udcdatetoudc, u.Udcagency, u.Udcpdvsent, u.Udcpdvreturned, u.Udccourtdategas, u.Udccourtdateelec, u.Udcisodategas, u.Udcisodateelec, u.Udcrebookisogas, u.Udcrebookisoelec, u.Udcisocancelgas, u.Udcisocancelelec, u.Udcisoreasongas, u.Udcisoreasonelec, u.Udcppmetermsngas, u.Udcppmetermsnele, u.Udcmetertypegas, u.Udcmetertypeelec, u.Udcprrgas, u.Udcprrelec, u.Udcfinaldebtgas, u.Udcfinaldebtelec, u.Udcppagreefeegas, u.Udppagreefeeelec, u.Udcisolationfgas, u.Udcisolationfele, u.Udcppstartdate, u.Udcppduration, u.Udcppenddate, u.Udcagreedpayment, u.Udcpaymentfreq, u.Udcpaymentmethod, u.Udcpaymonth, u.Udcexpectedpdate, u.Udcamountpaid, u.Udcexecfailgas, u.Udcexecfailelec, u.Udcactionreviewd, u.Udcimportseq, u.Udcmodifieddate, u.Udcmodifiedtime, u.Udcmodifiedby, u.Udcprogstatus, u.Udccustomersalu, u.Udcaccounttype, u.Udcpdvdate, u.Udcpropertytype, u.Udccourtfee, u.Udcinterest, u.Udcmartsonfee, u.Udclast4digits, u.Udcdatesent, u.EquinoxLrn, u.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	u._exists = true
-
-	return nil
-}
-
-// Delete deletes the Udcmain from the database.
-func (u *Udcmain) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !u._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if u._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.udcmain WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, u.EquinoxLrn)
-	_, err = db.Exec(sqlstr, u.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	u._deleted = true
-
-	return nil
 }
 
 // UdcmainByEquinoxLrn retrieves a row from 'equinox.udcmain' as a Udcmain.
@@ -231,9 +87,7 @@ func UdcmainByEquinoxLrn(db XODB, equinoxLrn int64) (*Udcmain, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	u := Udcmain{
-		_exists: true,
-	}
+	u := Udcmain{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&u.Udccustaccountno, &u.Udcaccountstatus, &u.Udcaccmanager, &u.Udcbatchnumber, &u.Udcimportbalance, &u.Udcnewchase, &u.Udcdatetoudc, &u.Udcagency, &u.Udcpdvsent, &u.Udcpdvreturned, &u.Udccourtdategas, &u.Udccourtdateelec, &u.Udcisodategas, &u.Udcisodateelec, &u.Udcrebookisogas, &u.Udcrebookisoelec, &u.Udcisocancelgas, &u.Udcisocancelelec, &u.Udcisoreasongas, &u.Udcisoreasonelec, &u.Udcppmetermsngas, &u.Udcppmetermsnele, &u.Udcmetertypegas, &u.Udcmetertypeelec, &u.Udcprrgas, &u.Udcprrelec, &u.Udcfinaldebtgas, &u.Udcfinaldebtelec, &u.Udcppagreefeegas, &u.Udppagreefeeelec, &u.Udcisolationfgas, &u.Udcisolationfele, &u.Udcppstartdate, &u.Udcppduration, &u.Udcppenddate, &u.Udcagreedpayment, &u.Udcpaymentfreq, &u.Udcpaymentmethod, &u.Udcpaymonth, &u.Udcexpectedpdate, &u.Udcamountpaid, &u.Udcexecfailgas, &u.Udcexecfailelec, &u.Udcactionreviewd, &u.Udcimportseq, &u.Udcmodifieddate, &u.Udcmodifiedtime, &u.Udcmodifiedby, &u.Udcprogstatus, &u.Udccustomersalu, &u.Udcaccounttype, &u.Udcpdvdate, &u.Udcpropertytype, &u.Udccourtfee, &u.Udcinterest, &u.Udcmartsonfee, &u.Udclast4digits, &u.Udcdatesent, &u.EquinoxLrn, &u.EquinoxSec)
 	if err != nil {

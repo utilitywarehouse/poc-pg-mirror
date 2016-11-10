@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -45,149 +44,6 @@ type Ledger struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ledger exists in the database.
-func (l *Ledger) Exists() bool {
-	return l._exists
-}
-
-// Deleted provides information if the Ledger has been deleted from the database.
-func (l *Ledger) Deleted() bool {
-	return l._deleted
-}
-
-// Insert inserts the Ledger to the database.
-func (l *Ledger) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ledger (` +
-		`leduniquesys, leddate, ledtime, ledposteddate, ledtype, ledprobcode, lednettp, ledvattp, lednetgp, ledvatgp, lednetep, ledvatep, ledvattotal, lednettotal, ledtotal, leduserid, ledourref, ledcustref, ledbillno, ledcomuniquesys, ledcomment, ledwriteoffdate, ledwriteoffnettp, ledwriteoffvattp, ledwriteoffnetgp, ledwriteoffvatgp, ledwriteoffnetep, ledwriteoffvatep, ledflag, ledtoos, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, l.Leduniquesys, l.Leddate, l.Ledtime, l.Ledposteddate, l.Ledtype, l.Ledprobcode, l.Lednettp, l.Ledvattp, l.Lednetgp, l.Ledvatgp, l.Lednetep, l.Ledvatep, l.Ledvattotal, l.Lednettotal, l.Ledtotal, l.Leduserid, l.Ledourref, l.Ledcustref, l.Ledbillno, l.Ledcomuniquesys, l.Ledcomment, l.Ledwriteoffdate, l.Ledwriteoffnettp, l.Ledwriteoffvattp, l.Ledwriteoffnetgp, l.Ledwriteoffvatgp, l.Ledwriteoffnetep, l.Ledwriteoffvatep, l.Ledflag, l.Ledtoos, l.EquinoxPrn, l.EquinoxSec)
-	err = db.QueryRow(sqlstr, l.Leduniquesys, l.Leddate, l.Ledtime, l.Ledposteddate, l.Ledtype, l.Ledprobcode, l.Lednettp, l.Ledvattp, l.Lednetgp, l.Ledvatgp, l.Lednetep, l.Ledvatep, l.Ledvattotal, l.Lednettotal, l.Ledtotal, l.Leduserid, l.Ledourref, l.Ledcustref, l.Ledbillno, l.Ledcomuniquesys, l.Ledcomment, l.Ledwriteoffdate, l.Ledwriteoffnettp, l.Ledwriteoffvattp, l.Ledwriteoffnetgp, l.Ledwriteoffvatgp, l.Ledwriteoffnetep, l.Ledwriteoffvatep, l.Ledflag, l.Ledtoos, l.EquinoxPrn, l.EquinoxSec).Scan(&l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Update updates the Ledger in the database.
-func (l *Ledger) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ledger SET (` +
-		`leduniquesys, leddate, ledtime, ledposteddate, ledtype, ledprobcode, lednettp, ledvattp, lednetgp, ledvatgp, lednetep, ledvatep, ledvattotal, lednettotal, ledtotal, leduserid, ledourref, ledcustref, ledbillno, ledcomuniquesys, ledcomment, ledwriteoffdate, ledwriteoffnettp, ledwriteoffvattp, ledwriteoffnetgp, ledwriteoffvatgp, ledwriteoffnetep, ledwriteoffvatep, ledflag, ledtoos, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32` +
-		`) WHERE equinox_lrn = $33`
-
-	// run query
-	XOLog(sqlstr, l.Leduniquesys, l.Leddate, l.Ledtime, l.Ledposteddate, l.Ledtype, l.Ledprobcode, l.Lednettp, l.Ledvattp, l.Lednetgp, l.Ledvatgp, l.Lednetep, l.Ledvatep, l.Ledvattotal, l.Lednettotal, l.Ledtotal, l.Leduserid, l.Ledourref, l.Ledcustref, l.Ledbillno, l.Ledcomuniquesys, l.Ledcomment, l.Ledwriteoffdate, l.Ledwriteoffnettp, l.Ledwriteoffvattp, l.Ledwriteoffnetgp, l.Ledwriteoffvatgp, l.Ledwriteoffnetep, l.Ledwriteoffvatep, l.Ledflag, l.Ledtoos, l.EquinoxPrn, l.EquinoxSec, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.Leduniquesys, l.Leddate, l.Ledtime, l.Ledposteddate, l.Ledtype, l.Ledprobcode, l.Lednettp, l.Ledvattp, l.Lednetgp, l.Ledvatgp, l.Lednetep, l.Ledvatep, l.Ledvattotal, l.Lednettotal, l.Ledtotal, l.Leduserid, l.Ledourref, l.Ledcustref, l.Ledbillno, l.Ledcomuniquesys, l.Ledcomment, l.Ledwriteoffdate, l.Ledwriteoffnettp, l.Ledwriteoffvattp, l.Ledwriteoffnetgp, l.Ledwriteoffvatgp, l.Ledwriteoffnetep, l.Ledwriteoffvatep, l.Ledflag, l.Ledtoos, l.EquinoxPrn, l.EquinoxSec, l.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ledger to the database.
-func (l *Ledger) Save(db XODB) error {
-	if l.Exists() {
-		return l.Update(db)
-	}
-
-	return l.Insert(db)
-}
-
-// Upsert performs an upsert for Ledger.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (l *Ledger) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ledger (` +
-		`leduniquesys, leddate, ledtime, ledposteddate, ledtype, ledprobcode, lednettp, ledvattp, lednetgp, ledvatgp, lednetep, ledvatep, ledvattotal, lednettotal, ledtotal, leduserid, ledourref, ledcustref, ledbillno, ledcomuniquesys, ledcomment, ledwriteoffdate, ledwriteoffnettp, ledwriteoffvattp, ledwriteoffnetgp, ledwriteoffvatgp, ledwriteoffnetep, ledwriteoffvatep, ledflag, ledtoos, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`leduniquesys, leddate, ledtime, ledposteddate, ledtype, ledprobcode, lednettp, ledvattp, lednetgp, ledvatgp, lednetep, ledvatep, ledvattotal, lednettotal, ledtotal, leduserid, ledourref, ledcustref, ledbillno, ledcomuniquesys, ledcomment, ledwriteoffdate, ledwriteoffnettp, ledwriteoffvattp, ledwriteoffnetgp, ledwriteoffvatgp, ledwriteoffnetep, ledwriteoffvatep, ledflag, ledtoos, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.leduniquesys, EXCLUDED.leddate, EXCLUDED.ledtime, EXCLUDED.ledposteddate, EXCLUDED.ledtype, EXCLUDED.ledprobcode, EXCLUDED.lednettp, EXCLUDED.ledvattp, EXCLUDED.lednetgp, EXCLUDED.ledvatgp, EXCLUDED.lednetep, EXCLUDED.ledvatep, EXCLUDED.ledvattotal, EXCLUDED.lednettotal, EXCLUDED.ledtotal, EXCLUDED.leduserid, EXCLUDED.ledourref, EXCLUDED.ledcustref, EXCLUDED.ledbillno, EXCLUDED.ledcomuniquesys, EXCLUDED.ledcomment, EXCLUDED.ledwriteoffdate, EXCLUDED.ledwriteoffnettp, EXCLUDED.ledwriteoffvattp, EXCLUDED.ledwriteoffnetgp, EXCLUDED.ledwriteoffvatgp, EXCLUDED.ledwriteoffnetep, EXCLUDED.ledwriteoffvatep, EXCLUDED.ledflag, EXCLUDED.ledtoos, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, l.Leduniquesys, l.Leddate, l.Ledtime, l.Ledposteddate, l.Ledtype, l.Ledprobcode, l.Lednettp, l.Ledvattp, l.Lednetgp, l.Ledvatgp, l.Lednetep, l.Ledvatep, l.Ledvattotal, l.Lednettotal, l.Ledtotal, l.Leduserid, l.Ledourref, l.Ledcustref, l.Ledbillno, l.Ledcomuniquesys, l.Ledcomment, l.Ledwriteoffdate, l.Ledwriteoffnettp, l.Ledwriteoffvattp, l.Ledwriteoffnetgp, l.Ledwriteoffvatgp, l.Ledwriteoffnetep, l.Ledwriteoffvatep, l.Ledflag, l.Ledtoos, l.EquinoxPrn, l.EquinoxLrn, l.EquinoxSec)
-	_, err = db.Exec(sqlstr, l.Leduniquesys, l.Leddate, l.Ledtime, l.Ledposteddate, l.Ledtype, l.Ledprobcode, l.Lednettp, l.Ledvattp, l.Lednetgp, l.Ledvatgp, l.Lednetep, l.Ledvatep, l.Ledvattotal, l.Lednettotal, l.Ledtotal, l.Leduserid, l.Ledourref, l.Ledcustref, l.Ledbillno, l.Ledcomuniquesys, l.Ledcomment, l.Ledwriteoffdate, l.Ledwriteoffnettp, l.Ledwriteoffvattp, l.Ledwriteoffnetgp, l.Ledwriteoffvatgp, l.Ledwriteoffnetep, l.Ledwriteoffvatep, l.Ledflag, l.Ledtoos, l.EquinoxPrn, l.EquinoxLrn, l.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ledger from the database.
-func (l *Ledger) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ledger WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	l._deleted = true
-
-	return nil
 }
 
 // LedgerByEquinoxLrn retrieves a row from 'equinox.ledger' as a Ledger.
@@ -204,9 +60,7 @@ func LedgerByEquinoxLrn(db XODB, equinoxLrn int64) (*Ledger, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	l := Ledger{
-		_exists: true,
-	}
+	l := Ledger{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&l.Leduniquesys, &l.Leddate, &l.Ledtime, &l.Ledposteddate, &l.Ledtype, &l.Ledprobcode, &l.Lednettp, &l.Ledvattp, &l.Lednetgp, &l.Ledvatgp, &l.Lednetep, &l.Ledvatep, &l.Ledvattotal, &l.Lednettotal, &l.Ledtotal, &l.Leduserid, &l.Ledourref, &l.Ledcustref, &l.Ledbillno, &l.Ledcomuniquesys, &l.Ledcomment, &l.Ledwriteoffdate, &l.Ledwriteoffnettp, &l.Ledwriteoffvattp, &l.Ledwriteoffnetgp, &l.Ledwriteoffvatgp, &l.Ledwriteoffnetep, &l.Ledwriteoffvatep, &l.Ledflag, &l.Ledtoos, &l.EquinoxPrn, &l.EquinoxLrn, &l.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -24,149 +23,6 @@ type Smartapp struct {
 	EquinoxPrn      sql.NullInt64  `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Smartapp exists in the database.
-func (s *Smartapp) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Smartapp has been deleted from the database.
-func (s *Smartapp) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Smartapp to the database.
-func (s *Smartapp) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartapp (` +
-		`smadate, smatimeslot, smabookingref, smacancelled, smacancelledby, smacancelreason, smadeemed, smabookedby, smanotes, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Smadate, s.Smatimeslot, s.Smabookingref, s.Smacancelled, s.Smacancelledby, s.Smacancelreason, s.Smadeemed, s.Smabookedby, s.Smanotes, s.EquinoxPrn, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Smadate, s.Smatimeslot, s.Smabookingref, s.Smacancelled, s.Smacancelledby, s.Smacancelreason, s.Smadeemed, s.Smabookedby, s.Smanotes, s.EquinoxPrn, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Smartapp in the database.
-func (s *Smartapp) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.smartapp SET (` +
-		`smadate, smatimeslot, smabookingref, smacancelled, smacancelledby, smacancelreason, smadeemed, smabookedby, smanotes, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) WHERE equinox_lrn = $12`
-
-	// run query
-	XOLog(sqlstr, s.Smadate, s.Smatimeslot, s.Smabookingref, s.Smacancelled, s.Smacancelledby, s.Smacancelreason, s.Smadeemed, s.Smabookedby, s.Smanotes, s.EquinoxPrn, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Smadate, s.Smatimeslot, s.Smabookingref, s.Smacancelled, s.Smacancelledby, s.Smacancelreason, s.Smadeemed, s.Smabookedby, s.Smanotes, s.EquinoxPrn, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Smartapp to the database.
-func (s *Smartapp) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Smartapp.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Smartapp) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartapp (` +
-		`smadate, smatimeslot, smabookingref, smacancelled, smacancelledby, smacancelreason, smadeemed, smabookedby, smanotes, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`smadate, smatimeslot, smabookingref, smacancelled, smacancelledby, smacancelreason, smadeemed, smabookedby, smanotes, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.smadate, EXCLUDED.smatimeslot, EXCLUDED.smabookingref, EXCLUDED.smacancelled, EXCLUDED.smacancelledby, EXCLUDED.smacancelreason, EXCLUDED.smadeemed, EXCLUDED.smabookedby, EXCLUDED.smanotes, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Smadate, s.Smatimeslot, s.Smabookingref, s.Smacancelled, s.Smacancelledby, s.Smacancelreason, s.Smadeemed, s.Smabookedby, s.Smanotes, s.EquinoxPrn, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Smadate, s.Smatimeslot, s.Smabookingref, s.Smacancelled, s.Smacancelledby, s.Smacancelreason, s.Smadeemed, s.Smabookedby, s.Smanotes, s.EquinoxPrn, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Smartapp from the database.
-func (s *Smartapp) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.smartapp WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SmartappByEquinoxLrn retrieves a row from 'equinox.smartapp' as a Smartapp.
@@ -183,9 +39,7 @@ func SmartappByEquinoxLrn(db XODB, equinoxLrn int64) (*Smartapp, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Smartapp{
-		_exists: true,
-	}
+	s := Smartapp{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Smadate, &s.Smatimeslot, &s.Smabookingref, &s.Smacancelled, &s.Smacancelledby, &s.Smacancelreason, &s.Smadeemed, &s.Smabookedby, &s.Smanotes, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

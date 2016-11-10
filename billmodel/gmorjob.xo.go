@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -53,149 +52,6 @@ type Gmorjob struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gmorjob exists in the database.
-func (g *Gmorjob) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gmorjob has been deleted from the database.
-func (g *Gmorjob) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gmorjob to the database.
-func (g *Gmorjob) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gmorjob (` +
-		`gmoappointdate, gmoappointtime, gmoappointtype, gmoappointreason, gmorequestedby, gmodeposit, gmodepositamount, gmochargeable, gmochargereason, gmochargeamount, gmojobstatus, gmojobdate, gmodetails, gmomam, gmomobilenumber, gmoemailaddress, gmoresdate, gmoresoutcome, gmoresresason, gmotranstype, gmotranstypereas, gmotransstatus, gmocarecategory, gmorfiledate, gmormodifiedby, gmorenterred, gmortransfref, gmormetertype, gmormetermech, gmorpaymethod, gmormodelcode, gmorinstruction, gmorsiteref, gmorjobcomplete, gmorfailedreason, gmorjobuniquesys, gmorgref, gmoraccountno, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gmoappointdate, g.Gmoappointtime, g.Gmoappointtype, g.Gmoappointreason, g.Gmorequestedby, g.Gmodeposit, g.Gmodepositamount, g.Gmochargeable, g.Gmochargereason, g.Gmochargeamount, g.Gmojobstatus, g.Gmojobdate, g.Gmodetails, g.Gmomam, g.Gmomobilenumber, g.Gmoemailaddress, g.Gmoresdate, g.Gmoresoutcome, g.Gmoresresason, g.Gmotranstype, g.Gmotranstypereas, g.Gmotransstatus, g.Gmocarecategory, g.Gmorfiledate, g.Gmormodifiedby, g.Gmorenterred, g.Gmortransfref, g.Gmormetertype, g.Gmormetermech, g.Gmorpaymethod, g.Gmormodelcode, g.Gmorinstruction, g.Gmorsiteref, g.Gmorjobcomplete, g.Gmorfailedreason, g.Gmorjobuniquesys, g.Gmorgref, g.Gmoraccountno, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gmoappointdate, g.Gmoappointtime, g.Gmoappointtype, g.Gmoappointreason, g.Gmorequestedby, g.Gmodeposit, g.Gmodepositamount, g.Gmochargeable, g.Gmochargereason, g.Gmochargeamount, g.Gmojobstatus, g.Gmojobdate, g.Gmodetails, g.Gmomam, g.Gmomobilenumber, g.Gmoemailaddress, g.Gmoresdate, g.Gmoresoutcome, g.Gmoresresason, g.Gmotranstype, g.Gmotranstypereas, g.Gmotransstatus, g.Gmocarecategory, g.Gmorfiledate, g.Gmormodifiedby, g.Gmorenterred, g.Gmortransfref, g.Gmormetertype, g.Gmormetermech, g.Gmorpaymethod, g.Gmormodelcode, g.Gmorinstruction, g.Gmorsiteref, g.Gmorjobcomplete, g.Gmorfailedreason, g.Gmorjobuniquesys, g.Gmorgref, g.Gmoraccountno, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gmorjob in the database.
-func (g *Gmorjob) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gmorjob SET (` +
-		`gmoappointdate, gmoappointtime, gmoappointtype, gmoappointreason, gmorequestedby, gmodeposit, gmodepositamount, gmochargeable, gmochargereason, gmochargeamount, gmojobstatus, gmojobdate, gmodetails, gmomam, gmomobilenumber, gmoemailaddress, gmoresdate, gmoresoutcome, gmoresresason, gmotranstype, gmotranstypereas, gmotransstatus, gmocarecategory, gmorfiledate, gmormodifiedby, gmorenterred, gmortransfref, gmormetertype, gmormetermech, gmorpaymethod, gmormodelcode, gmorinstruction, gmorsiteref, gmorjobcomplete, gmorfailedreason, gmorjobuniquesys, gmorgref, gmoraccountno, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40` +
-		`) WHERE equinox_lrn = $41`
-
-	// run query
-	XOLog(sqlstr, g.Gmoappointdate, g.Gmoappointtime, g.Gmoappointtype, g.Gmoappointreason, g.Gmorequestedby, g.Gmodeposit, g.Gmodepositamount, g.Gmochargeable, g.Gmochargereason, g.Gmochargeamount, g.Gmojobstatus, g.Gmojobdate, g.Gmodetails, g.Gmomam, g.Gmomobilenumber, g.Gmoemailaddress, g.Gmoresdate, g.Gmoresoutcome, g.Gmoresresason, g.Gmotranstype, g.Gmotranstypereas, g.Gmotransstatus, g.Gmocarecategory, g.Gmorfiledate, g.Gmormodifiedby, g.Gmorenterred, g.Gmortransfref, g.Gmormetertype, g.Gmormetermech, g.Gmorpaymethod, g.Gmormodelcode, g.Gmorinstruction, g.Gmorsiteref, g.Gmorjobcomplete, g.Gmorfailedreason, g.Gmorjobuniquesys, g.Gmorgref, g.Gmoraccountno, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gmoappointdate, g.Gmoappointtime, g.Gmoappointtype, g.Gmoappointreason, g.Gmorequestedby, g.Gmodeposit, g.Gmodepositamount, g.Gmochargeable, g.Gmochargereason, g.Gmochargeamount, g.Gmojobstatus, g.Gmojobdate, g.Gmodetails, g.Gmomam, g.Gmomobilenumber, g.Gmoemailaddress, g.Gmoresdate, g.Gmoresoutcome, g.Gmoresresason, g.Gmotranstype, g.Gmotranstypereas, g.Gmotransstatus, g.Gmocarecategory, g.Gmorfiledate, g.Gmormodifiedby, g.Gmorenterred, g.Gmortransfref, g.Gmormetertype, g.Gmormetermech, g.Gmorpaymethod, g.Gmormodelcode, g.Gmorinstruction, g.Gmorsiteref, g.Gmorjobcomplete, g.Gmorfailedreason, g.Gmorjobuniquesys, g.Gmorgref, g.Gmoraccountno, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gmorjob to the database.
-func (g *Gmorjob) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gmorjob.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gmorjob) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gmorjob (` +
-		`gmoappointdate, gmoappointtime, gmoappointtype, gmoappointreason, gmorequestedby, gmodeposit, gmodepositamount, gmochargeable, gmochargereason, gmochargeamount, gmojobstatus, gmojobdate, gmodetails, gmomam, gmomobilenumber, gmoemailaddress, gmoresdate, gmoresoutcome, gmoresresason, gmotranstype, gmotranstypereas, gmotransstatus, gmocarecategory, gmorfiledate, gmormodifiedby, gmorenterred, gmortransfref, gmormetertype, gmormetermech, gmorpaymethod, gmormodelcode, gmorinstruction, gmorsiteref, gmorjobcomplete, gmorfailedreason, gmorjobuniquesys, gmorgref, gmoraccountno, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gmoappointdate, gmoappointtime, gmoappointtype, gmoappointreason, gmorequestedby, gmodeposit, gmodepositamount, gmochargeable, gmochargereason, gmochargeamount, gmojobstatus, gmojobdate, gmodetails, gmomam, gmomobilenumber, gmoemailaddress, gmoresdate, gmoresoutcome, gmoresresason, gmotranstype, gmotranstypereas, gmotransstatus, gmocarecategory, gmorfiledate, gmormodifiedby, gmorenterred, gmortransfref, gmormetertype, gmormetermech, gmorpaymethod, gmormodelcode, gmorinstruction, gmorsiteref, gmorjobcomplete, gmorfailedreason, gmorjobuniquesys, gmorgref, gmoraccountno, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gmoappointdate, EXCLUDED.gmoappointtime, EXCLUDED.gmoappointtype, EXCLUDED.gmoappointreason, EXCLUDED.gmorequestedby, EXCLUDED.gmodeposit, EXCLUDED.gmodepositamount, EXCLUDED.gmochargeable, EXCLUDED.gmochargereason, EXCLUDED.gmochargeamount, EXCLUDED.gmojobstatus, EXCLUDED.gmojobdate, EXCLUDED.gmodetails, EXCLUDED.gmomam, EXCLUDED.gmomobilenumber, EXCLUDED.gmoemailaddress, EXCLUDED.gmoresdate, EXCLUDED.gmoresoutcome, EXCLUDED.gmoresresason, EXCLUDED.gmotranstype, EXCLUDED.gmotranstypereas, EXCLUDED.gmotransstatus, EXCLUDED.gmocarecategory, EXCLUDED.gmorfiledate, EXCLUDED.gmormodifiedby, EXCLUDED.gmorenterred, EXCLUDED.gmortransfref, EXCLUDED.gmormetertype, EXCLUDED.gmormetermech, EXCLUDED.gmorpaymethod, EXCLUDED.gmormodelcode, EXCLUDED.gmorinstruction, EXCLUDED.gmorsiteref, EXCLUDED.gmorjobcomplete, EXCLUDED.gmorfailedreason, EXCLUDED.gmorjobuniquesys, EXCLUDED.gmorgref, EXCLUDED.gmoraccountno, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gmoappointdate, g.Gmoappointtime, g.Gmoappointtype, g.Gmoappointreason, g.Gmorequestedby, g.Gmodeposit, g.Gmodepositamount, g.Gmochargeable, g.Gmochargereason, g.Gmochargeamount, g.Gmojobstatus, g.Gmojobdate, g.Gmodetails, g.Gmomam, g.Gmomobilenumber, g.Gmoemailaddress, g.Gmoresdate, g.Gmoresoutcome, g.Gmoresresason, g.Gmotranstype, g.Gmotranstypereas, g.Gmotransstatus, g.Gmocarecategory, g.Gmorfiledate, g.Gmormodifiedby, g.Gmorenterred, g.Gmortransfref, g.Gmormetertype, g.Gmormetermech, g.Gmorpaymethod, g.Gmormodelcode, g.Gmorinstruction, g.Gmorsiteref, g.Gmorjobcomplete, g.Gmorfailedreason, g.Gmorjobuniquesys, g.Gmorgref, g.Gmoraccountno, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gmoappointdate, g.Gmoappointtime, g.Gmoappointtype, g.Gmoappointreason, g.Gmorequestedby, g.Gmodeposit, g.Gmodepositamount, g.Gmochargeable, g.Gmochargereason, g.Gmochargeamount, g.Gmojobstatus, g.Gmojobdate, g.Gmodetails, g.Gmomam, g.Gmomobilenumber, g.Gmoemailaddress, g.Gmoresdate, g.Gmoresoutcome, g.Gmoresresason, g.Gmotranstype, g.Gmotranstypereas, g.Gmotransstatus, g.Gmocarecategory, g.Gmorfiledate, g.Gmormodifiedby, g.Gmorenterred, g.Gmortransfref, g.Gmormetertype, g.Gmormetermech, g.Gmorpaymethod, g.Gmormodelcode, g.Gmorinstruction, g.Gmorsiteref, g.Gmorjobcomplete, g.Gmorfailedreason, g.Gmorjobuniquesys, g.Gmorgref, g.Gmoraccountno, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gmorjob from the database.
-func (g *Gmorjob) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gmorjob WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GmorjobByEquinoxLrn retrieves a row from 'equinox.gmorjob' as a Gmorjob.
@@ -212,9 +68,7 @@ func GmorjobByEquinoxLrn(db XODB, equinoxLrn int64) (*Gmorjob, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gmorjob{
-		_exists: true,
-	}
+	g := Gmorjob{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gmoappointdate, &g.Gmoappointtime, &g.Gmoappointtype, &g.Gmoappointreason, &g.Gmorequestedby, &g.Gmodeposit, &g.Gmodepositamount, &g.Gmochargeable, &g.Gmochargereason, &g.Gmochargeamount, &g.Gmojobstatus, &g.Gmojobdate, &g.Gmodetails, &g.Gmomam, &g.Gmomobilenumber, &g.Gmoemailaddress, &g.Gmoresdate, &g.Gmoresoutcome, &g.Gmoresresason, &g.Gmotranstype, &g.Gmotranstypereas, &g.Gmotransstatus, &g.Gmocarecategory, &g.Gmorfiledate, &g.Gmormodifiedby, &g.Gmorenterred, &g.Gmortransfref, &g.Gmormetertype, &g.Gmormetermech, &g.Gmorpaymethod, &g.Gmormodelcode, &g.Gmorinstruction, &g.Gmorsiteref, &g.Gmorjobcomplete, &g.Gmorfailedreason, &g.Gmorjobuniquesys, &g.Gmorgref, &g.Gmoraccountno, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

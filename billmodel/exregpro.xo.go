@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -17,149 +16,6 @@ type Exregpro struct {
 	ErpEnddate   pq.NullTime    `json:"erp_enddate"`   // erp_enddate
 	EquinoxLrn   int64          `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Exregpro exists in the database.
-func (e *Exregpro) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Exregpro has been deleted from the database.
-func (e *Exregpro) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Exregpro to the database.
-func (e *Exregpro) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exregpro (` +
-		`erp_promoname, erp_startdate, erp_enddate, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.ErpPromoname, e.ErpStartdate, e.ErpEnddate, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.ErpPromoname, e.ErpStartdate, e.ErpEnddate, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Exregpro in the database.
-func (e *Exregpro) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.exregpro SET (` +
-		`erp_promoname, erp_startdate, erp_enddate, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4` +
-		`) WHERE equinox_lrn = $5`
-
-	// run query
-	XOLog(sqlstr, e.ErpPromoname, e.ErpStartdate, e.ErpEnddate, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.ErpPromoname, e.ErpStartdate, e.ErpEnddate, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Exregpro to the database.
-func (e *Exregpro) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Exregpro.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Exregpro) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.exregpro (` +
-		`erp_promoname, erp_startdate, erp_enddate, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`erp_promoname, erp_startdate, erp_enddate, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.erp_promoname, EXCLUDED.erp_startdate, EXCLUDED.erp_enddate, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.ErpPromoname, e.ErpStartdate, e.ErpEnddate, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.ErpPromoname, e.ErpStartdate, e.ErpEnddate, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Exregpro from the database.
-func (e *Exregpro) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.exregpro WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExregproByEquinoxLrn retrieves a row from 'equinox.exregpro' as a Exregpro.
@@ -176,9 +32,7 @@ func ExregproByEquinoxLrn(db XODB, equinoxLrn int64) (*Exregpro, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Exregpro{
-		_exists: true,
-	}
+	e := Exregpro{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.ErpPromoname, &e.ErpStartdate, &e.ErpEnddate, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

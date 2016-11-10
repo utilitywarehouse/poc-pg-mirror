@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -39,149 +38,6 @@ type Pbaccnt struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Pbaccnt exists in the database.
-func (p *Pbaccnt) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Pbaccnt has been deleted from the database.
-func (p *Pbaccnt) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Pbaccnt to the database.
-func (p *Pbaccnt) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pbaccnt (` +
-		`pbaaccountno, pbaamount, pbapaydate, pbapaytype, pbacommentcode, pbaadditional1, pbaadditional2, pbaadditional3, pbaadditional4, pbaadditional5, pbaadditional6, pbaadditional7, pbaadditional8, pbaadditional9, pbaadditional10, pbalastmodifiedd, pbalastmodifiedt, pbalastmodifiedb, pbadetails, pbauniquesys, pbacomuniquesys, pbasubbatch, pbacliservice, pbacliuniquesys, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Pbaaccountno, p.Pbaamount, p.Pbapaydate, p.Pbapaytype, p.Pbacommentcode, p.Pbaadditional1, p.Pbaadditional2, p.Pbaadditional3, p.Pbaadditional4, p.Pbaadditional5, p.Pbaadditional6, p.Pbaadditional7, p.Pbaadditional8, p.Pbaadditional9, p.Pbaadditional10, p.Pbalastmodifiedd, p.Pbalastmodifiedt, p.Pbalastmodifiedb, p.Pbadetails, p.Pbauniquesys, p.Pbacomuniquesys, p.Pbasubbatch, p.Pbacliservice, p.Pbacliuniquesys, p.EquinoxPrn, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Pbaaccountno, p.Pbaamount, p.Pbapaydate, p.Pbapaytype, p.Pbacommentcode, p.Pbaadditional1, p.Pbaadditional2, p.Pbaadditional3, p.Pbaadditional4, p.Pbaadditional5, p.Pbaadditional6, p.Pbaadditional7, p.Pbaadditional8, p.Pbaadditional9, p.Pbaadditional10, p.Pbalastmodifiedd, p.Pbalastmodifiedt, p.Pbalastmodifiedb, p.Pbadetails, p.Pbauniquesys, p.Pbacomuniquesys, p.Pbasubbatch, p.Pbacliservice, p.Pbacliuniquesys, p.EquinoxPrn, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Pbaccnt in the database.
-func (p *Pbaccnt) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.pbaccnt SET (` +
-		`pbaaccountno, pbaamount, pbapaydate, pbapaytype, pbacommentcode, pbaadditional1, pbaadditional2, pbaadditional3, pbaadditional4, pbaadditional5, pbaadditional6, pbaadditional7, pbaadditional8, pbaadditional9, pbaadditional10, pbalastmodifiedd, pbalastmodifiedt, pbalastmodifiedb, pbadetails, pbauniquesys, pbacomuniquesys, pbasubbatch, pbacliservice, pbacliuniquesys, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26` +
-		`) WHERE equinox_lrn = $27`
-
-	// run query
-	XOLog(sqlstr, p.Pbaaccountno, p.Pbaamount, p.Pbapaydate, p.Pbapaytype, p.Pbacommentcode, p.Pbaadditional1, p.Pbaadditional2, p.Pbaadditional3, p.Pbaadditional4, p.Pbaadditional5, p.Pbaadditional6, p.Pbaadditional7, p.Pbaadditional8, p.Pbaadditional9, p.Pbaadditional10, p.Pbalastmodifiedd, p.Pbalastmodifiedt, p.Pbalastmodifiedb, p.Pbadetails, p.Pbauniquesys, p.Pbacomuniquesys, p.Pbasubbatch, p.Pbacliservice, p.Pbacliuniquesys, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Pbaaccountno, p.Pbaamount, p.Pbapaydate, p.Pbapaytype, p.Pbacommentcode, p.Pbaadditional1, p.Pbaadditional2, p.Pbaadditional3, p.Pbaadditional4, p.Pbaadditional5, p.Pbaadditional6, p.Pbaadditional7, p.Pbaadditional8, p.Pbaadditional9, p.Pbaadditional10, p.Pbalastmodifiedd, p.Pbalastmodifiedt, p.Pbalastmodifiedb, p.Pbadetails, p.Pbauniquesys, p.Pbacomuniquesys, p.Pbasubbatch, p.Pbacliservice, p.Pbacliuniquesys, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Pbaccnt to the database.
-func (p *Pbaccnt) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Pbaccnt.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Pbaccnt) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pbaccnt (` +
-		`pbaaccountno, pbaamount, pbapaydate, pbapaytype, pbacommentcode, pbaadditional1, pbaadditional2, pbaadditional3, pbaadditional4, pbaadditional5, pbaadditional6, pbaadditional7, pbaadditional8, pbaadditional9, pbaadditional10, pbalastmodifiedd, pbalastmodifiedt, pbalastmodifiedb, pbadetails, pbauniquesys, pbacomuniquesys, pbasubbatch, pbacliservice, pbacliuniquesys, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`pbaaccountno, pbaamount, pbapaydate, pbapaytype, pbacommentcode, pbaadditional1, pbaadditional2, pbaadditional3, pbaadditional4, pbaadditional5, pbaadditional6, pbaadditional7, pbaadditional8, pbaadditional9, pbaadditional10, pbalastmodifiedd, pbalastmodifiedt, pbalastmodifiedb, pbadetails, pbauniquesys, pbacomuniquesys, pbasubbatch, pbacliservice, pbacliuniquesys, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.pbaaccountno, EXCLUDED.pbaamount, EXCLUDED.pbapaydate, EXCLUDED.pbapaytype, EXCLUDED.pbacommentcode, EXCLUDED.pbaadditional1, EXCLUDED.pbaadditional2, EXCLUDED.pbaadditional3, EXCLUDED.pbaadditional4, EXCLUDED.pbaadditional5, EXCLUDED.pbaadditional6, EXCLUDED.pbaadditional7, EXCLUDED.pbaadditional8, EXCLUDED.pbaadditional9, EXCLUDED.pbaadditional10, EXCLUDED.pbalastmodifiedd, EXCLUDED.pbalastmodifiedt, EXCLUDED.pbalastmodifiedb, EXCLUDED.pbadetails, EXCLUDED.pbauniquesys, EXCLUDED.pbacomuniquesys, EXCLUDED.pbasubbatch, EXCLUDED.pbacliservice, EXCLUDED.pbacliuniquesys, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Pbaaccountno, p.Pbaamount, p.Pbapaydate, p.Pbapaytype, p.Pbacommentcode, p.Pbaadditional1, p.Pbaadditional2, p.Pbaadditional3, p.Pbaadditional4, p.Pbaadditional5, p.Pbaadditional6, p.Pbaadditional7, p.Pbaadditional8, p.Pbaadditional9, p.Pbaadditional10, p.Pbalastmodifiedd, p.Pbalastmodifiedt, p.Pbalastmodifiedb, p.Pbadetails, p.Pbauniquesys, p.Pbacomuniquesys, p.Pbasubbatch, p.Pbacliservice, p.Pbacliuniquesys, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Pbaaccountno, p.Pbaamount, p.Pbapaydate, p.Pbapaytype, p.Pbacommentcode, p.Pbaadditional1, p.Pbaadditional2, p.Pbaadditional3, p.Pbaadditional4, p.Pbaadditional5, p.Pbaadditional6, p.Pbaadditional7, p.Pbaadditional8, p.Pbaadditional9, p.Pbaadditional10, p.Pbalastmodifiedd, p.Pbalastmodifiedt, p.Pbalastmodifiedb, p.Pbadetails, p.Pbauniquesys, p.Pbacomuniquesys, p.Pbasubbatch, p.Pbacliservice, p.Pbacliuniquesys, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Pbaccnt from the database.
-func (p *Pbaccnt) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.pbaccnt WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PbaccntByEquinoxLrn retrieves a row from 'equinox.pbaccnt' as a Pbaccnt.
@@ -198,9 +54,7 @@ func PbaccntByEquinoxLrn(db XODB, equinoxLrn int64) (*Pbaccnt, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Pbaccnt{
-		_exists: true,
-	}
+	p := Pbaccnt{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Pbaaccountno, &p.Pbaamount, &p.Pbapaydate, &p.Pbapaytype, &p.Pbacommentcode, &p.Pbaadditional1, &p.Pbaadditional2, &p.Pbaadditional3, &p.Pbaadditional4, &p.Pbaadditional5, &p.Pbaadditional6, &p.Pbaadditional7, &p.Pbaadditional8, &p.Pbaadditional9, &p.Pbaadditional10, &p.Pbalastmodifiedd, &p.Pbalastmodifiedt, &p.Pbalastmodifiedb, &p.Pbadetails, &p.Pbauniquesys, &p.Pbacomuniquesys, &p.Pbasubbatch, &p.Pbacliservice, &p.Pbacliuniquesys, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

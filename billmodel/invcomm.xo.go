@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -42,149 +41,6 @@ type Invcomm struct {
 	Icservsenergy    sql.NullInt64   `json:"icservsenergy"`    // icservsenergy
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Invcomm exists in the database.
-func (i *Invcomm) Exists() bool {
-	return i._exists
-}
-
-// Deleted provides information if the Invcomm has been deleted from the database.
-func (i *Invcomm) Deleted() bool {
-	return i._deleted
-}
-
-// Insert inserts the Invcomm to the database.
-func (i *Invcomm) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if i._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.invcomm (` +
-		`icbillno, iccustaccountno, ictelephony, icenergy, icwlr, icbroadcall1, icbroadcall2, icbroadcall3, icbroadcall4, icgoldmembership, icsilvermembersh, icbillsperiod, iccomispaid, icmobile1, icmobile2, icmobile3, icmobile4, icvaluepay, iccashback, icfit, iceligibleservs, icsparechar2, icsparechar3, icsparedate2, icservstel, icservsmob, icservsbband, icservsenergy, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, i.Icbillno, i.Iccustaccountno, i.Ictelephony, i.Icenergy, i.Icwlr, i.Icbroadcall1, i.Icbroadcall2, i.Icbroadcall3, i.Icbroadcall4, i.Icgoldmembership, i.Icsilvermembersh, i.Icbillsperiod, i.Iccomispaid, i.Icmobile1, i.Icmobile2, i.Icmobile3, i.Icmobile4, i.Icvaluepay, i.Iccashback, i.Icfit, i.Iceligibleservs, i.Icsparechar2, i.Icsparechar3, i.Icsparedate2, i.Icservstel, i.Icservsmob, i.Icservsbband, i.Icservsenergy, i.EquinoxSec)
-	err = db.QueryRow(sqlstr, i.Icbillno, i.Iccustaccountno, i.Ictelephony, i.Icenergy, i.Icwlr, i.Icbroadcall1, i.Icbroadcall2, i.Icbroadcall3, i.Icbroadcall4, i.Icgoldmembership, i.Icsilvermembersh, i.Icbillsperiod, i.Iccomispaid, i.Icmobile1, i.Icmobile2, i.Icmobile3, i.Icmobile4, i.Icvaluepay, i.Iccashback, i.Icfit, i.Iceligibleservs, i.Icsparechar2, i.Icsparechar3, i.Icsparedate2, i.Icservstel, i.Icservsmob, i.Icservsbband, i.Icservsenergy, i.EquinoxSec).Scan(&i.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	i._exists = true
-
-	return nil
-}
-
-// Update updates the Invcomm in the database.
-func (i *Invcomm) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !i._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if i._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.invcomm SET (` +
-		`icbillno, iccustaccountno, ictelephony, icenergy, icwlr, icbroadcall1, icbroadcall2, icbroadcall3, icbroadcall4, icgoldmembership, icsilvermembersh, icbillsperiod, iccomispaid, icmobile1, icmobile2, icmobile3, icmobile4, icvaluepay, iccashback, icfit, iceligibleservs, icsparechar2, icsparechar3, icsparedate2, icservstel, icservsmob, icservsbband, icservsenergy, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29` +
-		`) WHERE equinox_lrn = $30`
-
-	// run query
-	XOLog(sqlstr, i.Icbillno, i.Iccustaccountno, i.Ictelephony, i.Icenergy, i.Icwlr, i.Icbroadcall1, i.Icbroadcall2, i.Icbroadcall3, i.Icbroadcall4, i.Icgoldmembership, i.Icsilvermembersh, i.Icbillsperiod, i.Iccomispaid, i.Icmobile1, i.Icmobile2, i.Icmobile3, i.Icmobile4, i.Icvaluepay, i.Iccashback, i.Icfit, i.Iceligibleservs, i.Icsparechar2, i.Icsparechar3, i.Icsparedate2, i.Icservstel, i.Icservsmob, i.Icservsbband, i.Icservsenergy, i.EquinoxSec, i.EquinoxLrn)
-	_, err = db.Exec(sqlstr, i.Icbillno, i.Iccustaccountno, i.Ictelephony, i.Icenergy, i.Icwlr, i.Icbroadcall1, i.Icbroadcall2, i.Icbroadcall3, i.Icbroadcall4, i.Icgoldmembership, i.Icsilvermembersh, i.Icbillsperiod, i.Iccomispaid, i.Icmobile1, i.Icmobile2, i.Icmobile3, i.Icmobile4, i.Icvaluepay, i.Iccashback, i.Icfit, i.Iceligibleservs, i.Icsparechar2, i.Icsparechar3, i.Icsparedate2, i.Icservstel, i.Icservsmob, i.Icservsbband, i.Icservsenergy, i.EquinoxSec, i.EquinoxLrn)
-	return err
-}
-
-// Save saves the Invcomm to the database.
-func (i *Invcomm) Save(db XODB) error {
-	if i.Exists() {
-		return i.Update(db)
-	}
-
-	return i.Insert(db)
-}
-
-// Upsert performs an upsert for Invcomm.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (i *Invcomm) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if i._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.invcomm (` +
-		`icbillno, iccustaccountno, ictelephony, icenergy, icwlr, icbroadcall1, icbroadcall2, icbroadcall3, icbroadcall4, icgoldmembership, icsilvermembersh, icbillsperiod, iccomispaid, icmobile1, icmobile2, icmobile3, icmobile4, icvaluepay, iccashback, icfit, iceligibleservs, icsparechar2, icsparechar3, icsparedate2, icservstel, icservsmob, icservsbband, icservsenergy, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`icbillno, iccustaccountno, ictelephony, icenergy, icwlr, icbroadcall1, icbroadcall2, icbroadcall3, icbroadcall4, icgoldmembership, icsilvermembersh, icbillsperiod, iccomispaid, icmobile1, icmobile2, icmobile3, icmobile4, icvaluepay, iccashback, icfit, iceligibleservs, icsparechar2, icsparechar3, icsparedate2, icservstel, icservsmob, icservsbband, icservsenergy, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.icbillno, EXCLUDED.iccustaccountno, EXCLUDED.ictelephony, EXCLUDED.icenergy, EXCLUDED.icwlr, EXCLUDED.icbroadcall1, EXCLUDED.icbroadcall2, EXCLUDED.icbroadcall3, EXCLUDED.icbroadcall4, EXCLUDED.icgoldmembership, EXCLUDED.icsilvermembersh, EXCLUDED.icbillsperiod, EXCLUDED.iccomispaid, EXCLUDED.icmobile1, EXCLUDED.icmobile2, EXCLUDED.icmobile3, EXCLUDED.icmobile4, EXCLUDED.icvaluepay, EXCLUDED.iccashback, EXCLUDED.icfit, EXCLUDED.iceligibleservs, EXCLUDED.icsparechar2, EXCLUDED.icsparechar3, EXCLUDED.icsparedate2, EXCLUDED.icservstel, EXCLUDED.icservsmob, EXCLUDED.icservsbband, EXCLUDED.icservsenergy, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, i.Icbillno, i.Iccustaccountno, i.Ictelephony, i.Icenergy, i.Icwlr, i.Icbroadcall1, i.Icbroadcall2, i.Icbroadcall3, i.Icbroadcall4, i.Icgoldmembership, i.Icsilvermembersh, i.Icbillsperiod, i.Iccomispaid, i.Icmobile1, i.Icmobile2, i.Icmobile3, i.Icmobile4, i.Icvaluepay, i.Iccashback, i.Icfit, i.Iceligibleservs, i.Icsparechar2, i.Icsparechar3, i.Icsparedate2, i.Icservstel, i.Icservsmob, i.Icservsbband, i.Icservsenergy, i.EquinoxLrn, i.EquinoxSec)
-	_, err = db.Exec(sqlstr, i.Icbillno, i.Iccustaccountno, i.Ictelephony, i.Icenergy, i.Icwlr, i.Icbroadcall1, i.Icbroadcall2, i.Icbroadcall3, i.Icbroadcall4, i.Icgoldmembership, i.Icsilvermembersh, i.Icbillsperiod, i.Iccomispaid, i.Icmobile1, i.Icmobile2, i.Icmobile3, i.Icmobile4, i.Icvaluepay, i.Iccashback, i.Icfit, i.Iceligibleservs, i.Icsparechar2, i.Icsparechar3, i.Icsparedate2, i.Icservstel, i.Icservsmob, i.Icservsbband, i.Icservsenergy, i.EquinoxLrn, i.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	i._exists = true
-
-	return nil
-}
-
-// Delete deletes the Invcomm from the database.
-func (i *Invcomm) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !i._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if i._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.invcomm WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, i.EquinoxLrn)
-	_, err = db.Exec(sqlstr, i.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	i._deleted = true
-
-	return nil
 }
 
 // InvcommByEquinoxLrn retrieves a row from 'equinox.invcomm' as a Invcomm.
@@ -201,9 +57,7 @@ func InvcommByEquinoxLrn(db XODB, equinoxLrn int64) (*Invcomm, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	i := Invcomm{
-		_exists: true,
-	}
+	i := Invcomm{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&i.Icbillno, &i.Iccustaccountno, &i.Ictelephony, &i.Icenergy, &i.Icwlr, &i.Icbroadcall1, &i.Icbroadcall2, &i.Icbroadcall3, &i.Icbroadcall4, &i.Icgoldmembership, &i.Icsilvermembersh, &i.Icbillsperiod, &i.Iccomispaid, &i.Icmobile1, &i.Icmobile2, &i.Icmobile3, &i.Icmobile4, &i.Icvaluepay, &i.Iccashback, &i.Icfit, &i.Iceligibleservs, &i.Icsparechar2, &i.Icsparechar3, &i.Icsparedate2, &i.Icservstel, &i.Icservsmob, &i.Icservsbband, &i.Icservsenergy, &i.EquinoxLrn, &i.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -43,149 +42,6 @@ type Excom struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Excom exists in the database.
-func (e *Excom) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Excom has been deleted from the database.
-func (e *Excom) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Excom to the database.
-func (e *Excom) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.excoms (` +
-		`excomuniquesys, excomdate, excomtime, excomprobcode, excomadditional1, excomadditional2, excomadditional3, excomadditional8, excomadditional7, excomadditional6, excomadditional5, excomadditional4, excomdetails, excomenteredby, excompriority, excomstatus, excomticketno, excomcompleted, excomcompletby, excomactiondate, excomstrtime, excomssparen1, excomstrdate, excomslastchange, excomsspared1, excomssparet1, excomadditional9, excomadd10, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Excomuniquesys, e.Excomdate, e.Excomtime, e.Excomprobcode, e.Excomadditional1, e.Excomadditional2, e.Excomadditional3, e.Excomadditional8, e.Excomadditional7, e.Excomadditional6, e.Excomadditional5, e.Excomadditional4, e.Excomdetails, e.Excomenteredby, e.Excompriority, e.Excomstatus, e.Excomticketno, e.Excomcompleted, e.Excomcompletby, e.Excomactiondate, e.Excomstrtime, e.Excomssparen1, e.Excomstrdate, e.Excomslastchange, e.Excomsspared1, e.Excomssparet1, e.Excomadditional9, e.Excomadd10, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Excomuniquesys, e.Excomdate, e.Excomtime, e.Excomprobcode, e.Excomadditional1, e.Excomadditional2, e.Excomadditional3, e.Excomadditional8, e.Excomadditional7, e.Excomadditional6, e.Excomadditional5, e.Excomadditional4, e.Excomdetails, e.Excomenteredby, e.Excompriority, e.Excomstatus, e.Excomticketno, e.Excomcompleted, e.Excomcompletby, e.Excomactiondate, e.Excomstrtime, e.Excomssparen1, e.Excomstrdate, e.Excomslastchange, e.Excomsspared1, e.Excomssparet1, e.Excomadditional9, e.Excomadd10, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Excom in the database.
-func (e *Excom) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.excoms SET (` +
-		`excomuniquesys, excomdate, excomtime, excomprobcode, excomadditional1, excomadditional2, excomadditional3, excomadditional8, excomadditional7, excomadditional6, excomadditional5, excomadditional4, excomdetails, excomenteredby, excompriority, excomstatus, excomticketno, excomcompleted, excomcompletby, excomactiondate, excomstrtime, excomssparen1, excomstrdate, excomslastchange, excomsspared1, excomssparet1, excomadditional9, excomadd10, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30` +
-		`) WHERE equinox_lrn = $31`
-
-	// run query
-	XOLog(sqlstr, e.Excomuniquesys, e.Excomdate, e.Excomtime, e.Excomprobcode, e.Excomadditional1, e.Excomadditional2, e.Excomadditional3, e.Excomadditional8, e.Excomadditional7, e.Excomadditional6, e.Excomadditional5, e.Excomadditional4, e.Excomdetails, e.Excomenteredby, e.Excompriority, e.Excomstatus, e.Excomticketno, e.Excomcompleted, e.Excomcompletby, e.Excomactiondate, e.Excomstrtime, e.Excomssparen1, e.Excomstrdate, e.Excomslastchange, e.Excomsspared1, e.Excomssparet1, e.Excomadditional9, e.Excomadd10, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Excomuniquesys, e.Excomdate, e.Excomtime, e.Excomprobcode, e.Excomadditional1, e.Excomadditional2, e.Excomadditional3, e.Excomadditional8, e.Excomadditional7, e.Excomadditional6, e.Excomadditional5, e.Excomadditional4, e.Excomdetails, e.Excomenteredby, e.Excompriority, e.Excomstatus, e.Excomticketno, e.Excomcompleted, e.Excomcompletby, e.Excomactiondate, e.Excomstrtime, e.Excomssparen1, e.Excomstrdate, e.Excomslastchange, e.Excomsspared1, e.Excomssparet1, e.Excomadditional9, e.Excomadd10, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Excom to the database.
-func (e *Excom) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Excom.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Excom) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.excoms (` +
-		`excomuniquesys, excomdate, excomtime, excomprobcode, excomadditional1, excomadditional2, excomadditional3, excomadditional8, excomadditional7, excomadditional6, excomadditional5, excomadditional4, excomdetails, excomenteredby, excompriority, excomstatus, excomticketno, excomcompleted, excomcompletby, excomactiondate, excomstrtime, excomssparen1, excomstrdate, excomslastchange, excomsspared1, excomssparet1, excomadditional9, excomadd10, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`excomuniquesys, excomdate, excomtime, excomprobcode, excomadditional1, excomadditional2, excomadditional3, excomadditional8, excomadditional7, excomadditional6, excomadditional5, excomadditional4, excomdetails, excomenteredby, excompriority, excomstatus, excomticketno, excomcompleted, excomcompletby, excomactiondate, excomstrtime, excomssparen1, excomstrdate, excomslastchange, excomsspared1, excomssparet1, excomadditional9, excomadd10, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.excomuniquesys, EXCLUDED.excomdate, EXCLUDED.excomtime, EXCLUDED.excomprobcode, EXCLUDED.excomadditional1, EXCLUDED.excomadditional2, EXCLUDED.excomadditional3, EXCLUDED.excomadditional8, EXCLUDED.excomadditional7, EXCLUDED.excomadditional6, EXCLUDED.excomadditional5, EXCLUDED.excomadditional4, EXCLUDED.excomdetails, EXCLUDED.excomenteredby, EXCLUDED.excompriority, EXCLUDED.excomstatus, EXCLUDED.excomticketno, EXCLUDED.excomcompleted, EXCLUDED.excomcompletby, EXCLUDED.excomactiondate, EXCLUDED.excomstrtime, EXCLUDED.excomssparen1, EXCLUDED.excomstrdate, EXCLUDED.excomslastchange, EXCLUDED.excomsspared1, EXCLUDED.excomssparet1, EXCLUDED.excomadditional9, EXCLUDED.excomadd10, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Excomuniquesys, e.Excomdate, e.Excomtime, e.Excomprobcode, e.Excomadditional1, e.Excomadditional2, e.Excomadditional3, e.Excomadditional8, e.Excomadditional7, e.Excomadditional6, e.Excomadditional5, e.Excomadditional4, e.Excomdetails, e.Excomenteredby, e.Excompriority, e.Excomstatus, e.Excomticketno, e.Excomcompleted, e.Excomcompletby, e.Excomactiondate, e.Excomstrtime, e.Excomssparen1, e.Excomstrdate, e.Excomslastchange, e.Excomsspared1, e.Excomssparet1, e.Excomadditional9, e.Excomadd10, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Excomuniquesys, e.Excomdate, e.Excomtime, e.Excomprobcode, e.Excomadditional1, e.Excomadditional2, e.Excomadditional3, e.Excomadditional8, e.Excomadditional7, e.Excomadditional6, e.Excomadditional5, e.Excomadditional4, e.Excomdetails, e.Excomenteredby, e.Excompriority, e.Excomstatus, e.Excomticketno, e.Excomcompleted, e.Excomcompletby, e.Excomactiondate, e.Excomstrtime, e.Excomssparen1, e.Excomstrdate, e.Excomslastchange, e.Excomsspared1, e.Excomssparet1, e.Excomadditional9, e.Excomadd10, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Excom from the database.
-func (e *Excom) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.excoms WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExcomByEquinoxLrn retrieves a row from 'equinox.excoms' as a Excom.
@@ -202,9 +58,7 @@ func ExcomByEquinoxLrn(db XODB, equinoxLrn int64) (*Excom, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Excom{
-		_exists: true,
-	}
+	e := Excom{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Excomuniquesys, &e.Excomdate, &e.Excomtime, &e.Excomprobcode, &e.Excomadditional1, &e.Excomadditional2, &e.Excomadditional3, &e.Excomadditional8, &e.Excomadditional7, &e.Excomadditional6, &e.Excomadditional5, &e.Excomadditional4, &e.Excomdetails, &e.Excomenteredby, &e.Excompriority, &e.Excomstatus, &e.Excomticketno, &e.Excomcompleted, &e.Excomcompletby, &e.Excomactiondate, &e.Excomstrtime, &e.Excomssparen1, &e.Excomstrdate, &e.Excomslastchange, &e.Excomsspared1, &e.Excomssparet1, &e.Excomadditional9, &e.Excomadd10, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

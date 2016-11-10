@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -26,149 +25,6 @@ type Avtran struct {
 	EquinoxPrn     sql.NullInt64   `json:"equinox_prn"`    // equinox_prn
 	EquinoxLrn     int64           `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Avtran exists in the database.
-func (a *Avtran) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Avtran has been deleted from the database.
-func (a *Avtran) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Avtran to the database.
-func (a *Avtran) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.avtrans (` +
-		`avtuniquesys, avtdate, avtcode, avtdescription, avtawarded, avtbillno, avtsenttoavios, avtwriteoff, avtaviosno, avttransactno, avtrejectcode, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Avtuniquesys, a.Avtdate, a.Avtcode, a.Avtdescription, a.Avtawarded, a.Avtbillno, a.Avtsenttoavios, a.Avtwriteoff, a.Avtaviosno, a.Avttransactno, a.Avtrejectcode, a.EquinoxPrn, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Avtuniquesys, a.Avtdate, a.Avtcode, a.Avtdescription, a.Avtawarded, a.Avtbillno, a.Avtsenttoavios, a.Avtwriteoff, a.Avtaviosno, a.Avttransactno, a.Avtrejectcode, a.EquinoxPrn, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Avtran in the database.
-func (a *Avtran) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.avtrans SET (` +
-		`avtuniquesys, avtdate, avtcode, avtdescription, avtawarded, avtbillno, avtsenttoavios, avtwriteoff, avtaviosno, avttransactno, avtrejectcode, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) WHERE equinox_lrn = $14`
-
-	// run query
-	XOLog(sqlstr, a.Avtuniquesys, a.Avtdate, a.Avtcode, a.Avtdescription, a.Avtawarded, a.Avtbillno, a.Avtsenttoavios, a.Avtwriteoff, a.Avtaviosno, a.Avttransactno, a.Avtrejectcode, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Avtuniquesys, a.Avtdate, a.Avtcode, a.Avtdescription, a.Avtawarded, a.Avtbillno, a.Avtsenttoavios, a.Avtwriteoff, a.Avtaviosno, a.Avttransactno, a.Avtrejectcode, a.EquinoxPrn, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Avtran to the database.
-func (a *Avtran) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Avtran.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Avtran) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.avtrans (` +
-		`avtuniquesys, avtdate, avtcode, avtdescription, avtawarded, avtbillno, avtsenttoavios, avtwriteoff, avtaviosno, avttransactno, avtrejectcode, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`avtuniquesys, avtdate, avtcode, avtdescription, avtawarded, avtbillno, avtsenttoavios, avtwriteoff, avtaviosno, avttransactno, avtrejectcode, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.avtuniquesys, EXCLUDED.avtdate, EXCLUDED.avtcode, EXCLUDED.avtdescription, EXCLUDED.avtawarded, EXCLUDED.avtbillno, EXCLUDED.avtsenttoavios, EXCLUDED.avtwriteoff, EXCLUDED.avtaviosno, EXCLUDED.avttransactno, EXCLUDED.avtrejectcode, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Avtuniquesys, a.Avtdate, a.Avtcode, a.Avtdescription, a.Avtawarded, a.Avtbillno, a.Avtsenttoavios, a.Avtwriteoff, a.Avtaviosno, a.Avttransactno, a.Avtrejectcode, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Avtuniquesys, a.Avtdate, a.Avtcode, a.Avtdescription, a.Avtawarded, a.Avtbillno, a.Avtsenttoavios, a.Avtwriteoff, a.Avtaviosno, a.Avttransactno, a.Avtrejectcode, a.EquinoxPrn, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Avtran from the database.
-func (a *Avtran) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.avtrans WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AvtranByEquinoxLrn retrieves a row from 'equinox.avtrans' as a Avtran.
@@ -185,9 +41,7 @@ func AvtranByEquinoxLrn(db XODB, equinoxLrn int64) (*Avtran, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Avtran{
-		_exists: true,
-	}
+	a := Avtran{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Avtuniquesys, &a.Avtdate, &a.Avtcode, &a.Avtdescription, &a.Avtawarded, &a.Avtbillno, &a.Avtsenttoavios, &a.Avtwriteoff, &a.Avtaviosno, &a.Avttransactno, &a.Avtrejectcode, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

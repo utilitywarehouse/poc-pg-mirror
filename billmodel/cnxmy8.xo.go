@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -49,149 +48,6 @@ type Cnxmy8 struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxmy8 exists in the database.
-func (c *Cnxmy8) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxmy8 has been deleted from the database.
-func (c *Cnxmy8) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxmy8 to the database.
-func (c *Cnxmy8) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxmy8 (` +
-		`cnxmy8cli, cnxmy8termcli, cnxmy8datetorsl, cnxmy8datefrmrsl, cnxmy8billopt, cnxmy8dateentere, cnxmy8weborder, cnxmy8datetobill, cnxmy8dateletter, cnxmy8enteredby, cnxmy8servicelvl, cnxmy8dateprepay, cnxmy8promocode, cnxmy8subtariff, cnxmy8linerental, cnxmy8setup, cnxmy8ordtype, cnxmy8tariff, cnxmy8sparec2, cnxmy8sparec3, cnxmy8sparen1, cnxmy8sparen2, cnxmy8sparen3, cnxmy8csigndate, cnxmy8spared2, cnxmy8spared3, cnxmy8sparec4, cnxmy8donoracc, cnxmy8doncliuni, cnxmy8holduntil, cnxmy8hmdate, cnxmy8addserv, cnxmy8validdate, cnxmy8validby, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxmy8cli, c.Cnxmy8termcli, c.Cnxmy8datetorsl, c.Cnxmy8datefrmrsl, c.Cnxmy8billopt, c.Cnxmy8dateentere, c.Cnxmy8weborder, c.Cnxmy8datetobill, c.Cnxmy8dateletter, c.Cnxmy8enteredby, c.Cnxmy8servicelvl, c.Cnxmy8dateprepay, c.Cnxmy8promocode, c.Cnxmy8subtariff, c.Cnxmy8linerental, c.Cnxmy8setup, c.Cnxmy8ordtype, c.Cnxmy8tariff, c.Cnxmy8sparec2, c.Cnxmy8sparec3, c.Cnxmy8sparen1, c.Cnxmy8sparen2, c.Cnxmy8sparen3, c.Cnxmy8csigndate, c.Cnxmy8spared2, c.Cnxmy8spared3, c.Cnxmy8sparec4, c.Cnxmy8donoracc, c.Cnxmy8doncliuni, c.Cnxmy8holduntil, c.Cnxmy8hmdate, c.Cnxmy8addserv, c.Cnxmy8validdate, c.Cnxmy8validby, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxmy8cli, c.Cnxmy8termcli, c.Cnxmy8datetorsl, c.Cnxmy8datefrmrsl, c.Cnxmy8billopt, c.Cnxmy8dateentere, c.Cnxmy8weborder, c.Cnxmy8datetobill, c.Cnxmy8dateletter, c.Cnxmy8enteredby, c.Cnxmy8servicelvl, c.Cnxmy8dateprepay, c.Cnxmy8promocode, c.Cnxmy8subtariff, c.Cnxmy8linerental, c.Cnxmy8setup, c.Cnxmy8ordtype, c.Cnxmy8tariff, c.Cnxmy8sparec2, c.Cnxmy8sparec3, c.Cnxmy8sparen1, c.Cnxmy8sparen2, c.Cnxmy8sparen3, c.Cnxmy8csigndate, c.Cnxmy8spared2, c.Cnxmy8spared3, c.Cnxmy8sparec4, c.Cnxmy8donoracc, c.Cnxmy8doncliuni, c.Cnxmy8holduntil, c.Cnxmy8hmdate, c.Cnxmy8addserv, c.Cnxmy8validdate, c.Cnxmy8validby, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxmy8 in the database.
-func (c *Cnxmy8) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxmy8 SET (` +
-		`cnxmy8cli, cnxmy8termcli, cnxmy8datetorsl, cnxmy8datefrmrsl, cnxmy8billopt, cnxmy8dateentere, cnxmy8weborder, cnxmy8datetobill, cnxmy8dateletter, cnxmy8enteredby, cnxmy8servicelvl, cnxmy8dateprepay, cnxmy8promocode, cnxmy8subtariff, cnxmy8linerental, cnxmy8setup, cnxmy8ordtype, cnxmy8tariff, cnxmy8sparec2, cnxmy8sparec3, cnxmy8sparen1, cnxmy8sparen2, cnxmy8sparen3, cnxmy8csigndate, cnxmy8spared2, cnxmy8spared3, cnxmy8sparec4, cnxmy8donoracc, cnxmy8doncliuni, cnxmy8holduntil, cnxmy8hmdate, cnxmy8addserv, cnxmy8validdate, cnxmy8validby, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36` +
-		`) WHERE equinox_lrn = $37`
-
-	// run query
-	XOLog(sqlstr, c.Cnxmy8cli, c.Cnxmy8termcli, c.Cnxmy8datetorsl, c.Cnxmy8datefrmrsl, c.Cnxmy8billopt, c.Cnxmy8dateentere, c.Cnxmy8weborder, c.Cnxmy8datetobill, c.Cnxmy8dateletter, c.Cnxmy8enteredby, c.Cnxmy8servicelvl, c.Cnxmy8dateprepay, c.Cnxmy8promocode, c.Cnxmy8subtariff, c.Cnxmy8linerental, c.Cnxmy8setup, c.Cnxmy8ordtype, c.Cnxmy8tariff, c.Cnxmy8sparec2, c.Cnxmy8sparec3, c.Cnxmy8sparen1, c.Cnxmy8sparen2, c.Cnxmy8sparen3, c.Cnxmy8csigndate, c.Cnxmy8spared2, c.Cnxmy8spared3, c.Cnxmy8sparec4, c.Cnxmy8donoracc, c.Cnxmy8doncliuni, c.Cnxmy8holduntil, c.Cnxmy8hmdate, c.Cnxmy8addserv, c.Cnxmy8validdate, c.Cnxmy8validby, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxmy8cli, c.Cnxmy8termcli, c.Cnxmy8datetorsl, c.Cnxmy8datefrmrsl, c.Cnxmy8billopt, c.Cnxmy8dateentere, c.Cnxmy8weborder, c.Cnxmy8datetobill, c.Cnxmy8dateletter, c.Cnxmy8enteredby, c.Cnxmy8servicelvl, c.Cnxmy8dateprepay, c.Cnxmy8promocode, c.Cnxmy8subtariff, c.Cnxmy8linerental, c.Cnxmy8setup, c.Cnxmy8ordtype, c.Cnxmy8tariff, c.Cnxmy8sparec2, c.Cnxmy8sparec3, c.Cnxmy8sparen1, c.Cnxmy8sparen2, c.Cnxmy8sparen3, c.Cnxmy8csigndate, c.Cnxmy8spared2, c.Cnxmy8spared3, c.Cnxmy8sparec4, c.Cnxmy8donoracc, c.Cnxmy8doncliuni, c.Cnxmy8holduntil, c.Cnxmy8hmdate, c.Cnxmy8addserv, c.Cnxmy8validdate, c.Cnxmy8validby, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxmy8 to the database.
-func (c *Cnxmy8) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxmy8.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxmy8) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxmy8 (` +
-		`cnxmy8cli, cnxmy8termcli, cnxmy8datetorsl, cnxmy8datefrmrsl, cnxmy8billopt, cnxmy8dateentere, cnxmy8weborder, cnxmy8datetobill, cnxmy8dateletter, cnxmy8enteredby, cnxmy8servicelvl, cnxmy8dateprepay, cnxmy8promocode, cnxmy8subtariff, cnxmy8linerental, cnxmy8setup, cnxmy8ordtype, cnxmy8tariff, cnxmy8sparec2, cnxmy8sparec3, cnxmy8sparen1, cnxmy8sparen2, cnxmy8sparen3, cnxmy8csigndate, cnxmy8spared2, cnxmy8spared3, cnxmy8sparec4, cnxmy8donoracc, cnxmy8doncliuni, cnxmy8holduntil, cnxmy8hmdate, cnxmy8addserv, cnxmy8validdate, cnxmy8validby, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxmy8cli, cnxmy8termcli, cnxmy8datetorsl, cnxmy8datefrmrsl, cnxmy8billopt, cnxmy8dateentere, cnxmy8weborder, cnxmy8datetobill, cnxmy8dateletter, cnxmy8enteredby, cnxmy8servicelvl, cnxmy8dateprepay, cnxmy8promocode, cnxmy8subtariff, cnxmy8linerental, cnxmy8setup, cnxmy8ordtype, cnxmy8tariff, cnxmy8sparec2, cnxmy8sparec3, cnxmy8sparen1, cnxmy8sparen2, cnxmy8sparen3, cnxmy8csigndate, cnxmy8spared2, cnxmy8spared3, cnxmy8sparec4, cnxmy8donoracc, cnxmy8doncliuni, cnxmy8holduntil, cnxmy8hmdate, cnxmy8addserv, cnxmy8validdate, cnxmy8validby, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxmy8cli, EXCLUDED.cnxmy8termcli, EXCLUDED.cnxmy8datetorsl, EXCLUDED.cnxmy8datefrmrsl, EXCLUDED.cnxmy8billopt, EXCLUDED.cnxmy8dateentere, EXCLUDED.cnxmy8weborder, EXCLUDED.cnxmy8datetobill, EXCLUDED.cnxmy8dateletter, EXCLUDED.cnxmy8enteredby, EXCLUDED.cnxmy8servicelvl, EXCLUDED.cnxmy8dateprepay, EXCLUDED.cnxmy8promocode, EXCLUDED.cnxmy8subtariff, EXCLUDED.cnxmy8linerental, EXCLUDED.cnxmy8setup, EXCLUDED.cnxmy8ordtype, EXCLUDED.cnxmy8tariff, EXCLUDED.cnxmy8sparec2, EXCLUDED.cnxmy8sparec3, EXCLUDED.cnxmy8sparen1, EXCLUDED.cnxmy8sparen2, EXCLUDED.cnxmy8sparen3, EXCLUDED.cnxmy8csigndate, EXCLUDED.cnxmy8spared2, EXCLUDED.cnxmy8spared3, EXCLUDED.cnxmy8sparec4, EXCLUDED.cnxmy8donoracc, EXCLUDED.cnxmy8doncliuni, EXCLUDED.cnxmy8holduntil, EXCLUDED.cnxmy8hmdate, EXCLUDED.cnxmy8addserv, EXCLUDED.cnxmy8validdate, EXCLUDED.cnxmy8validby, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxmy8cli, c.Cnxmy8termcli, c.Cnxmy8datetorsl, c.Cnxmy8datefrmrsl, c.Cnxmy8billopt, c.Cnxmy8dateentere, c.Cnxmy8weborder, c.Cnxmy8datetobill, c.Cnxmy8dateletter, c.Cnxmy8enteredby, c.Cnxmy8servicelvl, c.Cnxmy8dateprepay, c.Cnxmy8promocode, c.Cnxmy8subtariff, c.Cnxmy8linerental, c.Cnxmy8setup, c.Cnxmy8ordtype, c.Cnxmy8tariff, c.Cnxmy8sparec2, c.Cnxmy8sparec3, c.Cnxmy8sparen1, c.Cnxmy8sparen2, c.Cnxmy8sparen3, c.Cnxmy8csigndate, c.Cnxmy8spared2, c.Cnxmy8spared3, c.Cnxmy8sparec4, c.Cnxmy8donoracc, c.Cnxmy8doncliuni, c.Cnxmy8holduntil, c.Cnxmy8hmdate, c.Cnxmy8addserv, c.Cnxmy8validdate, c.Cnxmy8validby, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxmy8cli, c.Cnxmy8termcli, c.Cnxmy8datetorsl, c.Cnxmy8datefrmrsl, c.Cnxmy8billopt, c.Cnxmy8dateentere, c.Cnxmy8weborder, c.Cnxmy8datetobill, c.Cnxmy8dateletter, c.Cnxmy8enteredby, c.Cnxmy8servicelvl, c.Cnxmy8dateprepay, c.Cnxmy8promocode, c.Cnxmy8subtariff, c.Cnxmy8linerental, c.Cnxmy8setup, c.Cnxmy8ordtype, c.Cnxmy8tariff, c.Cnxmy8sparec2, c.Cnxmy8sparec3, c.Cnxmy8sparen1, c.Cnxmy8sparen2, c.Cnxmy8sparen3, c.Cnxmy8csigndate, c.Cnxmy8spared2, c.Cnxmy8spared3, c.Cnxmy8sparec4, c.Cnxmy8donoracc, c.Cnxmy8doncliuni, c.Cnxmy8holduntil, c.Cnxmy8hmdate, c.Cnxmy8addserv, c.Cnxmy8validdate, c.Cnxmy8validby, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxmy8 from the database.
-func (c *Cnxmy8) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxmy8 WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // Cnxmy8ByEquinoxLrn retrieves a row from 'equinox.cnxmy8' as a Cnxmy8.
@@ -208,9 +64,7 @@ func Cnxmy8ByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxmy8, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxmy8{
-		_exists: true,
-	}
+	c := Cnxmy8{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxmy8cli, &c.Cnxmy8termcli, &c.Cnxmy8datetorsl, &c.Cnxmy8datefrmrsl, &c.Cnxmy8billopt, &c.Cnxmy8dateentere, &c.Cnxmy8weborder, &c.Cnxmy8datetobill, &c.Cnxmy8dateletter, &c.Cnxmy8enteredby, &c.Cnxmy8servicelvl, &c.Cnxmy8dateprepay, &c.Cnxmy8promocode, &c.Cnxmy8subtariff, &c.Cnxmy8linerental, &c.Cnxmy8setup, &c.Cnxmy8ordtype, &c.Cnxmy8tariff, &c.Cnxmy8sparec2, &c.Cnxmy8sparec3, &c.Cnxmy8sparen1, &c.Cnxmy8sparen2, &c.Cnxmy8sparen3, &c.Cnxmy8csigndate, &c.Cnxmy8spared2, &c.Cnxmy8spared3, &c.Cnxmy8sparec4, &c.Cnxmy8donoracc, &c.Cnxmy8doncliuni, &c.Cnxmy8holduntil, &c.Cnxmy8hmdate, &c.Cnxmy8addserv, &c.Cnxmy8validdate, &c.Cnxmy8validby, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

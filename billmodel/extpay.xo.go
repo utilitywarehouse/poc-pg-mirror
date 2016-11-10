@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -84,149 +83,6 @@ type Extpay struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Extpay exists in the database.
-func (e *Extpay) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Extpay has been deleted from the database.
-func (e *Extpay) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Extpay to the database.
-func (e *Extpay) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.extpay (` +
-		`extpayperiod, extgoplus, extpayperscvc, extother, extpayperscgb, extpaycgbback, extpaydealer, extpaytotbb, extpayweb, extpaytotalcvc, extpaytotal, extpaycarry, extlevel1, extlevel2, extlevel3, extlevel4, extlevel5, extlevel6, extlevel7, extlevel8, extudb, extsdb, exterror, extclawback, extadjustment, extnum1, extnum2, extdate1, extloan, exttraining, extentered, extpot, extrpc, extspecialmobile, extpayfast, extpaypromobonus, extpayuplift, extpaysponsortbb, extpayuplinetbb, extlgcb, extenergy, exterrorsource, extmarginal, extrenewal, extpaycarrepay, extpaycarbonus, extpaypromo1, extpaypromo2, extpaypromo3, extpaypromo4, extratetel, extrateenergy, extstatus, extcustlastmonth, exttitle, extquickincome, extsendby, extsentdate, extbatchno, extbatchindex, extgenie1start, extgenie1end, extgenie1level, extgenie2start, extgenie2end, extgenie2level, extpaysparec1, extpaysparen1, extpayspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Extpayperiod, e.Extgoplus, e.Extpayperscvc, e.Extother, e.Extpayperscgb, e.Extpaycgbback, e.Extpaydealer, e.Extpaytotbb, e.Extpayweb, e.Extpaytotalcvc, e.Extpaytotal, e.Extpaycarry, e.Extlevel1, e.Extlevel2, e.Extlevel3, e.Extlevel4, e.Extlevel5, e.Extlevel6, e.Extlevel7, e.Extlevel8, e.Extudb, e.Extsdb, e.Exterror, e.Extclawback, e.Extadjustment, e.Extnum1, e.Extnum2, e.Extdate1, e.Extloan, e.Exttraining, e.Extentered, e.Extpot, e.Extrpc, e.Extspecialmobile, e.Extpayfast, e.Extpaypromobonus, e.Extpayuplift, e.Extpaysponsortbb, e.Extpayuplinetbb, e.Extlgcb, e.Extenergy, e.Exterrorsource, e.Extmarginal, e.Extrenewal, e.Extpaycarrepay, e.Extpaycarbonus, e.Extpaypromo1, e.Extpaypromo2, e.Extpaypromo3, e.Extpaypromo4, e.Extratetel, e.Extrateenergy, e.Extstatus, e.Extcustlastmonth, e.Exttitle, e.Extquickincome, e.Extsendby, e.Extsentdate, e.Extbatchno, e.Extbatchindex, e.Extgenie1start, e.Extgenie1end, e.Extgenie1level, e.Extgenie2start, e.Extgenie2end, e.Extgenie2level, e.Extpaysparec1, e.Extpaysparen1, e.Extpayspared1, e.EquinoxPrn, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Extpayperiod, e.Extgoplus, e.Extpayperscvc, e.Extother, e.Extpayperscgb, e.Extpaycgbback, e.Extpaydealer, e.Extpaytotbb, e.Extpayweb, e.Extpaytotalcvc, e.Extpaytotal, e.Extpaycarry, e.Extlevel1, e.Extlevel2, e.Extlevel3, e.Extlevel4, e.Extlevel5, e.Extlevel6, e.Extlevel7, e.Extlevel8, e.Extudb, e.Extsdb, e.Exterror, e.Extclawback, e.Extadjustment, e.Extnum1, e.Extnum2, e.Extdate1, e.Extloan, e.Exttraining, e.Extentered, e.Extpot, e.Extrpc, e.Extspecialmobile, e.Extpayfast, e.Extpaypromobonus, e.Extpayuplift, e.Extpaysponsortbb, e.Extpayuplinetbb, e.Extlgcb, e.Extenergy, e.Exterrorsource, e.Extmarginal, e.Extrenewal, e.Extpaycarrepay, e.Extpaycarbonus, e.Extpaypromo1, e.Extpaypromo2, e.Extpaypromo3, e.Extpaypromo4, e.Extratetel, e.Extrateenergy, e.Extstatus, e.Extcustlastmonth, e.Exttitle, e.Extquickincome, e.Extsendby, e.Extsentdate, e.Extbatchno, e.Extbatchindex, e.Extgenie1start, e.Extgenie1end, e.Extgenie1level, e.Extgenie2start, e.Extgenie2end, e.Extgenie2level, e.Extpaysparec1, e.Extpaysparen1, e.Extpayspared1, e.EquinoxPrn, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Extpay in the database.
-func (e *Extpay) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.extpay SET (` +
-		`extpayperiod, extgoplus, extpayperscvc, extother, extpayperscgb, extpaycgbback, extpaydealer, extpaytotbb, extpayweb, extpaytotalcvc, extpaytotal, extpaycarry, extlevel1, extlevel2, extlevel3, extlevel4, extlevel5, extlevel6, extlevel7, extlevel8, extudb, extsdb, exterror, extclawback, extadjustment, extnum1, extnum2, extdate1, extloan, exttraining, extentered, extpot, extrpc, extspecialmobile, extpayfast, extpaypromobonus, extpayuplift, extpaysponsortbb, extpayuplinetbb, extlgcb, extenergy, exterrorsource, extmarginal, extrenewal, extpaycarrepay, extpaycarbonus, extpaypromo1, extpaypromo2, extpaypromo3, extpaypromo4, extratetel, extrateenergy, extstatus, extcustlastmonth, exttitle, extquickincome, extsendby, extsentdate, extbatchno, extbatchindex, extgenie1start, extgenie1end, extgenie1level, extgenie2start, extgenie2end, extgenie2level, extpaysparec1, extpaysparen1, extpayspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71` +
-		`) WHERE equinox_lrn = $72`
-
-	// run query
-	XOLog(sqlstr, e.Extpayperiod, e.Extgoplus, e.Extpayperscvc, e.Extother, e.Extpayperscgb, e.Extpaycgbback, e.Extpaydealer, e.Extpaytotbb, e.Extpayweb, e.Extpaytotalcvc, e.Extpaytotal, e.Extpaycarry, e.Extlevel1, e.Extlevel2, e.Extlevel3, e.Extlevel4, e.Extlevel5, e.Extlevel6, e.Extlevel7, e.Extlevel8, e.Extudb, e.Extsdb, e.Exterror, e.Extclawback, e.Extadjustment, e.Extnum1, e.Extnum2, e.Extdate1, e.Extloan, e.Exttraining, e.Extentered, e.Extpot, e.Extrpc, e.Extspecialmobile, e.Extpayfast, e.Extpaypromobonus, e.Extpayuplift, e.Extpaysponsortbb, e.Extpayuplinetbb, e.Extlgcb, e.Extenergy, e.Exterrorsource, e.Extmarginal, e.Extrenewal, e.Extpaycarrepay, e.Extpaycarbonus, e.Extpaypromo1, e.Extpaypromo2, e.Extpaypromo3, e.Extpaypromo4, e.Extratetel, e.Extrateenergy, e.Extstatus, e.Extcustlastmonth, e.Exttitle, e.Extquickincome, e.Extsendby, e.Extsentdate, e.Extbatchno, e.Extbatchindex, e.Extgenie1start, e.Extgenie1end, e.Extgenie1level, e.Extgenie2start, e.Extgenie2end, e.Extgenie2level, e.Extpaysparec1, e.Extpaysparen1, e.Extpayspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Extpayperiod, e.Extgoplus, e.Extpayperscvc, e.Extother, e.Extpayperscgb, e.Extpaycgbback, e.Extpaydealer, e.Extpaytotbb, e.Extpayweb, e.Extpaytotalcvc, e.Extpaytotal, e.Extpaycarry, e.Extlevel1, e.Extlevel2, e.Extlevel3, e.Extlevel4, e.Extlevel5, e.Extlevel6, e.Extlevel7, e.Extlevel8, e.Extudb, e.Extsdb, e.Exterror, e.Extclawback, e.Extadjustment, e.Extnum1, e.Extnum2, e.Extdate1, e.Extloan, e.Exttraining, e.Extentered, e.Extpot, e.Extrpc, e.Extspecialmobile, e.Extpayfast, e.Extpaypromobonus, e.Extpayuplift, e.Extpaysponsortbb, e.Extpayuplinetbb, e.Extlgcb, e.Extenergy, e.Exterrorsource, e.Extmarginal, e.Extrenewal, e.Extpaycarrepay, e.Extpaycarbonus, e.Extpaypromo1, e.Extpaypromo2, e.Extpaypromo3, e.Extpaypromo4, e.Extratetel, e.Extrateenergy, e.Extstatus, e.Extcustlastmonth, e.Exttitle, e.Extquickincome, e.Extsendby, e.Extsentdate, e.Extbatchno, e.Extbatchindex, e.Extgenie1start, e.Extgenie1end, e.Extgenie1level, e.Extgenie2start, e.Extgenie2end, e.Extgenie2level, e.Extpaysparec1, e.Extpaysparen1, e.Extpayspared1, e.EquinoxPrn, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Extpay to the database.
-func (e *Extpay) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Extpay.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Extpay) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.extpay (` +
-		`extpayperiod, extgoplus, extpayperscvc, extother, extpayperscgb, extpaycgbback, extpaydealer, extpaytotbb, extpayweb, extpaytotalcvc, extpaytotal, extpaycarry, extlevel1, extlevel2, extlevel3, extlevel4, extlevel5, extlevel6, extlevel7, extlevel8, extudb, extsdb, exterror, extclawback, extadjustment, extnum1, extnum2, extdate1, extloan, exttraining, extentered, extpot, extrpc, extspecialmobile, extpayfast, extpaypromobonus, extpayuplift, extpaysponsortbb, extpayuplinetbb, extlgcb, extenergy, exterrorsource, extmarginal, extrenewal, extpaycarrepay, extpaycarbonus, extpaypromo1, extpaypromo2, extpaypromo3, extpaypromo4, extratetel, extrateenergy, extstatus, extcustlastmonth, exttitle, extquickincome, extsendby, extsentdate, extbatchno, extbatchindex, extgenie1start, extgenie1end, extgenie1level, extgenie2start, extgenie2end, extgenie2level, extpaysparec1, extpaysparen1, extpayspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`extpayperiod, extgoplus, extpayperscvc, extother, extpayperscgb, extpaycgbback, extpaydealer, extpaytotbb, extpayweb, extpaytotalcvc, extpaytotal, extpaycarry, extlevel1, extlevel2, extlevel3, extlevel4, extlevel5, extlevel6, extlevel7, extlevel8, extudb, extsdb, exterror, extclawback, extadjustment, extnum1, extnum2, extdate1, extloan, exttraining, extentered, extpot, extrpc, extspecialmobile, extpayfast, extpaypromobonus, extpayuplift, extpaysponsortbb, extpayuplinetbb, extlgcb, extenergy, exterrorsource, extmarginal, extrenewal, extpaycarrepay, extpaycarbonus, extpaypromo1, extpaypromo2, extpaypromo3, extpaypromo4, extratetel, extrateenergy, extstatus, extcustlastmonth, exttitle, extquickincome, extsendby, extsentdate, extbatchno, extbatchindex, extgenie1start, extgenie1end, extgenie1level, extgenie2start, extgenie2end, extgenie2level, extpaysparec1, extpaysparen1, extpayspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.extpayperiod, EXCLUDED.extgoplus, EXCLUDED.extpayperscvc, EXCLUDED.extother, EXCLUDED.extpayperscgb, EXCLUDED.extpaycgbback, EXCLUDED.extpaydealer, EXCLUDED.extpaytotbb, EXCLUDED.extpayweb, EXCLUDED.extpaytotalcvc, EXCLUDED.extpaytotal, EXCLUDED.extpaycarry, EXCLUDED.extlevel1, EXCLUDED.extlevel2, EXCLUDED.extlevel3, EXCLUDED.extlevel4, EXCLUDED.extlevel5, EXCLUDED.extlevel6, EXCLUDED.extlevel7, EXCLUDED.extlevel8, EXCLUDED.extudb, EXCLUDED.extsdb, EXCLUDED.exterror, EXCLUDED.extclawback, EXCLUDED.extadjustment, EXCLUDED.extnum1, EXCLUDED.extnum2, EXCLUDED.extdate1, EXCLUDED.extloan, EXCLUDED.exttraining, EXCLUDED.extentered, EXCLUDED.extpot, EXCLUDED.extrpc, EXCLUDED.extspecialmobile, EXCLUDED.extpayfast, EXCLUDED.extpaypromobonus, EXCLUDED.extpayuplift, EXCLUDED.extpaysponsortbb, EXCLUDED.extpayuplinetbb, EXCLUDED.extlgcb, EXCLUDED.extenergy, EXCLUDED.exterrorsource, EXCLUDED.extmarginal, EXCLUDED.extrenewal, EXCLUDED.extpaycarrepay, EXCLUDED.extpaycarbonus, EXCLUDED.extpaypromo1, EXCLUDED.extpaypromo2, EXCLUDED.extpaypromo3, EXCLUDED.extpaypromo4, EXCLUDED.extratetel, EXCLUDED.extrateenergy, EXCLUDED.extstatus, EXCLUDED.extcustlastmonth, EXCLUDED.exttitle, EXCLUDED.extquickincome, EXCLUDED.extsendby, EXCLUDED.extsentdate, EXCLUDED.extbatchno, EXCLUDED.extbatchindex, EXCLUDED.extgenie1start, EXCLUDED.extgenie1end, EXCLUDED.extgenie1level, EXCLUDED.extgenie2start, EXCLUDED.extgenie2end, EXCLUDED.extgenie2level, EXCLUDED.extpaysparec1, EXCLUDED.extpaysparen1, EXCLUDED.extpayspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Extpayperiod, e.Extgoplus, e.Extpayperscvc, e.Extother, e.Extpayperscgb, e.Extpaycgbback, e.Extpaydealer, e.Extpaytotbb, e.Extpayweb, e.Extpaytotalcvc, e.Extpaytotal, e.Extpaycarry, e.Extlevel1, e.Extlevel2, e.Extlevel3, e.Extlevel4, e.Extlevel5, e.Extlevel6, e.Extlevel7, e.Extlevel8, e.Extudb, e.Extsdb, e.Exterror, e.Extclawback, e.Extadjustment, e.Extnum1, e.Extnum2, e.Extdate1, e.Extloan, e.Exttraining, e.Extentered, e.Extpot, e.Extrpc, e.Extspecialmobile, e.Extpayfast, e.Extpaypromobonus, e.Extpayuplift, e.Extpaysponsortbb, e.Extpayuplinetbb, e.Extlgcb, e.Extenergy, e.Exterrorsource, e.Extmarginal, e.Extrenewal, e.Extpaycarrepay, e.Extpaycarbonus, e.Extpaypromo1, e.Extpaypromo2, e.Extpaypromo3, e.Extpaypromo4, e.Extratetel, e.Extrateenergy, e.Extstatus, e.Extcustlastmonth, e.Exttitle, e.Extquickincome, e.Extsendby, e.Extsentdate, e.Extbatchno, e.Extbatchindex, e.Extgenie1start, e.Extgenie1end, e.Extgenie1level, e.Extgenie2start, e.Extgenie2end, e.Extgenie2level, e.Extpaysparec1, e.Extpaysparen1, e.Extpayspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Extpayperiod, e.Extgoplus, e.Extpayperscvc, e.Extother, e.Extpayperscgb, e.Extpaycgbback, e.Extpaydealer, e.Extpaytotbb, e.Extpayweb, e.Extpaytotalcvc, e.Extpaytotal, e.Extpaycarry, e.Extlevel1, e.Extlevel2, e.Extlevel3, e.Extlevel4, e.Extlevel5, e.Extlevel6, e.Extlevel7, e.Extlevel8, e.Extudb, e.Extsdb, e.Exterror, e.Extclawback, e.Extadjustment, e.Extnum1, e.Extnum2, e.Extdate1, e.Extloan, e.Exttraining, e.Extentered, e.Extpot, e.Extrpc, e.Extspecialmobile, e.Extpayfast, e.Extpaypromobonus, e.Extpayuplift, e.Extpaysponsortbb, e.Extpayuplinetbb, e.Extlgcb, e.Extenergy, e.Exterrorsource, e.Extmarginal, e.Extrenewal, e.Extpaycarrepay, e.Extpaycarbonus, e.Extpaypromo1, e.Extpaypromo2, e.Extpaypromo3, e.Extpaypromo4, e.Extratetel, e.Extrateenergy, e.Extstatus, e.Extcustlastmonth, e.Exttitle, e.Extquickincome, e.Extsendby, e.Extsentdate, e.Extbatchno, e.Extbatchindex, e.Extgenie1start, e.Extgenie1end, e.Extgenie1level, e.Extgenie2start, e.Extgenie2end, e.Extgenie2level, e.Extpaysparec1, e.Extpaysparen1, e.Extpayspared1, e.EquinoxPrn, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Extpay from the database.
-func (e *Extpay) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.extpay WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExtpayByEquinoxLrn retrieves a row from 'equinox.extpay' as a Extpay.
@@ -243,9 +99,7 @@ func ExtpayByEquinoxLrn(db XODB, equinoxLrn int64) (*Extpay, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Extpay{
-		_exists: true,
-	}
+	e := Extpay{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Extpayperiod, &e.Extgoplus, &e.Extpayperscvc, &e.Extother, &e.Extpayperscgb, &e.Extpaycgbback, &e.Extpaydealer, &e.Extpaytotbb, &e.Extpayweb, &e.Extpaytotalcvc, &e.Extpaytotal, &e.Extpaycarry, &e.Extlevel1, &e.Extlevel2, &e.Extlevel3, &e.Extlevel4, &e.Extlevel5, &e.Extlevel6, &e.Extlevel7, &e.Extlevel8, &e.Extudb, &e.Extsdb, &e.Exterror, &e.Extclawback, &e.Extadjustment, &e.Extnum1, &e.Extnum2, &e.Extdate1, &e.Extloan, &e.Exttraining, &e.Extentered, &e.Extpot, &e.Extrpc, &e.Extspecialmobile, &e.Extpayfast, &e.Extpaypromobonus, &e.Extpayuplift, &e.Extpaysponsortbb, &e.Extpayuplinetbb, &e.Extlgcb, &e.Extenergy, &e.Exterrorsource, &e.Extmarginal, &e.Extrenewal, &e.Extpaycarrepay, &e.Extpaycarbonus, &e.Extpaypromo1, &e.Extpaypromo2, &e.Extpaypromo3, &e.Extpaypromo4, &e.Extratetel, &e.Extrateenergy, &e.Extstatus, &e.Extcustlastmonth, &e.Exttitle, &e.Extquickincome, &e.Extsendby, &e.Extsentdate, &e.Extbatchno, &e.Extbatchindex, &e.Extgenie1start, &e.Extgenie1end, &e.Extgenie1level, &e.Extgenie2start, &e.Extgenie2end, &e.Extgenie2level, &e.Extpaysparec1, &e.Extpaysparen1, &e.Extpayspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

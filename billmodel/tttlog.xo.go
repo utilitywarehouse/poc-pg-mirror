@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -28,149 +27,6 @@ type Tttlog struct {
 	Tttexchcode     sql.NullString `json:"tttexchcode"`     // tttexchcode
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Tttlog exists in the database.
-func (t *Tttlog) Exists() bool {
-	return t._exists
-}
-
-// Deleted provides information if the Tttlog has been deleted from the database.
-func (t *Tttlog) Deleted() bool {
-	return t._deleted
-}
-
-// Insert inserts the Tttlog to the database.
-func (t *Tttlog) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tttlog (` +
-		`tttprodtype, tttsearchtype, tttsource, tttsearchdata, tttsearchdate, tttsearchtime, tttoverallresp, tttadvcode, tttadvmsg, tttactcode, tttactmsg, tttforecastdate, tttexchname, tttexchcode, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, t.Tttprodtype, t.Tttsearchtype, t.Tttsource, t.Tttsearchdata, t.Tttsearchdate, t.Tttsearchtime, t.Tttoverallresp, t.Tttadvcode, t.Tttadvmsg, t.Tttactcode, t.Tttactmsg, t.Tttforecastdate, t.Tttexchname, t.Tttexchcode, t.EquinoxSec)
-	err = db.QueryRow(sqlstr, t.Tttprodtype, t.Tttsearchtype, t.Tttsource, t.Tttsearchdata, t.Tttsearchdate, t.Tttsearchtime, t.Tttoverallresp, t.Tttadvcode, t.Tttadvmsg, t.Tttactcode, t.Tttactmsg, t.Tttforecastdate, t.Tttexchname, t.Tttexchcode, t.EquinoxSec).Scan(&t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Update updates the Tttlog in the database.
-func (t *Tttlog) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.tttlog SET (` +
-		`tttprodtype, tttsearchtype, tttsource, tttsearchdata, tttsearchdate, tttsearchtime, tttoverallresp, tttadvcode, tttadvmsg, tttactcode, tttactmsg, tttforecastdate, tttexchname, tttexchcode, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) WHERE equinox_lrn = $16`
-
-	// run query
-	XOLog(sqlstr, t.Tttprodtype, t.Tttsearchtype, t.Tttsource, t.Tttsearchdata, t.Tttsearchdate, t.Tttsearchtime, t.Tttoverallresp, t.Tttadvcode, t.Tttadvmsg, t.Tttactcode, t.Tttactmsg, t.Tttforecastdate, t.Tttexchname, t.Tttexchcode, t.EquinoxSec, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.Tttprodtype, t.Tttsearchtype, t.Tttsource, t.Tttsearchdata, t.Tttsearchdate, t.Tttsearchtime, t.Tttoverallresp, t.Tttadvcode, t.Tttadvmsg, t.Tttactcode, t.Tttactmsg, t.Tttforecastdate, t.Tttexchname, t.Tttexchcode, t.EquinoxSec, t.EquinoxLrn)
-	return err
-}
-
-// Save saves the Tttlog to the database.
-func (t *Tttlog) Save(db XODB) error {
-	if t.Exists() {
-		return t.Update(db)
-	}
-
-	return t.Insert(db)
-}
-
-// Upsert performs an upsert for Tttlog.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (t *Tttlog) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tttlog (` +
-		`tttprodtype, tttsearchtype, tttsource, tttsearchdata, tttsearchdate, tttsearchtime, tttoverallresp, tttadvcode, tttadvmsg, tttactcode, tttactmsg, tttforecastdate, tttexchname, tttexchcode, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`tttprodtype, tttsearchtype, tttsource, tttsearchdata, tttsearchdate, tttsearchtime, tttoverallresp, tttadvcode, tttadvmsg, tttactcode, tttactmsg, tttforecastdate, tttexchname, tttexchcode, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.tttprodtype, EXCLUDED.tttsearchtype, EXCLUDED.tttsource, EXCLUDED.tttsearchdata, EXCLUDED.tttsearchdate, EXCLUDED.tttsearchtime, EXCLUDED.tttoverallresp, EXCLUDED.tttadvcode, EXCLUDED.tttadvmsg, EXCLUDED.tttactcode, EXCLUDED.tttactmsg, EXCLUDED.tttforecastdate, EXCLUDED.tttexchname, EXCLUDED.tttexchcode, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, t.Tttprodtype, t.Tttsearchtype, t.Tttsource, t.Tttsearchdata, t.Tttsearchdate, t.Tttsearchtime, t.Tttoverallresp, t.Tttadvcode, t.Tttadvmsg, t.Tttactcode, t.Tttactmsg, t.Tttforecastdate, t.Tttexchname, t.Tttexchcode, t.EquinoxLrn, t.EquinoxSec)
-	_, err = db.Exec(sqlstr, t.Tttprodtype, t.Tttsearchtype, t.Tttsource, t.Tttsearchdata, t.Tttsearchdate, t.Tttsearchtime, t.Tttoverallresp, t.Tttadvcode, t.Tttadvmsg, t.Tttactcode, t.Tttactmsg, t.Tttforecastdate, t.Tttexchname, t.Tttexchcode, t.EquinoxLrn, t.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Delete deletes the Tttlog from the database.
-func (t *Tttlog) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.tttlog WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	t._deleted = true
-
-	return nil
 }
 
 // TttlogByEquinoxLrn retrieves a row from 'equinox.tttlog' as a Tttlog.
@@ -187,9 +43,7 @@ func TttlogByEquinoxLrn(db XODB, equinoxLrn int64) (*Tttlog, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	t := Tttlog{
-		_exists: true,
-	}
+	t := Tttlog{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&t.Tttprodtype, &t.Tttsearchtype, &t.Tttsource, &t.Tttsearchdata, &t.Tttsearchdate, &t.Tttsearchtime, &t.Tttoverallresp, &t.Tttadvcode, &t.Tttadvmsg, &t.Tttactcode, &t.Tttactmsg, &t.Tttforecastdate, &t.Tttexchname, &t.Tttexchcode, &t.EquinoxLrn, &t.EquinoxSec)
 	if err != nil {

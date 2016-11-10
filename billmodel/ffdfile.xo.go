@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -67,149 +66,6 @@ type Ffdfile struct {
 	Gffarchivedby    sql.NullString  `json:"gffarchivedby"`    // gffarchivedby
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ffdfile exists in the database.
-func (f *Ffdfile) Exists() bool {
-	return f._exists
-}
-
-// Deleted provides information if the Ffdfile has been deleted from the database.
-func (f *Ffdfile) Deleted() bool {
-	return f._deleted
-}
-
-// Insert inserts the Ffdfile to the database.
-func (f *Ffdfile) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if f._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ffdfile (` +
-		`gffconqrefno, gffcaseevntdescd, gffmprn, gffstartreaddate, gffendreaddate, gffstartmeterrd, gffendmeterread, gffstartcorrrd, gffendcorrrd, gffstartrdtype, gffendrdtype, gffstartrdrsn, gffendrdrsn, gffvolconsumed, gffinvvolconsumd, gffunmtrdconsum, gfftotallocvol, gffdmdallocvol, gffdmdallocengy, gffactualenergy, gffmetertzicount, gffcorrtzicnt, gffgrecharge, gfftrecharge, gffndmreadref, gfffldrereccnadj, gffnotesconadj, gfffldrerecrprd, gffnotesrprd, gffmeterassetinc, gffntsmtrassinc, gffcorrtolfail, gffntscortolfail, gffstartrdeopnt, gffntssrtrdeopnt, gffincconsump, gffntsinccnsmptn, gffincorrectttz, gffntsincorctttz, gffhistorconsum, gffntshistconsum, gffrejctcdreason, gffcontactstatus, gffldz, gfffilterfaildt, gffprocessed, gffaccepted, gfffilename, gffarchived, gffdateimported, gfftimeimported, gffrejected, gffarchivedby, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, f.Gffconqrefno, f.Gffcaseevntdescd, f.Gffmprn, f.Gffstartreaddate, f.Gffendreaddate, f.Gffstartmeterrd, f.Gffendmeterread, f.Gffstartcorrrd, f.Gffendcorrrd, f.Gffstartrdtype, f.Gffendrdtype, f.Gffstartrdrsn, f.Gffendrdrsn, f.Gffvolconsumed, f.Gffinvvolconsumd, f.Gffunmtrdconsum, f.Gfftotallocvol, f.Gffdmdallocvol, f.Gffdmdallocengy, f.Gffactualenergy, f.Gffmetertzicount, f.Gffcorrtzicnt, f.Gffgrecharge, f.Gfftrecharge, f.Gffndmreadref, f.Gfffldrereccnadj, f.Gffnotesconadj, f.Gfffldrerecrprd, f.Gffnotesrprd, f.Gffmeterassetinc, f.Gffntsmtrassinc, f.Gffcorrtolfail, f.Gffntscortolfail, f.Gffstartrdeopnt, f.Gffntssrtrdeopnt, f.Gffincconsump, f.Gffntsinccnsmptn, f.Gffincorrectttz, f.Gffntsincorctttz, f.Gffhistorconsum, f.Gffntshistconsum, f.Gffrejctcdreason, f.Gffcontactstatus, f.Gffldz, f.Gfffilterfaildt, f.Gffprocessed, f.Gffaccepted, f.Gfffilename, f.Gffarchived, f.Gffdateimported, f.Gfftimeimported, f.Gffrejected, f.Gffarchivedby, f.EquinoxSec)
-	err = db.QueryRow(sqlstr, f.Gffconqrefno, f.Gffcaseevntdescd, f.Gffmprn, f.Gffstartreaddate, f.Gffendreaddate, f.Gffstartmeterrd, f.Gffendmeterread, f.Gffstartcorrrd, f.Gffendcorrrd, f.Gffstartrdtype, f.Gffendrdtype, f.Gffstartrdrsn, f.Gffendrdrsn, f.Gffvolconsumed, f.Gffinvvolconsumd, f.Gffunmtrdconsum, f.Gfftotallocvol, f.Gffdmdallocvol, f.Gffdmdallocengy, f.Gffactualenergy, f.Gffmetertzicount, f.Gffcorrtzicnt, f.Gffgrecharge, f.Gfftrecharge, f.Gffndmreadref, f.Gfffldrereccnadj, f.Gffnotesconadj, f.Gfffldrerecrprd, f.Gffnotesrprd, f.Gffmeterassetinc, f.Gffntsmtrassinc, f.Gffcorrtolfail, f.Gffntscortolfail, f.Gffstartrdeopnt, f.Gffntssrtrdeopnt, f.Gffincconsump, f.Gffntsinccnsmptn, f.Gffincorrectttz, f.Gffntsincorctttz, f.Gffhistorconsum, f.Gffntshistconsum, f.Gffrejctcdreason, f.Gffcontactstatus, f.Gffldz, f.Gfffilterfaildt, f.Gffprocessed, f.Gffaccepted, f.Gfffilename, f.Gffarchived, f.Gffdateimported, f.Gfftimeimported, f.Gffrejected, f.Gffarchivedby, f.EquinoxSec).Scan(&f.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	f._exists = true
-
-	return nil
-}
-
-// Update updates the Ffdfile in the database.
-func (f *Ffdfile) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !f._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if f._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ffdfile SET (` +
-		`gffconqrefno, gffcaseevntdescd, gffmprn, gffstartreaddate, gffendreaddate, gffstartmeterrd, gffendmeterread, gffstartcorrrd, gffendcorrrd, gffstartrdtype, gffendrdtype, gffstartrdrsn, gffendrdrsn, gffvolconsumed, gffinvvolconsumd, gffunmtrdconsum, gfftotallocvol, gffdmdallocvol, gffdmdallocengy, gffactualenergy, gffmetertzicount, gffcorrtzicnt, gffgrecharge, gfftrecharge, gffndmreadref, gfffldrereccnadj, gffnotesconadj, gfffldrerecrprd, gffnotesrprd, gffmeterassetinc, gffntsmtrassinc, gffcorrtolfail, gffntscortolfail, gffstartrdeopnt, gffntssrtrdeopnt, gffincconsump, gffntsinccnsmptn, gffincorrectttz, gffntsincorctttz, gffhistorconsum, gffntshistconsum, gffrejctcdreason, gffcontactstatus, gffldz, gfffilterfaildt, gffprocessed, gffaccepted, gfffilename, gffarchived, gffdateimported, gfftimeimported, gffrejected, gffarchivedby, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54` +
-		`) WHERE equinox_lrn = $55`
-
-	// run query
-	XOLog(sqlstr, f.Gffconqrefno, f.Gffcaseevntdescd, f.Gffmprn, f.Gffstartreaddate, f.Gffendreaddate, f.Gffstartmeterrd, f.Gffendmeterread, f.Gffstartcorrrd, f.Gffendcorrrd, f.Gffstartrdtype, f.Gffendrdtype, f.Gffstartrdrsn, f.Gffendrdrsn, f.Gffvolconsumed, f.Gffinvvolconsumd, f.Gffunmtrdconsum, f.Gfftotallocvol, f.Gffdmdallocvol, f.Gffdmdallocengy, f.Gffactualenergy, f.Gffmetertzicount, f.Gffcorrtzicnt, f.Gffgrecharge, f.Gfftrecharge, f.Gffndmreadref, f.Gfffldrereccnadj, f.Gffnotesconadj, f.Gfffldrerecrprd, f.Gffnotesrprd, f.Gffmeterassetinc, f.Gffntsmtrassinc, f.Gffcorrtolfail, f.Gffntscortolfail, f.Gffstartrdeopnt, f.Gffntssrtrdeopnt, f.Gffincconsump, f.Gffntsinccnsmptn, f.Gffincorrectttz, f.Gffntsincorctttz, f.Gffhistorconsum, f.Gffntshistconsum, f.Gffrejctcdreason, f.Gffcontactstatus, f.Gffldz, f.Gfffilterfaildt, f.Gffprocessed, f.Gffaccepted, f.Gfffilename, f.Gffarchived, f.Gffdateimported, f.Gfftimeimported, f.Gffrejected, f.Gffarchivedby, f.EquinoxSec, f.EquinoxLrn)
-	_, err = db.Exec(sqlstr, f.Gffconqrefno, f.Gffcaseevntdescd, f.Gffmprn, f.Gffstartreaddate, f.Gffendreaddate, f.Gffstartmeterrd, f.Gffendmeterread, f.Gffstartcorrrd, f.Gffendcorrrd, f.Gffstartrdtype, f.Gffendrdtype, f.Gffstartrdrsn, f.Gffendrdrsn, f.Gffvolconsumed, f.Gffinvvolconsumd, f.Gffunmtrdconsum, f.Gfftotallocvol, f.Gffdmdallocvol, f.Gffdmdallocengy, f.Gffactualenergy, f.Gffmetertzicount, f.Gffcorrtzicnt, f.Gffgrecharge, f.Gfftrecharge, f.Gffndmreadref, f.Gfffldrereccnadj, f.Gffnotesconadj, f.Gfffldrerecrprd, f.Gffnotesrprd, f.Gffmeterassetinc, f.Gffntsmtrassinc, f.Gffcorrtolfail, f.Gffntscortolfail, f.Gffstartrdeopnt, f.Gffntssrtrdeopnt, f.Gffincconsump, f.Gffntsinccnsmptn, f.Gffincorrectttz, f.Gffntsincorctttz, f.Gffhistorconsum, f.Gffntshistconsum, f.Gffrejctcdreason, f.Gffcontactstatus, f.Gffldz, f.Gfffilterfaildt, f.Gffprocessed, f.Gffaccepted, f.Gfffilename, f.Gffarchived, f.Gffdateimported, f.Gfftimeimported, f.Gffrejected, f.Gffarchivedby, f.EquinoxSec, f.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ffdfile to the database.
-func (f *Ffdfile) Save(db XODB) error {
-	if f.Exists() {
-		return f.Update(db)
-	}
-
-	return f.Insert(db)
-}
-
-// Upsert performs an upsert for Ffdfile.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (f *Ffdfile) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if f._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ffdfile (` +
-		`gffconqrefno, gffcaseevntdescd, gffmprn, gffstartreaddate, gffendreaddate, gffstartmeterrd, gffendmeterread, gffstartcorrrd, gffendcorrrd, gffstartrdtype, gffendrdtype, gffstartrdrsn, gffendrdrsn, gffvolconsumed, gffinvvolconsumd, gffunmtrdconsum, gfftotallocvol, gffdmdallocvol, gffdmdallocengy, gffactualenergy, gffmetertzicount, gffcorrtzicnt, gffgrecharge, gfftrecharge, gffndmreadref, gfffldrereccnadj, gffnotesconadj, gfffldrerecrprd, gffnotesrprd, gffmeterassetinc, gffntsmtrassinc, gffcorrtolfail, gffntscortolfail, gffstartrdeopnt, gffntssrtrdeopnt, gffincconsump, gffntsinccnsmptn, gffincorrectttz, gffntsincorctttz, gffhistorconsum, gffntshistconsum, gffrejctcdreason, gffcontactstatus, gffldz, gfffilterfaildt, gffprocessed, gffaccepted, gfffilename, gffarchived, gffdateimported, gfftimeimported, gffrejected, gffarchivedby, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gffconqrefno, gffcaseevntdescd, gffmprn, gffstartreaddate, gffendreaddate, gffstartmeterrd, gffendmeterread, gffstartcorrrd, gffendcorrrd, gffstartrdtype, gffendrdtype, gffstartrdrsn, gffendrdrsn, gffvolconsumed, gffinvvolconsumd, gffunmtrdconsum, gfftotallocvol, gffdmdallocvol, gffdmdallocengy, gffactualenergy, gffmetertzicount, gffcorrtzicnt, gffgrecharge, gfftrecharge, gffndmreadref, gfffldrereccnadj, gffnotesconadj, gfffldrerecrprd, gffnotesrprd, gffmeterassetinc, gffntsmtrassinc, gffcorrtolfail, gffntscortolfail, gffstartrdeopnt, gffntssrtrdeopnt, gffincconsump, gffntsinccnsmptn, gffincorrectttz, gffntsincorctttz, gffhistorconsum, gffntshistconsum, gffrejctcdreason, gffcontactstatus, gffldz, gfffilterfaildt, gffprocessed, gffaccepted, gfffilename, gffarchived, gffdateimported, gfftimeimported, gffrejected, gffarchivedby, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gffconqrefno, EXCLUDED.gffcaseevntdescd, EXCLUDED.gffmprn, EXCLUDED.gffstartreaddate, EXCLUDED.gffendreaddate, EXCLUDED.gffstartmeterrd, EXCLUDED.gffendmeterread, EXCLUDED.gffstartcorrrd, EXCLUDED.gffendcorrrd, EXCLUDED.gffstartrdtype, EXCLUDED.gffendrdtype, EXCLUDED.gffstartrdrsn, EXCLUDED.gffendrdrsn, EXCLUDED.gffvolconsumed, EXCLUDED.gffinvvolconsumd, EXCLUDED.gffunmtrdconsum, EXCLUDED.gfftotallocvol, EXCLUDED.gffdmdallocvol, EXCLUDED.gffdmdallocengy, EXCLUDED.gffactualenergy, EXCLUDED.gffmetertzicount, EXCLUDED.gffcorrtzicnt, EXCLUDED.gffgrecharge, EXCLUDED.gfftrecharge, EXCLUDED.gffndmreadref, EXCLUDED.gfffldrereccnadj, EXCLUDED.gffnotesconadj, EXCLUDED.gfffldrerecrprd, EXCLUDED.gffnotesrprd, EXCLUDED.gffmeterassetinc, EXCLUDED.gffntsmtrassinc, EXCLUDED.gffcorrtolfail, EXCLUDED.gffntscortolfail, EXCLUDED.gffstartrdeopnt, EXCLUDED.gffntssrtrdeopnt, EXCLUDED.gffincconsump, EXCLUDED.gffntsinccnsmptn, EXCLUDED.gffincorrectttz, EXCLUDED.gffntsincorctttz, EXCLUDED.gffhistorconsum, EXCLUDED.gffntshistconsum, EXCLUDED.gffrejctcdreason, EXCLUDED.gffcontactstatus, EXCLUDED.gffldz, EXCLUDED.gfffilterfaildt, EXCLUDED.gffprocessed, EXCLUDED.gffaccepted, EXCLUDED.gfffilename, EXCLUDED.gffarchived, EXCLUDED.gffdateimported, EXCLUDED.gfftimeimported, EXCLUDED.gffrejected, EXCLUDED.gffarchivedby, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, f.Gffconqrefno, f.Gffcaseevntdescd, f.Gffmprn, f.Gffstartreaddate, f.Gffendreaddate, f.Gffstartmeterrd, f.Gffendmeterread, f.Gffstartcorrrd, f.Gffendcorrrd, f.Gffstartrdtype, f.Gffendrdtype, f.Gffstartrdrsn, f.Gffendrdrsn, f.Gffvolconsumed, f.Gffinvvolconsumd, f.Gffunmtrdconsum, f.Gfftotallocvol, f.Gffdmdallocvol, f.Gffdmdallocengy, f.Gffactualenergy, f.Gffmetertzicount, f.Gffcorrtzicnt, f.Gffgrecharge, f.Gfftrecharge, f.Gffndmreadref, f.Gfffldrereccnadj, f.Gffnotesconadj, f.Gfffldrerecrprd, f.Gffnotesrprd, f.Gffmeterassetinc, f.Gffntsmtrassinc, f.Gffcorrtolfail, f.Gffntscortolfail, f.Gffstartrdeopnt, f.Gffntssrtrdeopnt, f.Gffincconsump, f.Gffntsinccnsmptn, f.Gffincorrectttz, f.Gffntsincorctttz, f.Gffhistorconsum, f.Gffntshistconsum, f.Gffrejctcdreason, f.Gffcontactstatus, f.Gffldz, f.Gfffilterfaildt, f.Gffprocessed, f.Gffaccepted, f.Gfffilename, f.Gffarchived, f.Gffdateimported, f.Gfftimeimported, f.Gffrejected, f.Gffarchivedby, f.EquinoxLrn, f.EquinoxSec)
-	_, err = db.Exec(sqlstr, f.Gffconqrefno, f.Gffcaseevntdescd, f.Gffmprn, f.Gffstartreaddate, f.Gffendreaddate, f.Gffstartmeterrd, f.Gffendmeterread, f.Gffstartcorrrd, f.Gffendcorrrd, f.Gffstartrdtype, f.Gffendrdtype, f.Gffstartrdrsn, f.Gffendrdrsn, f.Gffvolconsumed, f.Gffinvvolconsumd, f.Gffunmtrdconsum, f.Gfftotallocvol, f.Gffdmdallocvol, f.Gffdmdallocengy, f.Gffactualenergy, f.Gffmetertzicount, f.Gffcorrtzicnt, f.Gffgrecharge, f.Gfftrecharge, f.Gffndmreadref, f.Gfffldrereccnadj, f.Gffnotesconadj, f.Gfffldrerecrprd, f.Gffnotesrprd, f.Gffmeterassetinc, f.Gffntsmtrassinc, f.Gffcorrtolfail, f.Gffntscortolfail, f.Gffstartrdeopnt, f.Gffntssrtrdeopnt, f.Gffincconsump, f.Gffntsinccnsmptn, f.Gffincorrectttz, f.Gffntsincorctttz, f.Gffhistorconsum, f.Gffntshistconsum, f.Gffrejctcdreason, f.Gffcontactstatus, f.Gffldz, f.Gfffilterfaildt, f.Gffprocessed, f.Gffaccepted, f.Gfffilename, f.Gffarchived, f.Gffdateimported, f.Gfftimeimported, f.Gffrejected, f.Gffarchivedby, f.EquinoxLrn, f.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	f._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ffdfile from the database.
-func (f *Ffdfile) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !f._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if f._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ffdfile WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, f.EquinoxLrn)
-	_, err = db.Exec(sqlstr, f.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	f._deleted = true
-
-	return nil
 }
 
 // FfdfileByEquinoxLrn retrieves a row from 'equinox.ffdfile' as a Ffdfile.
@@ -226,9 +82,7 @@ func FfdfileByEquinoxLrn(db XODB, equinoxLrn int64) (*Ffdfile, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	f := Ffdfile{
-		_exists: true,
-	}
+	f := Ffdfile{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&f.Gffconqrefno, &f.Gffcaseevntdescd, &f.Gffmprn, &f.Gffstartreaddate, &f.Gffendreaddate, &f.Gffstartmeterrd, &f.Gffendmeterread, &f.Gffstartcorrrd, &f.Gffendcorrrd, &f.Gffstartrdtype, &f.Gffendrdtype, &f.Gffstartrdrsn, &f.Gffendrdrsn, &f.Gffvolconsumed, &f.Gffinvvolconsumd, &f.Gffunmtrdconsum, &f.Gfftotallocvol, &f.Gffdmdallocvol, &f.Gffdmdallocengy, &f.Gffactualenergy, &f.Gffmetertzicount, &f.Gffcorrtzicnt, &f.Gffgrecharge, &f.Gfftrecharge, &f.Gffndmreadref, &f.Gfffldrereccnadj, &f.Gffnotesconadj, &f.Gfffldrerecrprd, &f.Gffnotesrprd, &f.Gffmeterassetinc, &f.Gffntsmtrassinc, &f.Gffcorrtolfail, &f.Gffntscortolfail, &f.Gffstartrdeopnt, &f.Gffntssrtrdeopnt, &f.Gffincconsump, &f.Gffntsinccnsmptn, &f.Gffincorrectttz, &f.Gffntsincorctttz, &f.Gffhistorconsum, &f.Gffntshistconsum, &f.Gffrejctcdreason, &f.Gffcontactstatus, &f.Gffldz, &f.Gfffilterfaildt, &f.Gffprocessed, &f.Gffaccepted, &f.Gfffilename, &f.Gffarchived, &f.Gffdateimported, &f.Gfftimeimported, &f.Gffrejected, &f.Gffarchivedby, &f.EquinoxLrn, &f.EquinoxSec)
 	if err != nil {

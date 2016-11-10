@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -35,149 +34,6 @@ type Gcval struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gcval exists in the database.
-func (g *Gcval) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gcval has been deleted from the database.
-func (g *Gcval) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gcval to the database.
-func (g *Gcval) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gcval (` +
-		`gcvalread, gcvalreaddate, gcvalsource, gcvalreason, gcvaltype, gcvalentereddate, gcvalstatus, gcvaldispute, gcvalcomplete, gcmemo, gcvalsiteenddate, gcregtypec1, gcvalsparec2, gcvalsparec3, gcvalspared1, gcvalspared2, gcvalspared3, gcvalsparen1, gcvalsparen2, gcvalsparen3, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gcvalread, g.Gcvalreaddate, g.Gcvalsource, g.Gcvalreason, g.Gcvaltype, g.Gcvalentereddate, g.Gcvalstatus, g.Gcvaldispute, g.Gcvalcomplete, g.Gcmemo, g.Gcvalsiteenddate, g.Gcregtypec1, g.Gcvalsparec2, g.Gcvalsparec3, g.Gcvalspared1, g.Gcvalspared2, g.Gcvalspared3, g.Gcvalsparen1, g.Gcvalsparen2, g.Gcvalsparen3, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gcvalread, g.Gcvalreaddate, g.Gcvalsource, g.Gcvalreason, g.Gcvaltype, g.Gcvalentereddate, g.Gcvalstatus, g.Gcvaldispute, g.Gcvalcomplete, g.Gcmemo, g.Gcvalsiteenddate, g.Gcregtypec1, g.Gcvalsparec2, g.Gcvalsparec3, g.Gcvalspared1, g.Gcvalspared2, g.Gcvalspared3, g.Gcvalsparen1, g.Gcvalsparen2, g.Gcvalsparen3, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gcval in the database.
-func (g *Gcval) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gcval SET (` +
-		`gcvalread, gcvalreaddate, gcvalsource, gcvalreason, gcvaltype, gcvalentereddate, gcvalstatus, gcvaldispute, gcvalcomplete, gcmemo, gcvalsiteenddate, gcregtypec1, gcvalsparec2, gcvalsparec3, gcvalspared1, gcvalspared2, gcvalspared3, gcvalsparen1, gcvalsparen2, gcvalsparen3, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22` +
-		`) WHERE equinox_lrn = $23`
-
-	// run query
-	XOLog(sqlstr, g.Gcvalread, g.Gcvalreaddate, g.Gcvalsource, g.Gcvalreason, g.Gcvaltype, g.Gcvalentereddate, g.Gcvalstatus, g.Gcvaldispute, g.Gcvalcomplete, g.Gcmemo, g.Gcvalsiteenddate, g.Gcregtypec1, g.Gcvalsparec2, g.Gcvalsparec3, g.Gcvalspared1, g.Gcvalspared2, g.Gcvalspared3, g.Gcvalsparen1, g.Gcvalsparen2, g.Gcvalsparen3, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gcvalread, g.Gcvalreaddate, g.Gcvalsource, g.Gcvalreason, g.Gcvaltype, g.Gcvalentereddate, g.Gcvalstatus, g.Gcvaldispute, g.Gcvalcomplete, g.Gcmemo, g.Gcvalsiteenddate, g.Gcregtypec1, g.Gcvalsparec2, g.Gcvalsparec3, g.Gcvalspared1, g.Gcvalspared2, g.Gcvalspared3, g.Gcvalsparen1, g.Gcvalsparen2, g.Gcvalsparen3, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gcval to the database.
-func (g *Gcval) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gcval.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gcval) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gcval (` +
-		`gcvalread, gcvalreaddate, gcvalsource, gcvalreason, gcvaltype, gcvalentereddate, gcvalstatus, gcvaldispute, gcvalcomplete, gcmemo, gcvalsiteenddate, gcregtypec1, gcvalsparec2, gcvalsparec3, gcvalspared1, gcvalspared2, gcvalspared3, gcvalsparen1, gcvalsparen2, gcvalsparen3, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gcvalread, gcvalreaddate, gcvalsource, gcvalreason, gcvaltype, gcvalentereddate, gcvalstatus, gcvaldispute, gcvalcomplete, gcmemo, gcvalsiteenddate, gcregtypec1, gcvalsparec2, gcvalsparec3, gcvalspared1, gcvalspared2, gcvalspared3, gcvalsparen1, gcvalsparen2, gcvalsparen3, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gcvalread, EXCLUDED.gcvalreaddate, EXCLUDED.gcvalsource, EXCLUDED.gcvalreason, EXCLUDED.gcvaltype, EXCLUDED.gcvalentereddate, EXCLUDED.gcvalstatus, EXCLUDED.gcvaldispute, EXCLUDED.gcvalcomplete, EXCLUDED.gcmemo, EXCLUDED.gcvalsiteenddate, EXCLUDED.gcregtypec1, EXCLUDED.gcvalsparec2, EXCLUDED.gcvalsparec3, EXCLUDED.gcvalspared1, EXCLUDED.gcvalspared2, EXCLUDED.gcvalspared3, EXCLUDED.gcvalsparen1, EXCLUDED.gcvalsparen2, EXCLUDED.gcvalsparen3, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gcvalread, g.Gcvalreaddate, g.Gcvalsource, g.Gcvalreason, g.Gcvaltype, g.Gcvalentereddate, g.Gcvalstatus, g.Gcvaldispute, g.Gcvalcomplete, g.Gcmemo, g.Gcvalsiteenddate, g.Gcregtypec1, g.Gcvalsparec2, g.Gcvalsparec3, g.Gcvalspared1, g.Gcvalspared2, g.Gcvalspared3, g.Gcvalsparen1, g.Gcvalsparen2, g.Gcvalsparen3, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gcvalread, g.Gcvalreaddate, g.Gcvalsource, g.Gcvalreason, g.Gcvaltype, g.Gcvalentereddate, g.Gcvalstatus, g.Gcvaldispute, g.Gcvalcomplete, g.Gcmemo, g.Gcvalsiteenddate, g.Gcregtypec1, g.Gcvalsparec2, g.Gcvalsparec3, g.Gcvalspared1, g.Gcvalspared2, g.Gcvalspared3, g.Gcvalsparen1, g.Gcvalsparen2, g.Gcvalsparen3, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gcval from the database.
-func (g *Gcval) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gcval WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GcvalByEquinoxLrn retrieves a row from 'equinox.gcval' as a Gcval.
@@ -194,9 +50,7 @@ func GcvalByEquinoxLrn(db XODB, equinoxLrn int64) (*Gcval, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gcval{
-		_exists: true,
-	}
+	g := Gcval{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gcvalread, &g.Gcvalreaddate, &g.Gcvalsource, &g.Gcvalreason, &g.Gcvaltype, &g.Gcvalentereddate, &g.Gcvalstatus, &g.Gcvaldispute, &g.Gcvalcomplete, &g.Gcmemo, &g.Gcvalsiteenddate, &g.Gcregtypec1, &g.Gcvalsparec2, &g.Gcvalsparec3, &g.Gcvalspared1, &g.Gcvalspared2, &g.Gcvalspared3, &g.Gcvalsparen1, &g.Gcvalsparen2, &g.Gcvalsparen3, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

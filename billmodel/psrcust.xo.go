@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -44,149 +43,6 @@ type Psrcust struct {
 	Psrconpostcode   sql.NullString `json:"psrconpostcode"`   // psrconpostcode
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Psrcust exists in the database.
-func (p *Psrcust) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Psrcust has been deleted from the database.
-func (p *Psrcust) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Psrcust to the database.
-func (p *Psrcust) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.psrcust (` +
-		`psrcustref, psrdigits, psrnums, psrlifesupequip, psrcomments, psrpassword, psrdatetotransco, psrdatetoess, psrsuccessdate, psrtransconfirm, psrapplication, psrgref, psreref, psrgascheckmeter, psrdatecreated, psrelecdigits, psrsparec2, psrspared1, psrsparen1, psrsparec3, psrelecnums, psrappname, psrconname, psrconphone, psrconadd1, psrconadd2, psrconadd3, psrconadd4, psrconcounty, psrconpostcode, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Psrcustref, p.Psrdigits, p.Psrnums, p.Psrlifesupequip, p.Psrcomments, p.Psrpassword, p.Psrdatetotransco, p.Psrdatetoess, p.Psrsuccessdate, p.Psrtransconfirm, p.Psrapplication, p.Psrgref, p.Psreref, p.Psrgascheckmeter, p.Psrdatecreated, p.Psrelecdigits, p.Psrsparec2, p.Psrspared1, p.Psrsparen1, p.Psrsparec3, p.Psrelecnums, p.Psrappname, p.Psrconname, p.Psrconphone, p.Psrconadd1, p.Psrconadd2, p.Psrconadd3, p.Psrconadd4, p.Psrconcounty, p.Psrconpostcode, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Psrcustref, p.Psrdigits, p.Psrnums, p.Psrlifesupequip, p.Psrcomments, p.Psrpassword, p.Psrdatetotransco, p.Psrdatetoess, p.Psrsuccessdate, p.Psrtransconfirm, p.Psrapplication, p.Psrgref, p.Psreref, p.Psrgascheckmeter, p.Psrdatecreated, p.Psrelecdigits, p.Psrsparec2, p.Psrspared1, p.Psrsparen1, p.Psrsparec3, p.Psrelecnums, p.Psrappname, p.Psrconname, p.Psrconphone, p.Psrconadd1, p.Psrconadd2, p.Psrconadd3, p.Psrconadd4, p.Psrconcounty, p.Psrconpostcode, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Psrcust in the database.
-func (p *Psrcust) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.psrcust SET (` +
-		`psrcustref, psrdigits, psrnums, psrlifesupequip, psrcomments, psrpassword, psrdatetotransco, psrdatetoess, psrsuccessdate, psrtransconfirm, psrapplication, psrgref, psreref, psrgascheckmeter, psrdatecreated, psrelecdigits, psrsparec2, psrspared1, psrsparen1, psrsparec3, psrelecnums, psrappname, psrconname, psrconphone, psrconadd1, psrconadd2, psrconadd3, psrconadd4, psrconcounty, psrconpostcode, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) WHERE equinox_lrn = $32`
-
-	// run query
-	XOLog(sqlstr, p.Psrcustref, p.Psrdigits, p.Psrnums, p.Psrlifesupequip, p.Psrcomments, p.Psrpassword, p.Psrdatetotransco, p.Psrdatetoess, p.Psrsuccessdate, p.Psrtransconfirm, p.Psrapplication, p.Psrgref, p.Psreref, p.Psrgascheckmeter, p.Psrdatecreated, p.Psrelecdigits, p.Psrsparec2, p.Psrspared1, p.Psrsparen1, p.Psrsparec3, p.Psrelecnums, p.Psrappname, p.Psrconname, p.Psrconphone, p.Psrconadd1, p.Psrconadd2, p.Psrconadd3, p.Psrconadd4, p.Psrconcounty, p.Psrconpostcode, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Psrcustref, p.Psrdigits, p.Psrnums, p.Psrlifesupequip, p.Psrcomments, p.Psrpassword, p.Psrdatetotransco, p.Psrdatetoess, p.Psrsuccessdate, p.Psrtransconfirm, p.Psrapplication, p.Psrgref, p.Psreref, p.Psrgascheckmeter, p.Psrdatecreated, p.Psrelecdigits, p.Psrsparec2, p.Psrspared1, p.Psrsparen1, p.Psrsparec3, p.Psrelecnums, p.Psrappname, p.Psrconname, p.Psrconphone, p.Psrconadd1, p.Psrconadd2, p.Psrconadd3, p.Psrconadd4, p.Psrconcounty, p.Psrconpostcode, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Psrcust to the database.
-func (p *Psrcust) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Psrcust.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Psrcust) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.psrcust (` +
-		`psrcustref, psrdigits, psrnums, psrlifesupequip, psrcomments, psrpassword, psrdatetotransco, psrdatetoess, psrsuccessdate, psrtransconfirm, psrapplication, psrgref, psreref, psrgascheckmeter, psrdatecreated, psrelecdigits, psrsparec2, psrspared1, psrsparen1, psrsparec3, psrelecnums, psrappname, psrconname, psrconphone, psrconadd1, psrconadd2, psrconadd3, psrconadd4, psrconcounty, psrconpostcode, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`psrcustref, psrdigits, psrnums, psrlifesupequip, psrcomments, psrpassword, psrdatetotransco, psrdatetoess, psrsuccessdate, psrtransconfirm, psrapplication, psrgref, psreref, psrgascheckmeter, psrdatecreated, psrelecdigits, psrsparec2, psrspared1, psrsparen1, psrsparec3, psrelecnums, psrappname, psrconname, psrconphone, psrconadd1, psrconadd2, psrconadd3, psrconadd4, psrconcounty, psrconpostcode, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.psrcustref, EXCLUDED.psrdigits, EXCLUDED.psrnums, EXCLUDED.psrlifesupequip, EXCLUDED.psrcomments, EXCLUDED.psrpassword, EXCLUDED.psrdatetotransco, EXCLUDED.psrdatetoess, EXCLUDED.psrsuccessdate, EXCLUDED.psrtransconfirm, EXCLUDED.psrapplication, EXCLUDED.psrgref, EXCLUDED.psreref, EXCLUDED.psrgascheckmeter, EXCLUDED.psrdatecreated, EXCLUDED.psrelecdigits, EXCLUDED.psrsparec2, EXCLUDED.psrspared1, EXCLUDED.psrsparen1, EXCLUDED.psrsparec3, EXCLUDED.psrelecnums, EXCLUDED.psrappname, EXCLUDED.psrconname, EXCLUDED.psrconphone, EXCLUDED.psrconadd1, EXCLUDED.psrconadd2, EXCLUDED.psrconadd3, EXCLUDED.psrconadd4, EXCLUDED.psrconcounty, EXCLUDED.psrconpostcode, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Psrcustref, p.Psrdigits, p.Psrnums, p.Psrlifesupequip, p.Psrcomments, p.Psrpassword, p.Psrdatetotransco, p.Psrdatetoess, p.Psrsuccessdate, p.Psrtransconfirm, p.Psrapplication, p.Psrgref, p.Psreref, p.Psrgascheckmeter, p.Psrdatecreated, p.Psrelecdigits, p.Psrsparec2, p.Psrspared1, p.Psrsparen1, p.Psrsparec3, p.Psrelecnums, p.Psrappname, p.Psrconname, p.Psrconphone, p.Psrconadd1, p.Psrconadd2, p.Psrconadd3, p.Psrconadd4, p.Psrconcounty, p.Psrconpostcode, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Psrcustref, p.Psrdigits, p.Psrnums, p.Psrlifesupequip, p.Psrcomments, p.Psrpassword, p.Psrdatetotransco, p.Psrdatetoess, p.Psrsuccessdate, p.Psrtransconfirm, p.Psrapplication, p.Psrgref, p.Psreref, p.Psrgascheckmeter, p.Psrdatecreated, p.Psrelecdigits, p.Psrsparec2, p.Psrspared1, p.Psrsparen1, p.Psrsparec3, p.Psrelecnums, p.Psrappname, p.Psrconname, p.Psrconphone, p.Psrconadd1, p.Psrconadd2, p.Psrconadd3, p.Psrconadd4, p.Psrconcounty, p.Psrconpostcode, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Psrcust from the database.
-func (p *Psrcust) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.psrcust WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PsrcustByEquinoxLrn retrieves a row from 'equinox.psrcust' as a Psrcust.
@@ -203,9 +59,7 @@ func PsrcustByEquinoxLrn(db XODB, equinoxLrn int64) (*Psrcust, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Psrcust{
-		_exists: true,
-	}
+	p := Psrcust{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Psrcustref, &p.Psrdigits, &p.Psrnums, &p.Psrlifesupequip, &p.Psrcomments, &p.Psrpassword, &p.Psrdatetotransco, &p.Psrdatetoess, &p.Psrsuccessdate, &p.Psrtransconfirm, &p.Psrapplication, &p.Psrgref, &p.Psreref, &p.Psrgascheckmeter, &p.Psrdatecreated, &p.Psrelecdigits, &p.Psrsparec2, &p.Psrspared1, &p.Psrsparen1, &p.Psrsparec3, &p.Psrelecnums, &p.Psrappname, &p.Psrconname, &p.Psrconphone, &p.Psrconadd1, &p.Psrconadd2, &p.Psrconadd3, &p.Psrconadd4, &p.Psrconcounty, &p.Psrconpostcode, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Expcall struct {
 	Expspared1      pq.NullTime     `json:"expspared1"`      // expspared1
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Expcall exists in the database.
-func (e *Expcall) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Expcall has been deleted from the database.
-func (e *Expcall) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Expcall to the database.
-func (e *Expcall) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.expcalls (` +
-		`expdate, exptime, expdestination, expdestnumber, expratingperiod, expdurationsecs, expband, expwholesale, exptypeofexecpt, expcli, expfileid, expbillno, expcarrier, expsparec1, expsparen1, expspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Expdate, e.Exptime, e.Expdestination, e.Expdestnumber, e.Expratingperiod, e.Expdurationsecs, e.Expband, e.Expwholesale, e.Exptypeofexecpt, e.Expcli, e.Expfileid, e.Expbillno, e.Expcarrier, e.Expsparec1, e.Expsparen1, e.Expspared1, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Expdate, e.Exptime, e.Expdestination, e.Expdestnumber, e.Expratingperiod, e.Expdurationsecs, e.Expband, e.Expwholesale, e.Exptypeofexecpt, e.Expcli, e.Expfileid, e.Expbillno, e.Expcarrier, e.Expsparec1, e.Expsparen1, e.Expspared1, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Expcall in the database.
-func (e *Expcall) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.expcalls SET (` +
-		`expdate, exptime, expdestination, expdestnumber, expratingperiod, expdurationsecs, expband, expwholesale, exptypeofexecpt, expcli, expfileid, expbillno, expcarrier, expsparec1, expsparen1, expspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, e.Expdate, e.Exptime, e.Expdestination, e.Expdestnumber, e.Expratingperiod, e.Expdurationsecs, e.Expband, e.Expwholesale, e.Exptypeofexecpt, e.Expcli, e.Expfileid, e.Expbillno, e.Expcarrier, e.Expsparec1, e.Expsparen1, e.Expspared1, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Expdate, e.Exptime, e.Expdestination, e.Expdestnumber, e.Expratingperiod, e.Expdurationsecs, e.Expband, e.Expwholesale, e.Exptypeofexecpt, e.Expcli, e.Expfileid, e.Expbillno, e.Expcarrier, e.Expsparec1, e.Expsparen1, e.Expspared1, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Expcall to the database.
-func (e *Expcall) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Expcall.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Expcall) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.expcalls (` +
-		`expdate, exptime, expdestination, expdestnumber, expratingperiod, expdurationsecs, expband, expwholesale, exptypeofexecpt, expcli, expfileid, expbillno, expcarrier, expsparec1, expsparen1, expspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`expdate, exptime, expdestination, expdestnumber, expratingperiod, expdurationsecs, expband, expwholesale, exptypeofexecpt, expcli, expfileid, expbillno, expcarrier, expsparec1, expsparen1, expspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.expdate, EXCLUDED.exptime, EXCLUDED.expdestination, EXCLUDED.expdestnumber, EXCLUDED.expratingperiod, EXCLUDED.expdurationsecs, EXCLUDED.expband, EXCLUDED.expwholesale, EXCLUDED.exptypeofexecpt, EXCLUDED.expcli, EXCLUDED.expfileid, EXCLUDED.expbillno, EXCLUDED.expcarrier, EXCLUDED.expsparec1, EXCLUDED.expsparen1, EXCLUDED.expspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Expdate, e.Exptime, e.Expdestination, e.Expdestnumber, e.Expratingperiod, e.Expdurationsecs, e.Expband, e.Expwholesale, e.Exptypeofexecpt, e.Expcli, e.Expfileid, e.Expbillno, e.Expcarrier, e.Expsparec1, e.Expsparen1, e.Expspared1, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Expdate, e.Exptime, e.Expdestination, e.Expdestnumber, e.Expratingperiod, e.Expdurationsecs, e.Expband, e.Expwholesale, e.Exptypeofexecpt, e.Expcli, e.Expfileid, e.Expbillno, e.Expcarrier, e.Expsparec1, e.Expsparen1, e.Expspared1, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Expcall from the database.
-func (e *Expcall) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.expcalls WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // ExpcallByEquinoxLrn retrieves a row from 'equinox.expcalls' as a Expcall.
@@ -189,9 +45,7 @@ func ExpcallByEquinoxLrn(db XODB, equinoxLrn int64) (*Expcall, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Expcall{
-		_exists: true,
-	}
+	e := Expcall{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Expdate, &e.Exptime, &e.Expdestination, &e.Expdestnumber, &e.Expratingperiod, &e.Expdurationsecs, &e.Expband, &e.Expwholesale, &e.Exptypeofexecpt, &e.Expcli, &e.Expfileid, &e.Expbillno, &e.Expcarrier, &e.Expsparec1, &e.Expsparen1, &e.Expspared1, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

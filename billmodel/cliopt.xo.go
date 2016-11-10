@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -33,149 +32,6 @@ type Cliopt struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cliopt exists in the database.
-func (c *Cliopt) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cliopt has been deleted from the database.
-func (c *Cliopt) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cliopt to the database.
-func (c *Cliopt) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cliopts (` +
-		`clirmoptid, clirmsetup, clirmmonthly, clirmdaily, clirmmnthordaily, clirmsparen1, clirmstartdate, clirmenddate, clirmpaiduntil, clirmpaiduntilbr, clirmmonthsadv, clirmoneofbillno, clirmspecialdeal, clirmcontmethod, clirmdiscband, clirmdiscpercent, clirmwlrorder, clirmquantity, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Clirmoptid, c.Clirmsetup, c.Clirmmonthly, c.Clirmdaily, c.Clirmmnthordaily, c.Clirmsparen1, c.Clirmstartdate, c.Clirmenddate, c.Clirmpaiduntil, c.Clirmpaiduntilbr, c.Clirmmonthsadv, c.Clirmoneofbillno, c.Clirmspecialdeal, c.Clirmcontmethod, c.Clirmdiscband, c.Clirmdiscpercent, c.Clirmwlrorder, c.Clirmquantity, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Clirmoptid, c.Clirmsetup, c.Clirmmonthly, c.Clirmdaily, c.Clirmmnthordaily, c.Clirmsparen1, c.Clirmstartdate, c.Clirmenddate, c.Clirmpaiduntil, c.Clirmpaiduntilbr, c.Clirmmonthsadv, c.Clirmoneofbillno, c.Clirmspecialdeal, c.Clirmcontmethod, c.Clirmdiscband, c.Clirmdiscpercent, c.Clirmwlrorder, c.Clirmquantity, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cliopt in the database.
-func (c *Cliopt) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cliopts SET (` +
-		`clirmoptid, clirmsetup, clirmmonthly, clirmdaily, clirmmnthordaily, clirmsparen1, clirmstartdate, clirmenddate, clirmpaiduntil, clirmpaiduntilbr, clirmmonthsadv, clirmoneofbillno, clirmspecialdeal, clirmcontmethod, clirmdiscband, clirmdiscpercent, clirmwlrorder, clirmquantity, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) WHERE equinox_lrn = $21`
-
-	// run query
-	XOLog(sqlstr, c.Clirmoptid, c.Clirmsetup, c.Clirmmonthly, c.Clirmdaily, c.Clirmmnthordaily, c.Clirmsparen1, c.Clirmstartdate, c.Clirmenddate, c.Clirmpaiduntil, c.Clirmpaiduntilbr, c.Clirmmonthsadv, c.Clirmoneofbillno, c.Clirmspecialdeal, c.Clirmcontmethod, c.Clirmdiscband, c.Clirmdiscpercent, c.Clirmwlrorder, c.Clirmquantity, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Clirmoptid, c.Clirmsetup, c.Clirmmonthly, c.Clirmdaily, c.Clirmmnthordaily, c.Clirmsparen1, c.Clirmstartdate, c.Clirmenddate, c.Clirmpaiduntil, c.Clirmpaiduntilbr, c.Clirmmonthsadv, c.Clirmoneofbillno, c.Clirmspecialdeal, c.Clirmcontmethod, c.Clirmdiscband, c.Clirmdiscpercent, c.Clirmwlrorder, c.Clirmquantity, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cliopt to the database.
-func (c *Cliopt) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cliopt.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cliopt) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cliopts (` +
-		`clirmoptid, clirmsetup, clirmmonthly, clirmdaily, clirmmnthordaily, clirmsparen1, clirmstartdate, clirmenddate, clirmpaiduntil, clirmpaiduntilbr, clirmmonthsadv, clirmoneofbillno, clirmspecialdeal, clirmcontmethod, clirmdiscband, clirmdiscpercent, clirmwlrorder, clirmquantity, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`clirmoptid, clirmsetup, clirmmonthly, clirmdaily, clirmmnthordaily, clirmsparen1, clirmstartdate, clirmenddate, clirmpaiduntil, clirmpaiduntilbr, clirmmonthsadv, clirmoneofbillno, clirmspecialdeal, clirmcontmethod, clirmdiscband, clirmdiscpercent, clirmwlrorder, clirmquantity, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.clirmoptid, EXCLUDED.clirmsetup, EXCLUDED.clirmmonthly, EXCLUDED.clirmdaily, EXCLUDED.clirmmnthordaily, EXCLUDED.clirmsparen1, EXCLUDED.clirmstartdate, EXCLUDED.clirmenddate, EXCLUDED.clirmpaiduntil, EXCLUDED.clirmpaiduntilbr, EXCLUDED.clirmmonthsadv, EXCLUDED.clirmoneofbillno, EXCLUDED.clirmspecialdeal, EXCLUDED.clirmcontmethod, EXCLUDED.clirmdiscband, EXCLUDED.clirmdiscpercent, EXCLUDED.clirmwlrorder, EXCLUDED.clirmquantity, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Clirmoptid, c.Clirmsetup, c.Clirmmonthly, c.Clirmdaily, c.Clirmmnthordaily, c.Clirmsparen1, c.Clirmstartdate, c.Clirmenddate, c.Clirmpaiduntil, c.Clirmpaiduntilbr, c.Clirmmonthsadv, c.Clirmoneofbillno, c.Clirmspecialdeal, c.Clirmcontmethod, c.Clirmdiscband, c.Clirmdiscpercent, c.Clirmwlrorder, c.Clirmquantity, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Clirmoptid, c.Clirmsetup, c.Clirmmonthly, c.Clirmdaily, c.Clirmmnthordaily, c.Clirmsparen1, c.Clirmstartdate, c.Clirmenddate, c.Clirmpaiduntil, c.Clirmpaiduntilbr, c.Clirmmonthsadv, c.Clirmoneofbillno, c.Clirmspecialdeal, c.Clirmcontmethod, c.Clirmdiscband, c.Clirmdiscpercent, c.Clirmwlrorder, c.Clirmquantity, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cliopt from the database.
-func (c *Cliopt) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cliopts WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // ClioptByEquinoxLrn retrieves a row from 'equinox.cliopts' as a Cliopt.
@@ -192,9 +48,7 @@ func ClioptByEquinoxLrn(db XODB, equinoxLrn int64) (*Cliopt, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cliopt{
-		_exists: true,
-	}
+	c := Cliopt{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Clirmoptid, &c.Clirmsetup, &c.Clirmmonthly, &c.Clirmdaily, &c.Clirmmnthordaily, &c.Clirmsparen1, &c.Clirmstartdate, &c.Clirmenddate, &c.Clirmpaiduntil, &c.Clirmpaiduntilbr, &c.Clirmmonthsadv, &c.Clirmoneofbillno, &c.Clirmspecialdeal, &c.Clirmcontmethod, &c.Clirmdiscband, &c.Clirmdiscpercent, &c.Clirmwlrorder, &c.Clirmquantity, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

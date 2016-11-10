@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -125,149 +124,6 @@ type Cnxbc struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxbc exists in the database.
-func (c *Cnxbc) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxbc has been deleted from the database.
-func (c *Cnxbc) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxbc to the database.
-func (c *Cnxbc) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxbc (` +
-		`cnxbccli, cnxbcfeature, cnxbcni, cnxbcservicelvl, cnxbcdatetocsgp, cnxbcdatetocssp, cnxbcdatefromgp, cnxbcdatefromsp, cnxbcdatetoopt, cnxbcdatefromopt, cnxbcserialnum, cnxbcdateentered, cnxbcweborder, cnxbcdatetobill, cnxbcdateletter, cnxbcenteredby, cnxbcpackageno, cnxbccpspostcode, cnxbcdatecps, cnxbccpsreqd, cnxbccpsstrikes, cnxbcdstrike1, cnxbcdstrike2, cnxbcdstrike3, cnxbccpscarrier, cnxbcwlrtype, cnxbccpscancel, cnxbcmaccode, cnxbcsparen1, cnxbccontterm, cnxbccsigndate, cnxbcholddate, cnxbcdiscountllx, cnxbcholduntil, cnxbcbtaccountno, cnxbcdeladdr, cnxbcdeladdref, cnxbcexdir, cnxbcnumwithheld, cnxbcplus, cnxbcequip, cnxbcnousbadap, cnxbctps, cnxbcss07, cnxbcss01, cnxbcss1a, cnxbcss08, cnxbcss06, cnxbcss09, cnxbcss02, cnxbcss05, cnxbcss14, cnxbcreqdate, cnxbcdatechecked, cnxbcexcd, cnxbcexname, cnxbcstatus, cnxbcorderid, cnxbccommandid, cnxbccurrentsup, cnxbcoptordnum, cnxbcstate, cnxbcstatedate, cnxbcpassword, cnxbcagreeddate, cnxbclluauto, cnxbcdonoracc, cnxbcrejcode, cnxbcmoretalk, cnxbcfibre, cnxbcbuscontend, cnxbcspared2, cnxbctermnum, cnxbchmdate, cnxbcsubtariff, cnxbctariff, cnxbcnetwork, cnxbcmobsaver, cnxbcspared1, cnxbcaddserv, cnxbccallbundle, cnxbcmysecurepc, cnxbcss20, cnxbcnewprovide, cnxbctype, cnxbcinstalltime, cnxbcengvisit, cnxbccontactno, cnxbccategory, cnxbc50254sent, cnxbceconomysave, cnxbcalk, cnxbcvaliddate, cnxbcvalidby, cnxbcfilters, cnxbcttmig, cnxbcllucheck, cnxbccampaign, cnxbcllxtype, cnxbcacclineid, cnxbcported, cnxbcexactdate, cnxbccancelrid, cnxbcgainingrid, cnxbccpwnref, cnxbclorn, cnxbcsimprovord, cnxbcsimordertyp, cnxbcngaprodcode, cnxbcsrccliref, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111, $112` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxbccli, c.Cnxbcfeature, c.Cnxbcni, c.Cnxbcservicelvl, c.Cnxbcdatetocsgp, c.Cnxbcdatetocssp, c.Cnxbcdatefromgp, c.Cnxbcdatefromsp, c.Cnxbcdatetoopt, c.Cnxbcdatefromopt, c.Cnxbcserialnum, c.Cnxbcdateentered, c.Cnxbcweborder, c.Cnxbcdatetobill, c.Cnxbcdateletter, c.Cnxbcenteredby, c.Cnxbcpackageno, c.Cnxbccpspostcode, c.Cnxbcdatecps, c.Cnxbccpsreqd, c.Cnxbccpsstrikes, c.Cnxbcdstrike1, c.Cnxbcdstrike2, c.Cnxbcdstrike3, c.Cnxbccpscarrier, c.Cnxbcwlrtype, c.Cnxbccpscancel, c.Cnxbcmaccode, c.Cnxbcsparen1, c.Cnxbccontterm, c.Cnxbccsigndate, c.Cnxbcholddate, c.Cnxbcdiscountllx, c.Cnxbcholduntil, c.Cnxbcbtaccountno, c.Cnxbcdeladdr, c.Cnxbcdeladdref, c.Cnxbcexdir, c.Cnxbcnumwithheld, c.Cnxbcplus, c.Cnxbcequip, c.Cnxbcnousbadap, c.Cnxbctps, c.Cnxbcss07, c.Cnxbcss01, c.Cnxbcss1a, c.Cnxbcss08, c.Cnxbcss06, c.Cnxbcss09, c.Cnxbcss02, c.Cnxbcss05, c.Cnxbcss14, c.Cnxbcreqdate, c.Cnxbcdatechecked, c.Cnxbcexcd, c.Cnxbcexname, c.Cnxbcstatus, c.Cnxbcorderid, c.Cnxbccommandid, c.Cnxbccurrentsup, c.Cnxbcoptordnum, c.Cnxbcstate, c.Cnxbcstatedate, c.Cnxbcpassword, c.Cnxbcagreeddate, c.Cnxbclluauto, c.Cnxbcdonoracc, c.Cnxbcrejcode, c.Cnxbcmoretalk, c.Cnxbcfibre, c.Cnxbcbuscontend, c.Cnxbcspared2, c.Cnxbctermnum, c.Cnxbchmdate, c.Cnxbcsubtariff, c.Cnxbctariff, c.Cnxbcnetwork, c.Cnxbcmobsaver, c.Cnxbcspared1, c.Cnxbcaddserv, c.Cnxbccallbundle, c.Cnxbcmysecurepc, c.Cnxbcss20, c.Cnxbcnewprovide, c.Cnxbctype, c.Cnxbcinstalltime, c.Cnxbcengvisit, c.Cnxbccontactno, c.Cnxbccategory, c.Cnxbc50254sent, c.Cnxbceconomysave, c.Cnxbcalk, c.Cnxbcvaliddate, c.Cnxbcvalidby, c.Cnxbcfilters, c.Cnxbcttmig, c.Cnxbcllucheck, c.Cnxbccampaign, c.Cnxbcllxtype, c.Cnxbcacclineid, c.Cnxbcported, c.Cnxbcexactdate, c.Cnxbccancelrid, c.Cnxbcgainingrid, c.Cnxbccpwnref, c.Cnxbclorn, c.Cnxbcsimprovord, c.Cnxbcsimordertyp, c.Cnxbcngaprodcode, c.Cnxbcsrccliref, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxbccli, c.Cnxbcfeature, c.Cnxbcni, c.Cnxbcservicelvl, c.Cnxbcdatetocsgp, c.Cnxbcdatetocssp, c.Cnxbcdatefromgp, c.Cnxbcdatefromsp, c.Cnxbcdatetoopt, c.Cnxbcdatefromopt, c.Cnxbcserialnum, c.Cnxbcdateentered, c.Cnxbcweborder, c.Cnxbcdatetobill, c.Cnxbcdateletter, c.Cnxbcenteredby, c.Cnxbcpackageno, c.Cnxbccpspostcode, c.Cnxbcdatecps, c.Cnxbccpsreqd, c.Cnxbccpsstrikes, c.Cnxbcdstrike1, c.Cnxbcdstrike2, c.Cnxbcdstrike3, c.Cnxbccpscarrier, c.Cnxbcwlrtype, c.Cnxbccpscancel, c.Cnxbcmaccode, c.Cnxbcsparen1, c.Cnxbccontterm, c.Cnxbccsigndate, c.Cnxbcholddate, c.Cnxbcdiscountllx, c.Cnxbcholduntil, c.Cnxbcbtaccountno, c.Cnxbcdeladdr, c.Cnxbcdeladdref, c.Cnxbcexdir, c.Cnxbcnumwithheld, c.Cnxbcplus, c.Cnxbcequip, c.Cnxbcnousbadap, c.Cnxbctps, c.Cnxbcss07, c.Cnxbcss01, c.Cnxbcss1a, c.Cnxbcss08, c.Cnxbcss06, c.Cnxbcss09, c.Cnxbcss02, c.Cnxbcss05, c.Cnxbcss14, c.Cnxbcreqdate, c.Cnxbcdatechecked, c.Cnxbcexcd, c.Cnxbcexname, c.Cnxbcstatus, c.Cnxbcorderid, c.Cnxbccommandid, c.Cnxbccurrentsup, c.Cnxbcoptordnum, c.Cnxbcstate, c.Cnxbcstatedate, c.Cnxbcpassword, c.Cnxbcagreeddate, c.Cnxbclluauto, c.Cnxbcdonoracc, c.Cnxbcrejcode, c.Cnxbcmoretalk, c.Cnxbcfibre, c.Cnxbcbuscontend, c.Cnxbcspared2, c.Cnxbctermnum, c.Cnxbchmdate, c.Cnxbcsubtariff, c.Cnxbctariff, c.Cnxbcnetwork, c.Cnxbcmobsaver, c.Cnxbcspared1, c.Cnxbcaddserv, c.Cnxbccallbundle, c.Cnxbcmysecurepc, c.Cnxbcss20, c.Cnxbcnewprovide, c.Cnxbctype, c.Cnxbcinstalltime, c.Cnxbcengvisit, c.Cnxbccontactno, c.Cnxbccategory, c.Cnxbc50254sent, c.Cnxbceconomysave, c.Cnxbcalk, c.Cnxbcvaliddate, c.Cnxbcvalidby, c.Cnxbcfilters, c.Cnxbcttmig, c.Cnxbcllucheck, c.Cnxbccampaign, c.Cnxbcllxtype, c.Cnxbcacclineid, c.Cnxbcported, c.Cnxbcexactdate, c.Cnxbccancelrid, c.Cnxbcgainingrid, c.Cnxbccpwnref, c.Cnxbclorn, c.Cnxbcsimprovord, c.Cnxbcsimordertyp, c.Cnxbcngaprodcode, c.Cnxbcsrccliref, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxbc in the database.
-func (c *Cnxbc) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxbc SET (` +
-		`cnxbccli, cnxbcfeature, cnxbcni, cnxbcservicelvl, cnxbcdatetocsgp, cnxbcdatetocssp, cnxbcdatefromgp, cnxbcdatefromsp, cnxbcdatetoopt, cnxbcdatefromopt, cnxbcserialnum, cnxbcdateentered, cnxbcweborder, cnxbcdatetobill, cnxbcdateletter, cnxbcenteredby, cnxbcpackageno, cnxbccpspostcode, cnxbcdatecps, cnxbccpsreqd, cnxbccpsstrikes, cnxbcdstrike1, cnxbcdstrike2, cnxbcdstrike3, cnxbccpscarrier, cnxbcwlrtype, cnxbccpscancel, cnxbcmaccode, cnxbcsparen1, cnxbccontterm, cnxbccsigndate, cnxbcholddate, cnxbcdiscountllx, cnxbcholduntil, cnxbcbtaccountno, cnxbcdeladdr, cnxbcdeladdref, cnxbcexdir, cnxbcnumwithheld, cnxbcplus, cnxbcequip, cnxbcnousbadap, cnxbctps, cnxbcss07, cnxbcss01, cnxbcss1a, cnxbcss08, cnxbcss06, cnxbcss09, cnxbcss02, cnxbcss05, cnxbcss14, cnxbcreqdate, cnxbcdatechecked, cnxbcexcd, cnxbcexname, cnxbcstatus, cnxbcorderid, cnxbccommandid, cnxbccurrentsup, cnxbcoptordnum, cnxbcstate, cnxbcstatedate, cnxbcpassword, cnxbcagreeddate, cnxbclluauto, cnxbcdonoracc, cnxbcrejcode, cnxbcmoretalk, cnxbcfibre, cnxbcbuscontend, cnxbcspared2, cnxbctermnum, cnxbchmdate, cnxbcsubtariff, cnxbctariff, cnxbcnetwork, cnxbcmobsaver, cnxbcspared1, cnxbcaddserv, cnxbccallbundle, cnxbcmysecurepc, cnxbcss20, cnxbcnewprovide, cnxbctype, cnxbcinstalltime, cnxbcengvisit, cnxbccontactno, cnxbccategory, cnxbc50254sent, cnxbceconomysave, cnxbcalk, cnxbcvaliddate, cnxbcvalidby, cnxbcfilters, cnxbcttmig, cnxbcllucheck, cnxbccampaign, cnxbcllxtype, cnxbcacclineid, cnxbcported, cnxbcexactdate, cnxbccancelrid, cnxbcgainingrid, cnxbccpwnref, cnxbclorn, cnxbcsimprovord, cnxbcsimordertyp, cnxbcngaprodcode, cnxbcsrccliref, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111, $112` +
-		`) WHERE equinox_lrn = $113`
-
-	// run query
-	XOLog(sqlstr, c.Cnxbccli, c.Cnxbcfeature, c.Cnxbcni, c.Cnxbcservicelvl, c.Cnxbcdatetocsgp, c.Cnxbcdatetocssp, c.Cnxbcdatefromgp, c.Cnxbcdatefromsp, c.Cnxbcdatetoopt, c.Cnxbcdatefromopt, c.Cnxbcserialnum, c.Cnxbcdateentered, c.Cnxbcweborder, c.Cnxbcdatetobill, c.Cnxbcdateletter, c.Cnxbcenteredby, c.Cnxbcpackageno, c.Cnxbccpspostcode, c.Cnxbcdatecps, c.Cnxbccpsreqd, c.Cnxbccpsstrikes, c.Cnxbcdstrike1, c.Cnxbcdstrike2, c.Cnxbcdstrike3, c.Cnxbccpscarrier, c.Cnxbcwlrtype, c.Cnxbccpscancel, c.Cnxbcmaccode, c.Cnxbcsparen1, c.Cnxbccontterm, c.Cnxbccsigndate, c.Cnxbcholddate, c.Cnxbcdiscountllx, c.Cnxbcholduntil, c.Cnxbcbtaccountno, c.Cnxbcdeladdr, c.Cnxbcdeladdref, c.Cnxbcexdir, c.Cnxbcnumwithheld, c.Cnxbcplus, c.Cnxbcequip, c.Cnxbcnousbadap, c.Cnxbctps, c.Cnxbcss07, c.Cnxbcss01, c.Cnxbcss1a, c.Cnxbcss08, c.Cnxbcss06, c.Cnxbcss09, c.Cnxbcss02, c.Cnxbcss05, c.Cnxbcss14, c.Cnxbcreqdate, c.Cnxbcdatechecked, c.Cnxbcexcd, c.Cnxbcexname, c.Cnxbcstatus, c.Cnxbcorderid, c.Cnxbccommandid, c.Cnxbccurrentsup, c.Cnxbcoptordnum, c.Cnxbcstate, c.Cnxbcstatedate, c.Cnxbcpassword, c.Cnxbcagreeddate, c.Cnxbclluauto, c.Cnxbcdonoracc, c.Cnxbcrejcode, c.Cnxbcmoretalk, c.Cnxbcfibre, c.Cnxbcbuscontend, c.Cnxbcspared2, c.Cnxbctermnum, c.Cnxbchmdate, c.Cnxbcsubtariff, c.Cnxbctariff, c.Cnxbcnetwork, c.Cnxbcmobsaver, c.Cnxbcspared1, c.Cnxbcaddserv, c.Cnxbccallbundle, c.Cnxbcmysecurepc, c.Cnxbcss20, c.Cnxbcnewprovide, c.Cnxbctype, c.Cnxbcinstalltime, c.Cnxbcengvisit, c.Cnxbccontactno, c.Cnxbccategory, c.Cnxbc50254sent, c.Cnxbceconomysave, c.Cnxbcalk, c.Cnxbcvaliddate, c.Cnxbcvalidby, c.Cnxbcfilters, c.Cnxbcttmig, c.Cnxbcllucheck, c.Cnxbccampaign, c.Cnxbcllxtype, c.Cnxbcacclineid, c.Cnxbcported, c.Cnxbcexactdate, c.Cnxbccancelrid, c.Cnxbcgainingrid, c.Cnxbccpwnref, c.Cnxbclorn, c.Cnxbcsimprovord, c.Cnxbcsimordertyp, c.Cnxbcngaprodcode, c.Cnxbcsrccliref, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxbccli, c.Cnxbcfeature, c.Cnxbcni, c.Cnxbcservicelvl, c.Cnxbcdatetocsgp, c.Cnxbcdatetocssp, c.Cnxbcdatefromgp, c.Cnxbcdatefromsp, c.Cnxbcdatetoopt, c.Cnxbcdatefromopt, c.Cnxbcserialnum, c.Cnxbcdateentered, c.Cnxbcweborder, c.Cnxbcdatetobill, c.Cnxbcdateletter, c.Cnxbcenteredby, c.Cnxbcpackageno, c.Cnxbccpspostcode, c.Cnxbcdatecps, c.Cnxbccpsreqd, c.Cnxbccpsstrikes, c.Cnxbcdstrike1, c.Cnxbcdstrike2, c.Cnxbcdstrike3, c.Cnxbccpscarrier, c.Cnxbcwlrtype, c.Cnxbccpscancel, c.Cnxbcmaccode, c.Cnxbcsparen1, c.Cnxbccontterm, c.Cnxbccsigndate, c.Cnxbcholddate, c.Cnxbcdiscountllx, c.Cnxbcholduntil, c.Cnxbcbtaccountno, c.Cnxbcdeladdr, c.Cnxbcdeladdref, c.Cnxbcexdir, c.Cnxbcnumwithheld, c.Cnxbcplus, c.Cnxbcequip, c.Cnxbcnousbadap, c.Cnxbctps, c.Cnxbcss07, c.Cnxbcss01, c.Cnxbcss1a, c.Cnxbcss08, c.Cnxbcss06, c.Cnxbcss09, c.Cnxbcss02, c.Cnxbcss05, c.Cnxbcss14, c.Cnxbcreqdate, c.Cnxbcdatechecked, c.Cnxbcexcd, c.Cnxbcexname, c.Cnxbcstatus, c.Cnxbcorderid, c.Cnxbccommandid, c.Cnxbccurrentsup, c.Cnxbcoptordnum, c.Cnxbcstate, c.Cnxbcstatedate, c.Cnxbcpassword, c.Cnxbcagreeddate, c.Cnxbclluauto, c.Cnxbcdonoracc, c.Cnxbcrejcode, c.Cnxbcmoretalk, c.Cnxbcfibre, c.Cnxbcbuscontend, c.Cnxbcspared2, c.Cnxbctermnum, c.Cnxbchmdate, c.Cnxbcsubtariff, c.Cnxbctariff, c.Cnxbcnetwork, c.Cnxbcmobsaver, c.Cnxbcspared1, c.Cnxbcaddserv, c.Cnxbccallbundle, c.Cnxbcmysecurepc, c.Cnxbcss20, c.Cnxbcnewprovide, c.Cnxbctype, c.Cnxbcinstalltime, c.Cnxbcengvisit, c.Cnxbccontactno, c.Cnxbccategory, c.Cnxbc50254sent, c.Cnxbceconomysave, c.Cnxbcalk, c.Cnxbcvaliddate, c.Cnxbcvalidby, c.Cnxbcfilters, c.Cnxbcttmig, c.Cnxbcllucheck, c.Cnxbccampaign, c.Cnxbcllxtype, c.Cnxbcacclineid, c.Cnxbcported, c.Cnxbcexactdate, c.Cnxbccancelrid, c.Cnxbcgainingrid, c.Cnxbccpwnref, c.Cnxbclorn, c.Cnxbcsimprovord, c.Cnxbcsimordertyp, c.Cnxbcngaprodcode, c.Cnxbcsrccliref, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxbc to the database.
-func (c *Cnxbc) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxbc.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxbc) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxbc (` +
-		`cnxbccli, cnxbcfeature, cnxbcni, cnxbcservicelvl, cnxbcdatetocsgp, cnxbcdatetocssp, cnxbcdatefromgp, cnxbcdatefromsp, cnxbcdatetoopt, cnxbcdatefromopt, cnxbcserialnum, cnxbcdateentered, cnxbcweborder, cnxbcdatetobill, cnxbcdateletter, cnxbcenteredby, cnxbcpackageno, cnxbccpspostcode, cnxbcdatecps, cnxbccpsreqd, cnxbccpsstrikes, cnxbcdstrike1, cnxbcdstrike2, cnxbcdstrike3, cnxbccpscarrier, cnxbcwlrtype, cnxbccpscancel, cnxbcmaccode, cnxbcsparen1, cnxbccontterm, cnxbccsigndate, cnxbcholddate, cnxbcdiscountllx, cnxbcholduntil, cnxbcbtaccountno, cnxbcdeladdr, cnxbcdeladdref, cnxbcexdir, cnxbcnumwithheld, cnxbcplus, cnxbcequip, cnxbcnousbadap, cnxbctps, cnxbcss07, cnxbcss01, cnxbcss1a, cnxbcss08, cnxbcss06, cnxbcss09, cnxbcss02, cnxbcss05, cnxbcss14, cnxbcreqdate, cnxbcdatechecked, cnxbcexcd, cnxbcexname, cnxbcstatus, cnxbcorderid, cnxbccommandid, cnxbccurrentsup, cnxbcoptordnum, cnxbcstate, cnxbcstatedate, cnxbcpassword, cnxbcagreeddate, cnxbclluauto, cnxbcdonoracc, cnxbcrejcode, cnxbcmoretalk, cnxbcfibre, cnxbcbuscontend, cnxbcspared2, cnxbctermnum, cnxbchmdate, cnxbcsubtariff, cnxbctariff, cnxbcnetwork, cnxbcmobsaver, cnxbcspared1, cnxbcaddserv, cnxbccallbundle, cnxbcmysecurepc, cnxbcss20, cnxbcnewprovide, cnxbctype, cnxbcinstalltime, cnxbcengvisit, cnxbccontactno, cnxbccategory, cnxbc50254sent, cnxbceconomysave, cnxbcalk, cnxbcvaliddate, cnxbcvalidby, cnxbcfilters, cnxbcttmig, cnxbcllucheck, cnxbccampaign, cnxbcllxtype, cnxbcacclineid, cnxbcported, cnxbcexactdate, cnxbccancelrid, cnxbcgainingrid, cnxbccpwnref, cnxbclorn, cnxbcsimprovord, cnxbcsimordertyp, cnxbcngaprodcode, cnxbcsrccliref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104, $105, $106, $107, $108, $109, $110, $111, $112, $113` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxbccli, cnxbcfeature, cnxbcni, cnxbcservicelvl, cnxbcdatetocsgp, cnxbcdatetocssp, cnxbcdatefromgp, cnxbcdatefromsp, cnxbcdatetoopt, cnxbcdatefromopt, cnxbcserialnum, cnxbcdateentered, cnxbcweborder, cnxbcdatetobill, cnxbcdateletter, cnxbcenteredby, cnxbcpackageno, cnxbccpspostcode, cnxbcdatecps, cnxbccpsreqd, cnxbccpsstrikes, cnxbcdstrike1, cnxbcdstrike2, cnxbcdstrike3, cnxbccpscarrier, cnxbcwlrtype, cnxbccpscancel, cnxbcmaccode, cnxbcsparen1, cnxbccontterm, cnxbccsigndate, cnxbcholddate, cnxbcdiscountllx, cnxbcholduntil, cnxbcbtaccountno, cnxbcdeladdr, cnxbcdeladdref, cnxbcexdir, cnxbcnumwithheld, cnxbcplus, cnxbcequip, cnxbcnousbadap, cnxbctps, cnxbcss07, cnxbcss01, cnxbcss1a, cnxbcss08, cnxbcss06, cnxbcss09, cnxbcss02, cnxbcss05, cnxbcss14, cnxbcreqdate, cnxbcdatechecked, cnxbcexcd, cnxbcexname, cnxbcstatus, cnxbcorderid, cnxbccommandid, cnxbccurrentsup, cnxbcoptordnum, cnxbcstate, cnxbcstatedate, cnxbcpassword, cnxbcagreeddate, cnxbclluauto, cnxbcdonoracc, cnxbcrejcode, cnxbcmoretalk, cnxbcfibre, cnxbcbuscontend, cnxbcspared2, cnxbctermnum, cnxbchmdate, cnxbcsubtariff, cnxbctariff, cnxbcnetwork, cnxbcmobsaver, cnxbcspared1, cnxbcaddserv, cnxbccallbundle, cnxbcmysecurepc, cnxbcss20, cnxbcnewprovide, cnxbctype, cnxbcinstalltime, cnxbcengvisit, cnxbccontactno, cnxbccategory, cnxbc50254sent, cnxbceconomysave, cnxbcalk, cnxbcvaliddate, cnxbcvalidby, cnxbcfilters, cnxbcttmig, cnxbcllucheck, cnxbccampaign, cnxbcllxtype, cnxbcacclineid, cnxbcported, cnxbcexactdate, cnxbccancelrid, cnxbcgainingrid, cnxbccpwnref, cnxbclorn, cnxbcsimprovord, cnxbcsimordertyp, cnxbcngaprodcode, cnxbcsrccliref, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxbccli, EXCLUDED.cnxbcfeature, EXCLUDED.cnxbcni, EXCLUDED.cnxbcservicelvl, EXCLUDED.cnxbcdatetocsgp, EXCLUDED.cnxbcdatetocssp, EXCLUDED.cnxbcdatefromgp, EXCLUDED.cnxbcdatefromsp, EXCLUDED.cnxbcdatetoopt, EXCLUDED.cnxbcdatefromopt, EXCLUDED.cnxbcserialnum, EXCLUDED.cnxbcdateentered, EXCLUDED.cnxbcweborder, EXCLUDED.cnxbcdatetobill, EXCLUDED.cnxbcdateletter, EXCLUDED.cnxbcenteredby, EXCLUDED.cnxbcpackageno, EXCLUDED.cnxbccpspostcode, EXCLUDED.cnxbcdatecps, EXCLUDED.cnxbccpsreqd, EXCLUDED.cnxbccpsstrikes, EXCLUDED.cnxbcdstrike1, EXCLUDED.cnxbcdstrike2, EXCLUDED.cnxbcdstrike3, EXCLUDED.cnxbccpscarrier, EXCLUDED.cnxbcwlrtype, EXCLUDED.cnxbccpscancel, EXCLUDED.cnxbcmaccode, EXCLUDED.cnxbcsparen1, EXCLUDED.cnxbccontterm, EXCLUDED.cnxbccsigndate, EXCLUDED.cnxbcholddate, EXCLUDED.cnxbcdiscountllx, EXCLUDED.cnxbcholduntil, EXCLUDED.cnxbcbtaccountno, EXCLUDED.cnxbcdeladdr, EXCLUDED.cnxbcdeladdref, EXCLUDED.cnxbcexdir, EXCLUDED.cnxbcnumwithheld, EXCLUDED.cnxbcplus, EXCLUDED.cnxbcequip, EXCLUDED.cnxbcnousbadap, EXCLUDED.cnxbctps, EXCLUDED.cnxbcss07, EXCLUDED.cnxbcss01, EXCLUDED.cnxbcss1a, EXCLUDED.cnxbcss08, EXCLUDED.cnxbcss06, EXCLUDED.cnxbcss09, EXCLUDED.cnxbcss02, EXCLUDED.cnxbcss05, EXCLUDED.cnxbcss14, EXCLUDED.cnxbcreqdate, EXCLUDED.cnxbcdatechecked, EXCLUDED.cnxbcexcd, EXCLUDED.cnxbcexname, EXCLUDED.cnxbcstatus, EXCLUDED.cnxbcorderid, EXCLUDED.cnxbccommandid, EXCLUDED.cnxbccurrentsup, EXCLUDED.cnxbcoptordnum, EXCLUDED.cnxbcstate, EXCLUDED.cnxbcstatedate, EXCLUDED.cnxbcpassword, EXCLUDED.cnxbcagreeddate, EXCLUDED.cnxbclluauto, EXCLUDED.cnxbcdonoracc, EXCLUDED.cnxbcrejcode, EXCLUDED.cnxbcmoretalk, EXCLUDED.cnxbcfibre, EXCLUDED.cnxbcbuscontend, EXCLUDED.cnxbcspared2, EXCLUDED.cnxbctermnum, EXCLUDED.cnxbchmdate, EXCLUDED.cnxbcsubtariff, EXCLUDED.cnxbctariff, EXCLUDED.cnxbcnetwork, EXCLUDED.cnxbcmobsaver, EXCLUDED.cnxbcspared1, EXCLUDED.cnxbcaddserv, EXCLUDED.cnxbccallbundle, EXCLUDED.cnxbcmysecurepc, EXCLUDED.cnxbcss20, EXCLUDED.cnxbcnewprovide, EXCLUDED.cnxbctype, EXCLUDED.cnxbcinstalltime, EXCLUDED.cnxbcengvisit, EXCLUDED.cnxbccontactno, EXCLUDED.cnxbccategory, EXCLUDED.cnxbc50254sent, EXCLUDED.cnxbceconomysave, EXCLUDED.cnxbcalk, EXCLUDED.cnxbcvaliddate, EXCLUDED.cnxbcvalidby, EXCLUDED.cnxbcfilters, EXCLUDED.cnxbcttmig, EXCLUDED.cnxbcllucheck, EXCLUDED.cnxbccampaign, EXCLUDED.cnxbcllxtype, EXCLUDED.cnxbcacclineid, EXCLUDED.cnxbcported, EXCLUDED.cnxbcexactdate, EXCLUDED.cnxbccancelrid, EXCLUDED.cnxbcgainingrid, EXCLUDED.cnxbccpwnref, EXCLUDED.cnxbclorn, EXCLUDED.cnxbcsimprovord, EXCLUDED.cnxbcsimordertyp, EXCLUDED.cnxbcngaprodcode, EXCLUDED.cnxbcsrccliref, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxbccli, c.Cnxbcfeature, c.Cnxbcni, c.Cnxbcservicelvl, c.Cnxbcdatetocsgp, c.Cnxbcdatetocssp, c.Cnxbcdatefromgp, c.Cnxbcdatefromsp, c.Cnxbcdatetoopt, c.Cnxbcdatefromopt, c.Cnxbcserialnum, c.Cnxbcdateentered, c.Cnxbcweborder, c.Cnxbcdatetobill, c.Cnxbcdateletter, c.Cnxbcenteredby, c.Cnxbcpackageno, c.Cnxbccpspostcode, c.Cnxbcdatecps, c.Cnxbccpsreqd, c.Cnxbccpsstrikes, c.Cnxbcdstrike1, c.Cnxbcdstrike2, c.Cnxbcdstrike3, c.Cnxbccpscarrier, c.Cnxbcwlrtype, c.Cnxbccpscancel, c.Cnxbcmaccode, c.Cnxbcsparen1, c.Cnxbccontterm, c.Cnxbccsigndate, c.Cnxbcholddate, c.Cnxbcdiscountllx, c.Cnxbcholduntil, c.Cnxbcbtaccountno, c.Cnxbcdeladdr, c.Cnxbcdeladdref, c.Cnxbcexdir, c.Cnxbcnumwithheld, c.Cnxbcplus, c.Cnxbcequip, c.Cnxbcnousbadap, c.Cnxbctps, c.Cnxbcss07, c.Cnxbcss01, c.Cnxbcss1a, c.Cnxbcss08, c.Cnxbcss06, c.Cnxbcss09, c.Cnxbcss02, c.Cnxbcss05, c.Cnxbcss14, c.Cnxbcreqdate, c.Cnxbcdatechecked, c.Cnxbcexcd, c.Cnxbcexname, c.Cnxbcstatus, c.Cnxbcorderid, c.Cnxbccommandid, c.Cnxbccurrentsup, c.Cnxbcoptordnum, c.Cnxbcstate, c.Cnxbcstatedate, c.Cnxbcpassword, c.Cnxbcagreeddate, c.Cnxbclluauto, c.Cnxbcdonoracc, c.Cnxbcrejcode, c.Cnxbcmoretalk, c.Cnxbcfibre, c.Cnxbcbuscontend, c.Cnxbcspared2, c.Cnxbctermnum, c.Cnxbchmdate, c.Cnxbcsubtariff, c.Cnxbctariff, c.Cnxbcnetwork, c.Cnxbcmobsaver, c.Cnxbcspared1, c.Cnxbcaddserv, c.Cnxbccallbundle, c.Cnxbcmysecurepc, c.Cnxbcss20, c.Cnxbcnewprovide, c.Cnxbctype, c.Cnxbcinstalltime, c.Cnxbcengvisit, c.Cnxbccontactno, c.Cnxbccategory, c.Cnxbc50254sent, c.Cnxbceconomysave, c.Cnxbcalk, c.Cnxbcvaliddate, c.Cnxbcvalidby, c.Cnxbcfilters, c.Cnxbcttmig, c.Cnxbcllucheck, c.Cnxbccampaign, c.Cnxbcllxtype, c.Cnxbcacclineid, c.Cnxbcported, c.Cnxbcexactdate, c.Cnxbccancelrid, c.Cnxbcgainingrid, c.Cnxbccpwnref, c.Cnxbclorn, c.Cnxbcsimprovord, c.Cnxbcsimordertyp, c.Cnxbcngaprodcode, c.Cnxbcsrccliref, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxbccli, c.Cnxbcfeature, c.Cnxbcni, c.Cnxbcservicelvl, c.Cnxbcdatetocsgp, c.Cnxbcdatetocssp, c.Cnxbcdatefromgp, c.Cnxbcdatefromsp, c.Cnxbcdatetoopt, c.Cnxbcdatefromopt, c.Cnxbcserialnum, c.Cnxbcdateentered, c.Cnxbcweborder, c.Cnxbcdatetobill, c.Cnxbcdateletter, c.Cnxbcenteredby, c.Cnxbcpackageno, c.Cnxbccpspostcode, c.Cnxbcdatecps, c.Cnxbccpsreqd, c.Cnxbccpsstrikes, c.Cnxbcdstrike1, c.Cnxbcdstrike2, c.Cnxbcdstrike3, c.Cnxbccpscarrier, c.Cnxbcwlrtype, c.Cnxbccpscancel, c.Cnxbcmaccode, c.Cnxbcsparen1, c.Cnxbccontterm, c.Cnxbccsigndate, c.Cnxbcholddate, c.Cnxbcdiscountllx, c.Cnxbcholduntil, c.Cnxbcbtaccountno, c.Cnxbcdeladdr, c.Cnxbcdeladdref, c.Cnxbcexdir, c.Cnxbcnumwithheld, c.Cnxbcplus, c.Cnxbcequip, c.Cnxbcnousbadap, c.Cnxbctps, c.Cnxbcss07, c.Cnxbcss01, c.Cnxbcss1a, c.Cnxbcss08, c.Cnxbcss06, c.Cnxbcss09, c.Cnxbcss02, c.Cnxbcss05, c.Cnxbcss14, c.Cnxbcreqdate, c.Cnxbcdatechecked, c.Cnxbcexcd, c.Cnxbcexname, c.Cnxbcstatus, c.Cnxbcorderid, c.Cnxbccommandid, c.Cnxbccurrentsup, c.Cnxbcoptordnum, c.Cnxbcstate, c.Cnxbcstatedate, c.Cnxbcpassword, c.Cnxbcagreeddate, c.Cnxbclluauto, c.Cnxbcdonoracc, c.Cnxbcrejcode, c.Cnxbcmoretalk, c.Cnxbcfibre, c.Cnxbcbuscontend, c.Cnxbcspared2, c.Cnxbctermnum, c.Cnxbchmdate, c.Cnxbcsubtariff, c.Cnxbctariff, c.Cnxbcnetwork, c.Cnxbcmobsaver, c.Cnxbcspared1, c.Cnxbcaddserv, c.Cnxbccallbundle, c.Cnxbcmysecurepc, c.Cnxbcss20, c.Cnxbcnewprovide, c.Cnxbctype, c.Cnxbcinstalltime, c.Cnxbcengvisit, c.Cnxbccontactno, c.Cnxbccategory, c.Cnxbc50254sent, c.Cnxbceconomysave, c.Cnxbcalk, c.Cnxbcvaliddate, c.Cnxbcvalidby, c.Cnxbcfilters, c.Cnxbcttmig, c.Cnxbcllucheck, c.Cnxbccampaign, c.Cnxbcllxtype, c.Cnxbcacclineid, c.Cnxbcported, c.Cnxbcexactdate, c.Cnxbccancelrid, c.Cnxbcgainingrid, c.Cnxbccpwnref, c.Cnxbclorn, c.Cnxbcsimprovord, c.Cnxbcsimordertyp, c.Cnxbcngaprodcode, c.Cnxbcsrccliref, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxbc from the database.
-func (c *Cnxbc) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxbc WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxbcByEquinoxLrn retrieves a row from 'equinox.cnxbc' as a Cnxbc.
@@ -284,9 +140,7 @@ func CnxbcByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxbc, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxbc{
-		_exists: true,
-	}
+	c := Cnxbc{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxbccli, &c.Cnxbcfeature, &c.Cnxbcni, &c.Cnxbcservicelvl, &c.Cnxbcdatetocsgp, &c.Cnxbcdatetocssp, &c.Cnxbcdatefromgp, &c.Cnxbcdatefromsp, &c.Cnxbcdatetoopt, &c.Cnxbcdatefromopt, &c.Cnxbcserialnum, &c.Cnxbcdateentered, &c.Cnxbcweborder, &c.Cnxbcdatetobill, &c.Cnxbcdateletter, &c.Cnxbcenteredby, &c.Cnxbcpackageno, &c.Cnxbccpspostcode, &c.Cnxbcdatecps, &c.Cnxbccpsreqd, &c.Cnxbccpsstrikes, &c.Cnxbcdstrike1, &c.Cnxbcdstrike2, &c.Cnxbcdstrike3, &c.Cnxbccpscarrier, &c.Cnxbcwlrtype, &c.Cnxbccpscancel, &c.Cnxbcmaccode, &c.Cnxbcsparen1, &c.Cnxbccontterm, &c.Cnxbccsigndate, &c.Cnxbcholddate, &c.Cnxbcdiscountllx, &c.Cnxbcholduntil, &c.Cnxbcbtaccountno, &c.Cnxbcdeladdr, &c.Cnxbcdeladdref, &c.Cnxbcexdir, &c.Cnxbcnumwithheld, &c.Cnxbcplus, &c.Cnxbcequip, &c.Cnxbcnousbadap, &c.Cnxbctps, &c.Cnxbcss07, &c.Cnxbcss01, &c.Cnxbcss1a, &c.Cnxbcss08, &c.Cnxbcss06, &c.Cnxbcss09, &c.Cnxbcss02, &c.Cnxbcss05, &c.Cnxbcss14, &c.Cnxbcreqdate, &c.Cnxbcdatechecked, &c.Cnxbcexcd, &c.Cnxbcexname, &c.Cnxbcstatus, &c.Cnxbcorderid, &c.Cnxbccommandid, &c.Cnxbccurrentsup, &c.Cnxbcoptordnum, &c.Cnxbcstate, &c.Cnxbcstatedate, &c.Cnxbcpassword, &c.Cnxbcagreeddate, &c.Cnxbclluauto, &c.Cnxbcdonoracc, &c.Cnxbcrejcode, &c.Cnxbcmoretalk, &c.Cnxbcfibre, &c.Cnxbcbuscontend, &c.Cnxbcspared2, &c.Cnxbctermnum, &c.Cnxbchmdate, &c.Cnxbcsubtariff, &c.Cnxbctariff, &c.Cnxbcnetwork, &c.Cnxbcmobsaver, &c.Cnxbcspared1, &c.Cnxbcaddserv, &c.Cnxbccallbundle, &c.Cnxbcmysecurepc, &c.Cnxbcss20, &c.Cnxbcnewprovide, &c.Cnxbctype, &c.Cnxbcinstalltime, &c.Cnxbcengvisit, &c.Cnxbccontactno, &c.Cnxbccategory, &c.Cnxbc50254sent, &c.Cnxbceconomysave, &c.Cnxbcalk, &c.Cnxbcvaliddate, &c.Cnxbcvalidby, &c.Cnxbcfilters, &c.Cnxbcttmig, &c.Cnxbcllucheck, &c.Cnxbccampaign, &c.Cnxbcllxtype, &c.Cnxbcacclineid, &c.Cnxbcported, &c.Cnxbcexactdate, &c.Cnxbccancelrid, &c.Cnxbcgainingrid, &c.Cnxbccpwnref, &c.Cnxbclorn, &c.Cnxbcsimprovord, &c.Cnxbcsimordertyp, &c.Cnxbcngaprodcode, &c.Cnxbcsrccliref, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

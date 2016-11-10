@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -40,149 +39,6 @@ type Spoollet struct {
 	Spspared1       pq.NullTime     `json:"spspared1"`       // spspared1
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Spoollet exists in the database.
-func (s *Spoollet) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Spoollet has been deleted from the database.
-func (s *Spoollet) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Spoollet to the database.
-func (s *Spoollet) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.spoollet (` +
-		`spooledletterid, spfile, spcommentcode, spprinterid, spaccountno, spaccountnotype, spbillinggroup, spnameaddress, sptofiledate, sptofiletime, spspoolfileid, spcategory, spgrouping, sporder, spparamfile, spmachinename, spuserlogin, spcreateddate, spcreatedtime, spprinteddate, spprintedtime, spsparenum1, spsparenum2, spsparec1, spsparec2, spspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Spooledletterid, s.Spfile, s.Spcommentcode, s.Spprinterid, s.Spaccountno, s.Spaccountnotype, s.Spbillinggroup, s.Spnameaddress, s.Sptofiledate, s.Sptofiletime, s.Spspoolfileid, s.Spcategory, s.Spgrouping, s.Sporder, s.Spparamfile, s.Spmachinename, s.Spuserlogin, s.Spcreateddate, s.Spcreatedtime, s.Spprinteddate, s.Spprintedtime, s.Spsparenum1, s.Spsparenum2, s.Spsparec1, s.Spsparec2, s.Spspared1, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Spooledletterid, s.Spfile, s.Spcommentcode, s.Spprinterid, s.Spaccountno, s.Spaccountnotype, s.Spbillinggroup, s.Spnameaddress, s.Sptofiledate, s.Sptofiletime, s.Spspoolfileid, s.Spcategory, s.Spgrouping, s.Sporder, s.Spparamfile, s.Spmachinename, s.Spuserlogin, s.Spcreateddate, s.Spcreatedtime, s.Spprinteddate, s.Spprintedtime, s.Spsparenum1, s.Spsparenum2, s.Spsparec1, s.Spsparec2, s.Spspared1, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Spoollet in the database.
-func (s *Spoollet) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.spoollet SET (` +
-		`spooledletterid, spfile, spcommentcode, spprinterid, spaccountno, spaccountnotype, spbillinggroup, spnameaddress, sptofiledate, sptofiletime, spspoolfileid, spcategory, spgrouping, sporder, spparamfile, spmachinename, spuserlogin, spcreateddate, spcreatedtime, spprinteddate, spprintedtime, spsparenum1, spsparenum2, spsparec1, spsparec2, spspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27` +
-		`) WHERE equinox_lrn = $28`
-
-	// run query
-	XOLog(sqlstr, s.Spooledletterid, s.Spfile, s.Spcommentcode, s.Spprinterid, s.Spaccountno, s.Spaccountnotype, s.Spbillinggroup, s.Spnameaddress, s.Sptofiledate, s.Sptofiletime, s.Spspoolfileid, s.Spcategory, s.Spgrouping, s.Sporder, s.Spparamfile, s.Spmachinename, s.Spuserlogin, s.Spcreateddate, s.Spcreatedtime, s.Spprinteddate, s.Spprintedtime, s.Spsparenum1, s.Spsparenum2, s.Spsparec1, s.Spsparec2, s.Spspared1, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Spooledletterid, s.Spfile, s.Spcommentcode, s.Spprinterid, s.Spaccountno, s.Spaccountnotype, s.Spbillinggroup, s.Spnameaddress, s.Sptofiledate, s.Sptofiletime, s.Spspoolfileid, s.Spcategory, s.Spgrouping, s.Sporder, s.Spparamfile, s.Spmachinename, s.Spuserlogin, s.Spcreateddate, s.Spcreatedtime, s.Spprinteddate, s.Spprintedtime, s.Spsparenum1, s.Spsparenum2, s.Spsparec1, s.Spsparec2, s.Spspared1, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Spoollet to the database.
-func (s *Spoollet) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Spoollet.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Spoollet) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.spoollet (` +
-		`spooledletterid, spfile, spcommentcode, spprinterid, spaccountno, spaccountnotype, spbillinggroup, spnameaddress, sptofiledate, sptofiletime, spspoolfileid, spcategory, spgrouping, sporder, spparamfile, spmachinename, spuserlogin, spcreateddate, spcreatedtime, spprinteddate, spprintedtime, spsparenum1, spsparenum2, spsparec1, spsparec2, spspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`spooledletterid, spfile, spcommentcode, spprinterid, spaccountno, spaccountnotype, spbillinggroup, spnameaddress, sptofiledate, sptofiletime, spspoolfileid, spcategory, spgrouping, sporder, spparamfile, spmachinename, spuserlogin, spcreateddate, spcreatedtime, spprinteddate, spprintedtime, spsparenum1, spsparenum2, spsparec1, spsparec2, spspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.spooledletterid, EXCLUDED.spfile, EXCLUDED.spcommentcode, EXCLUDED.spprinterid, EXCLUDED.spaccountno, EXCLUDED.spaccountnotype, EXCLUDED.spbillinggroup, EXCLUDED.spnameaddress, EXCLUDED.sptofiledate, EXCLUDED.sptofiletime, EXCLUDED.spspoolfileid, EXCLUDED.spcategory, EXCLUDED.spgrouping, EXCLUDED.sporder, EXCLUDED.spparamfile, EXCLUDED.spmachinename, EXCLUDED.spuserlogin, EXCLUDED.spcreateddate, EXCLUDED.spcreatedtime, EXCLUDED.spprinteddate, EXCLUDED.spprintedtime, EXCLUDED.spsparenum1, EXCLUDED.spsparenum2, EXCLUDED.spsparec1, EXCLUDED.spsparec2, EXCLUDED.spspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Spooledletterid, s.Spfile, s.Spcommentcode, s.Spprinterid, s.Spaccountno, s.Spaccountnotype, s.Spbillinggroup, s.Spnameaddress, s.Sptofiledate, s.Sptofiletime, s.Spspoolfileid, s.Spcategory, s.Spgrouping, s.Sporder, s.Spparamfile, s.Spmachinename, s.Spuserlogin, s.Spcreateddate, s.Spcreatedtime, s.Spprinteddate, s.Spprintedtime, s.Spsparenum1, s.Spsparenum2, s.Spsparec1, s.Spsparec2, s.Spspared1, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Spooledletterid, s.Spfile, s.Spcommentcode, s.Spprinterid, s.Spaccountno, s.Spaccountnotype, s.Spbillinggroup, s.Spnameaddress, s.Sptofiledate, s.Sptofiletime, s.Spspoolfileid, s.Spcategory, s.Spgrouping, s.Sporder, s.Spparamfile, s.Spmachinename, s.Spuserlogin, s.Spcreateddate, s.Spcreatedtime, s.Spprinteddate, s.Spprintedtime, s.Spsparenum1, s.Spsparenum2, s.Spsparec1, s.Spsparec2, s.Spspared1, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Spoollet from the database.
-func (s *Spoollet) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.spoollet WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SpoolletByEquinoxLrn retrieves a row from 'equinox.spoollet' as a Spoollet.
@@ -199,9 +55,7 @@ func SpoolletByEquinoxLrn(db XODB, equinoxLrn int64) (*Spoollet, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Spoollet{
-		_exists: true,
-	}
+	s := Spoollet{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Spooledletterid, &s.Spfile, &s.Spcommentcode, &s.Spprinterid, &s.Spaccountno, &s.Spaccountnotype, &s.Spbillinggroup, &s.Spnameaddress, &s.Sptofiledate, &s.Sptofiletime, &s.Spspoolfileid, &s.Spcategory, &s.Spgrouping, &s.Sporder, &s.Spparamfile, &s.Spmachinename, &s.Spuserlogin, &s.Spcreateddate, &s.Spcreatedtime, &s.Spprinteddate, &s.Spprintedtime, &s.Spsparenum1, &s.Spsparenum2, &s.Spsparec1, &s.Spsparec2, &s.Spspared1, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

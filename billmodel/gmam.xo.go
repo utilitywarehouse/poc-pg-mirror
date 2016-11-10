@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -36,149 +35,6 @@ type Gmam struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gmam exists in the database.
-func (g *Gmam) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gmam has been deleted from the database.
-func (g *Gmam) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gmam to the database.
-func (g *Gmam) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gmam (` +
-		`gmmamid, gmorigmamid, gmeffectivedate, gmmscode, gmfiletype, gmtranstype, gmpaymehtodcode, gmmodelcode, gmyearmake, gmassetstatus, gmmetertypecode, gmmetermechanism, gmlocationcode, gmmakecode, gmmcapacity, gmunits, gmreadfactor, gmfilecreated, gmfilecreatedby, gmdials, gmrolecode, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gmmamid, g.Gmorigmamid, g.Gmeffectivedate, g.Gmmscode, g.Gmfiletype, g.Gmtranstype, g.Gmpaymehtodcode, g.Gmmodelcode, g.Gmyearmake, g.Gmassetstatus, g.Gmmetertypecode, g.Gmmetermechanism, g.Gmlocationcode, g.Gmmakecode, g.Gmmcapacity, g.Gmunits, g.Gmreadfactor, g.Gmfilecreated, g.Gmfilecreatedby, g.Gmdials, g.Gmrolecode, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gmmamid, g.Gmorigmamid, g.Gmeffectivedate, g.Gmmscode, g.Gmfiletype, g.Gmtranstype, g.Gmpaymehtodcode, g.Gmmodelcode, g.Gmyearmake, g.Gmassetstatus, g.Gmmetertypecode, g.Gmmetermechanism, g.Gmlocationcode, g.Gmmakecode, g.Gmmcapacity, g.Gmunits, g.Gmreadfactor, g.Gmfilecreated, g.Gmfilecreatedby, g.Gmdials, g.Gmrolecode, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gmam in the database.
-func (g *Gmam) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gmam SET (` +
-		`gmmamid, gmorigmamid, gmeffectivedate, gmmscode, gmfiletype, gmtranstype, gmpaymehtodcode, gmmodelcode, gmyearmake, gmassetstatus, gmmetertypecode, gmmetermechanism, gmlocationcode, gmmakecode, gmmcapacity, gmunits, gmreadfactor, gmfilecreated, gmfilecreatedby, gmdials, gmrolecode, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) WHERE equinox_lrn = $24`
-
-	// run query
-	XOLog(sqlstr, g.Gmmamid, g.Gmorigmamid, g.Gmeffectivedate, g.Gmmscode, g.Gmfiletype, g.Gmtranstype, g.Gmpaymehtodcode, g.Gmmodelcode, g.Gmyearmake, g.Gmassetstatus, g.Gmmetertypecode, g.Gmmetermechanism, g.Gmlocationcode, g.Gmmakecode, g.Gmmcapacity, g.Gmunits, g.Gmreadfactor, g.Gmfilecreated, g.Gmfilecreatedby, g.Gmdials, g.Gmrolecode, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gmmamid, g.Gmorigmamid, g.Gmeffectivedate, g.Gmmscode, g.Gmfiletype, g.Gmtranstype, g.Gmpaymehtodcode, g.Gmmodelcode, g.Gmyearmake, g.Gmassetstatus, g.Gmmetertypecode, g.Gmmetermechanism, g.Gmlocationcode, g.Gmmakecode, g.Gmmcapacity, g.Gmunits, g.Gmreadfactor, g.Gmfilecreated, g.Gmfilecreatedby, g.Gmdials, g.Gmrolecode, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gmam to the database.
-func (g *Gmam) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gmam.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gmam) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gmam (` +
-		`gmmamid, gmorigmamid, gmeffectivedate, gmmscode, gmfiletype, gmtranstype, gmpaymehtodcode, gmmodelcode, gmyearmake, gmassetstatus, gmmetertypecode, gmmetermechanism, gmlocationcode, gmmakecode, gmmcapacity, gmunits, gmreadfactor, gmfilecreated, gmfilecreatedby, gmdials, gmrolecode, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gmmamid, gmorigmamid, gmeffectivedate, gmmscode, gmfiletype, gmtranstype, gmpaymehtodcode, gmmodelcode, gmyearmake, gmassetstatus, gmmetertypecode, gmmetermechanism, gmlocationcode, gmmakecode, gmmcapacity, gmunits, gmreadfactor, gmfilecreated, gmfilecreatedby, gmdials, gmrolecode, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gmmamid, EXCLUDED.gmorigmamid, EXCLUDED.gmeffectivedate, EXCLUDED.gmmscode, EXCLUDED.gmfiletype, EXCLUDED.gmtranstype, EXCLUDED.gmpaymehtodcode, EXCLUDED.gmmodelcode, EXCLUDED.gmyearmake, EXCLUDED.gmassetstatus, EXCLUDED.gmmetertypecode, EXCLUDED.gmmetermechanism, EXCLUDED.gmlocationcode, EXCLUDED.gmmakecode, EXCLUDED.gmmcapacity, EXCLUDED.gmunits, EXCLUDED.gmreadfactor, EXCLUDED.gmfilecreated, EXCLUDED.gmfilecreatedby, EXCLUDED.gmdials, EXCLUDED.gmrolecode, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gmmamid, g.Gmorigmamid, g.Gmeffectivedate, g.Gmmscode, g.Gmfiletype, g.Gmtranstype, g.Gmpaymehtodcode, g.Gmmodelcode, g.Gmyearmake, g.Gmassetstatus, g.Gmmetertypecode, g.Gmmetermechanism, g.Gmlocationcode, g.Gmmakecode, g.Gmmcapacity, g.Gmunits, g.Gmreadfactor, g.Gmfilecreated, g.Gmfilecreatedby, g.Gmdials, g.Gmrolecode, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gmmamid, g.Gmorigmamid, g.Gmeffectivedate, g.Gmmscode, g.Gmfiletype, g.Gmtranstype, g.Gmpaymehtodcode, g.Gmmodelcode, g.Gmyearmake, g.Gmassetstatus, g.Gmmetertypecode, g.Gmmetermechanism, g.Gmlocationcode, g.Gmmakecode, g.Gmmcapacity, g.Gmunits, g.Gmreadfactor, g.Gmfilecreated, g.Gmfilecreatedby, g.Gmdials, g.Gmrolecode, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gmam from the database.
-func (g *Gmam) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gmam WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GmamByEquinoxLrn retrieves a row from 'equinox.gmam' as a Gmam.
@@ -195,9 +51,7 @@ func GmamByEquinoxLrn(db XODB, equinoxLrn int64) (*Gmam, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gmam{
-		_exists: true,
-	}
+	g := Gmam{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gmmamid, &g.Gmorigmamid, &g.Gmeffectivedate, &g.Gmmscode, &g.Gmfiletype, &g.Gmtranstype, &g.Gmpaymehtodcode, &g.Gmmodelcode, &g.Gmyearmake, &g.Gmassetstatus, &g.Gmmetertypecode, &g.Gmmetermechanism, &g.Gmlocationcode, &g.Gmmakecode, &g.Gmmcapacity, &g.Gmunits, &g.Gmreadfactor, &g.Gmfilecreated, &g.Gmfilecreatedby, &g.Gmdials, &g.Gmrolecode, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

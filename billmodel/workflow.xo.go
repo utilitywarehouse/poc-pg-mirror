@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -34,149 +33,6 @@ type Workflow struct {
 	Wfsparen1      sql.NullInt64   `json:"wfsparen1"`      // wfsparen1
 	EquinoxLrn     int64           `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Workflow exists in the database.
-func (w *Workflow) Exists() bool {
-	return w._exists
-}
-
-// Deleted provides information if the Workflow has been deleted from the database.
-func (w *Workflow) Deleted() bool {
-	return w._deleted
-}
-
-// Insert inserts the Workflow to the database.
-func (w *Workflow) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if w._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.workflow (` +
-		`wfuniquesys, wfaccountno, wfcode, wfdate, wfactiondate, wftaskedto, wfowner, wfrequestedby, wfpriority, wf3rdpartyref, wfqueryreason, wfownerinitial, wfspared1, wfsparet1, wfactive, wf3rdpartynote, wfsparem1, wfrequesternew, wfsparec1, wfsparen1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, w.Wfuniquesys, w.Wfaccountno, w.Wfcode, w.Wfdate, w.Wfactiondate, w.Wftaskedto, w.Wfowner, w.Wfrequestedby, w.Wfpriority, w.Wf3rdpartyref, w.Wfqueryreason, w.Wfownerinitial, w.Wfspared1, w.Wfsparet1, w.Wfactive, w.Wf3rdpartynote, w.Wfsparem1, w.Wfrequesternew, w.Wfsparec1, w.Wfsparen1, w.EquinoxSec)
-	err = db.QueryRow(sqlstr, w.Wfuniquesys, w.Wfaccountno, w.Wfcode, w.Wfdate, w.Wfactiondate, w.Wftaskedto, w.Wfowner, w.Wfrequestedby, w.Wfpriority, w.Wf3rdpartyref, w.Wfqueryreason, w.Wfownerinitial, w.Wfspared1, w.Wfsparet1, w.Wfactive, w.Wf3rdpartynote, w.Wfsparem1, w.Wfrequesternew, w.Wfsparec1, w.Wfsparen1, w.EquinoxSec).Scan(&w.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	w._exists = true
-
-	return nil
-}
-
-// Update updates the Workflow in the database.
-func (w *Workflow) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !w._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if w._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.workflow SET (` +
-		`wfuniquesys, wfaccountno, wfcode, wfdate, wfactiondate, wftaskedto, wfowner, wfrequestedby, wfpriority, wf3rdpartyref, wfqueryreason, wfownerinitial, wfspared1, wfsparet1, wfactive, wf3rdpartynote, wfsparem1, wfrequesternew, wfsparec1, wfsparen1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) WHERE equinox_lrn = $22`
-
-	// run query
-	XOLog(sqlstr, w.Wfuniquesys, w.Wfaccountno, w.Wfcode, w.Wfdate, w.Wfactiondate, w.Wftaskedto, w.Wfowner, w.Wfrequestedby, w.Wfpriority, w.Wf3rdpartyref, w.Wfqueryreason, w.Wfownerinitial, w.Wfspared1, w.Wfsparet1, w.Wfactive, w.Wf3rdpartynote, w.Wfsparem1, w.Wfrequesternew, w.Wfsparec1, w.Wfsparen1, w.EquinoxSec, w.EquinoxLrn)
-	_, err = db.Exec(sqlstr, w.Wfuniquesys, w.Wfaccountno, w.Wfcode, w.Wfdate, w.Wfactiondate, w.Wftaskedto, w.Wfowner, w.Wfrequestedby, w.Wfpriority, w.Wf3rdpartyref, w.Wfqueryreason, w.Wfownerinitial, w.Wfspared1, w.Wfsparet1, w.Wfactive, w.Wf3rdpartynote, w.Wfsparem1, w.Wfrequesternew, w.Wfsparec1, w.Wfsparen1, w.EquinoxSec, w.EquinoxLrn)
-	return err
-}
-
-// Save saves the Workflow to the database.
-func (w *Workflow) Save(db XODB) error {
-	if w.Exists() {
-		return w.Update(db)
-	}
-
-	return w.Insert(db)
-}
-
-// Upsert performs an upsert for Workflow.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (w *Workflow) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if w._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.workflow (` +
-		`wfuniquesys, wfaccountno, wfcode, wfdate, wfactiondate, wftaskedto, wfowner, wfrequestedby, wfpriority, wf3rdpartyref, wfqueryreason, wfownerinitial, wfspared1, wfsparet1, wfactive, wf3rdpartynote, wfsparem1, wfrequesternew, wfsparec1, wfsparen1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`wfuniquesys, wfaccountno, wfcode, wfdate, wfactiondate, wftaskedto, wfowner, wfrequestedby, wfpriority, wf3rdpartyref, wfqueryreason, wfownerinitial, wfspared1, wfsparet1, wfactive, wf3rdpartynote, wfsparem1, wfrequesternew, wfsparec1, wfsparen1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.wfuniquesys, EXCLUDED.wfaccountno, EXCLUDED.wfcode, EXCLUDED.wfdate, EXCLUDED.wfactiondate, EXCLUDED.wftaskedto, EXCLUDED.wfowner, EXCLUDED.wfrequestedby, EXCLUDED.wfpriority, EXCLUDED.wf3rdpartyref, EXCLUDED.wfqueryreason, EXCLUDED.wfownerinitial, EXCLUDED.wfspared1, EXCLUDED.wfsparet1, EXCLUDED.wfactive, EXCLUDED.wf3rdpartynote, EXCLUDED.wfsparem1, EXCLUDED.wfrequesternew, EXCLUDED.wfsparec1, EXCLUDED.wfsparen1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, w.Wfuniquesys, w.Wfaccountno, w.Wfcode, w.Wfdate, w.Wfactiondate, w.Wftaskedto, w.Wfowner, w.Wfrequestedby, w.Wfpriority, w.Wf3rdpartyref, w.Wfqueryreason, w.Wfownerinitial, w.Wfspared1, w.Wfsparet1, w.Wfactive, w.Wf3rdpartynote, w.Wfsparem1, w.Wfrequesternew, w.Wfsparec1, w.Wfsparen1, w.EquinoxLrn, w.EquinoxSec)
-	_, err = db.Exec(sqlstr, w.Wfuniquesys, w.Wfaccountno, w.Wfcode, w.Wfdate, w.Wfactiondate, w.Wftaskedto, w.Wfowner, w.Wfrequestedby, w.Wfpriority, w.Wf3rdpartyref, w.Wfqueryreason, w.Wfownerinitial, w.Wfspared1, w.Wfsparet1, w.Wfactive, w.Wf3rdpartynote, w.Wfsparem1, w.Wfrequesternew, w.Wfsparec1, w.Wfsparen1, w.EquinoxLrn, w.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	w._exists = true
-
-	return nil
-}
-
-// Delete deletes the Workflow from the database.
-func (w *Workflow) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !w._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if w._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.workflow WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, w.EquinoxLrn)
-	_, err = db.Exec(sqlstr, w.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	w._deleted = true
-
-	return nil
 }
 
 // WorkflowByEquinoxLrn retrieves a row from 'equinox.workflow' as a Workflow.
@@ -193,9 +49,7 @@ func WorkflowByEquinoxLrn(db XODB, equinoxLrn int64) (*Workflow, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	w := Workflow{
-		_exists: true,
-	}
+	w := Workflow{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&w.Wfuniquesys, &w.Wfaccountno, &w.Wfcode, &w.Wfdate, &w.Wfactiondate, &w.Wftaskedto, &w.Wfowner, &w.Wfrequestedby, &w.Wfpriority, &w.Wf3rdpartyref, &w.Wfqueryreason, &w.Wfownerinitial, &w.Wfspared1, &w.Wfsparet1, &w.Wfactive, &w.Wf3rdpartynote, &w.Wfsparem1, &w.Wfrequesternew, &w.Wfsparec1, &w.Wfsparen1, &w.EquinoxLrn, &w.EquinoxSec)
 	if err != nil {

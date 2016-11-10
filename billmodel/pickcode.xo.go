@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -21,149 +20,6 @@ type Pickcode struct {
 	Pickspared1   pq.NullTime     `json:"pickspared1"`   // pickspared1
 	EquinoxLrn    int64           `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Pickcode exists in the database.
-func (p *Pickcode) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Pickcode has been deleted from the database.
-func (p *Pickcode) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Pickcode to the database.
-func (p *Pickcode) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pickcode (` +
-		`pickcodecode, pickcodedesc, pickenteredby, pickcodepromo, picksparec1, picksparen1, pickspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Pickcodecode, p.Pickcodedesc, p.Pickenteredby, p.Pickcodepromo, p.Picksparec1, p.Picksparen1, p.Pickspared1, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Pickcodecode, p.Pickcodedesc, p.Pickenteredby, p.Pickcodepromo, p.Picksparec1, p.Picksparen1, p.Pickspared1, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Pickcode in the database.
-func (p *Pickcode) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.pickcode SET (` +
-		`pickcodecode, pickcodedesc, pickenteredby, pickcodepromo, picksparec1, picksparen1, pickspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) WHERE equinox_lrn = $9`
-
-	// run query
-	XOLog(sqlstr, p.Pickcodecode, p.Pickcodedesc, p.Pickenteredby, p.Pickcodepromo, p.Picksparec1, p.Picksparen1, p.Pickspared1, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Pickcodecode, p.Pickcodedesc, p.Pickenteredby, p.Pickcodepromo, p.Picksparec1, p.Picksparen1, p.Pickspared1, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Pickcode to the database.
-func (p *Pickcode) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Pickcode.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Pickcode) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pickcode (` +
-		`pickcodecode, pickcodedesc, pickenteredby, pickcodepromo, picksparec1, picksparen1, pickspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`pickcodecode, pickcodedesc, pickenteredby, pickcodepromo, picksparec1, picksparen1, pickspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.pickcodecode, EXCLUDED.pickcodedesc, EXCLUDED.pickenteredby, EXCLUDED.pickcodepromo, EXCLUDED.picksparec1, EXCLUDED.picksparen1, EXCLUDED.pickspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Pickcodecode, p.Pickcodedesc, p.Pickenteredby, p.Pickcodepromo, p.Picksparec1, p.Picksparen1, p.Pickspared1, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Pickcodecode, p.Pickcodedesc, p.Pickenteredby, p.Pickcodepromo, p.Picksparec1, p.Picksparen1, p.Pickspared1, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Pickcode from the database.
-func (p *Pickcode) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.pickcode WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PickcodeByEquinoxLrn retrieves a row from 'equinox.pickcode' as a Pickcode.
@@ -180,9 +36,7 @@ func PickcodeByEquinoxLrn(db XODB, equinoxLrn int64) (*Pickcode, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Pickcode{
-		_exists: true,
-	}
+	p := Pickcode{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Pickcodecode, &p.Pickcodedesc, &p.Pickenteredby, &p.Pickcodepromo, &p.Picksparec1, &p.Picksparen1, &p.Pickspared1, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

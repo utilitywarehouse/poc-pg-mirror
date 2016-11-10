@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type Ledgerp struct {
 	EquinoxPrn   sql.NullInt64   `json:"equinox_prn"`  // equinox_prn
 	EquinoxLrn   int64           `json:"equinox_lrn"`  // equinox_lrn
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ledgerp exists in the database.
-func (l *Ledgerp) Exists() bool {
-	return l._exists
-}
-
-// Deleted provides information if the Ledgerp has been deleted from the database.
-func (l *Ledgerp) Deleted() bool {
-	return l._deleted
-}
-
-// Insert inserts the Ledgerp to the database.
-func (l *Ledgerp) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ledgerp (` +
-		`plguniquesys, plgdate, plgtime, plgourref, plgreason, plgvattotal, plgnettotal, plgtotal, plgflag, plgtype, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, l.Plguniquesys, l.Plgdate, l.Plgtime, l.Plgourref, l.Plgreason, l.Plgvattotal, l.Plgnettotal, l.Plgtotal, l.Plgflag, l.Plgtype, l.EquinoxPrn, l.EquinoxSec)
-	err = db.QueryRow(sqlstr, l.Plguniquesys, l.Plgdate, l.Plgtime, l.Plgourref, l.Plgreason, l.Plgvattotal, l.Plgnettotal, l.Plgtotal, l.Plgflag, l.Plgtype, l.EquinoxPrn, l.EquinoxSec).Scan(&l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Update updates the Ledgerp in the database.
-func (l *Ledgerp) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ledgerp SET (` +
-		`plguniquesys, plgdate, plgtime, plgourref, plgreason, plgvattotal, plgnettotal, plgtotal, plgflag, plgtype, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, l.Plguniquesys, l.Plgdate, l.Plgtime, l.Plgourref, l.Plgreason, l.Plgvattotal, l.Plgnettotal, l.Plgtotal, l.Plgflag, l.Plgtype, l.EquinoxPrn, l.EquinoxSec, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.Plguniquesys, l.Plgdate, l.Plgtime, l.Plgourref, l.Plgreason, l.Plgvattotal, l.Plgnettotal, l.Plgtotal, l.Plgflag, l.Plgtype, l.EquinoxPrn, l.EquinoxSec, l.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ledgerp to the database.
-func (l *Ledgerp) Save(db XODB) error {
-	if l.Exists() {
-		return l.Update(db)
-	}
-
-	return l.Insert(db)
-}
-
-// Upsert performs an upsert for Ledgerp.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (l *Ledgerp) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ledgerp (` +
-		`plguniquesys, plgdate, plgtime, plgourref, plgreason, plgvattotal, plgnettotal, plgtotal, plgflag, plgtype, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`plguniquesys, plgdate, plgtime, plgourref, plgreason, plgvattotal, plgnettotal, plgtotal, plgflag, plgtype, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.plguniquesys, EXCLUDED.plgdate, EXCLUDED.plgtime, EXCLUDED.plgourref, EXCLUDED.plgreason, EXCLUDED.plgvattotal, EXCLUDED.plgnettotal, EXCLUDED.plgtotal, EXCLUDED.plgflag, EXCLUDED.plgtype, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, l.Plguniquesys, l.Plgdate, l.Plgtime, l.Plgourref, l.Plgreason, l.Plgvattotal, l.Plgnettotal, l.Plgtotal, l.Plgflag, l.Plgtype, l.EquinoxPrn, l.EquinoxLrn, l.EquinoxSec)
-	_, err = db.Exec(sqlstr, l.Plguniquesys, l.Plgdate, l.Plgtime, l.Plgourref, l.Plgreason, l.Plgvattotal, l.Plgnettotal, l.Plgtotal, l.Plgflag, l.Plgtype, l.EquinoxPrn, l.EquinoxLrn, l.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ledgerp from the database.
-func (l *Ledgerp) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ledgerp WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	l._deleted = true
-
-	return nil
 }
 
 // LedgerpByEquinoxLrn retrieves a row from 'equinox.ledgerp' as a Ledgerp.
@@ -184,9 +40,7 @@ func LedgerpByEquinoxLrn(db XODB, equinoxLrn int64) (*Ledgerp, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	l := Ledgerp{
-		_exists: true,
-	}
+	l := Ledgerp{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&l.Plguniquesys, &l.Plgdate, &l.Plgtime, &l.Plgourref, &l.Plgreason, &l.Plgvattotal, &l.Plgnettotal, &l.Plgtotal, &l.Plgflag, &l.Plgtype, &l.EquinoxPrn, &l.EquinoxLrn, &l.EquinoxSec)
 	if err != nil {

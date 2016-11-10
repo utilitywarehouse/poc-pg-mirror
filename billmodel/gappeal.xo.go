@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -116,149 +115,6 @@ type Gappeal struct {
 	Gappnrorec       pq.NullTime     `json:"gappnrorec"`       // gappnrorec
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gappeal exists in the database.
-func (g *Gappeal) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gappeal has been deleted from the database.
-func (g *Gappeal) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gappeal to the database.
-func (g *Gappeal) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gappeals (` +
-		`gappconfirmation, gappmpr, gappmprdate, gappoutcode, gappincode, gapprequestaq, gappmsn, gappcf, gappimporm, gappreadingf, gappreadingunits, gappdials, gappstartdate, gappstartreading, gappenddate, gappendreading, gappttzcount, gappemsn, gappecf, gappeimp, gapperf, gapperu, gappedials, gappestartdate, gappestartreadin, gappeenddate, gappeeendreading, gappettzcount, gappmanualcheck, gappsupp, gappappealref, gappourref, gapptourref, gapptcurrentaq, gapptheiraq, gappstatus, gappc1, gappc2, gappn1, gappn2, gappn3, gapptheirsread, gapptheirsdate, gapptheireread, gapptheiredate, gapptheirttz, gappstatusn, gapptranscoser, gappcurrentcalaq, gappnextaction, gappasorej, gappaaorej, gappaporaaperiod, gappasisent, gappasoresp, gappaaisent, gappaaoresp, gappapisent, gappaporesp, gappaporej, gappnomination, gapprecon, gappreconstart, gapps91aq, gapps91msn, gappourmsn, gappsubbuilding, gappbuilding, gappthroughfare, gappdependlocal, gappposttown, gapppostcode, gappmamtransref, gappmamdtransref, gappnrqdate, gapplastread, gappreadaqcalc, gappaqcalc, gappaqcalcsdate, gappaqcalcedate, gappaqcalc1, gappaqcalc1sdate, gappaqcalc2, gappaqcalc2sdate, gappaqcalc6, gappaqcalc6date, gapp4aqcalcdate, gappaqcalc24, gappaqcalc24date, gappasifile, gappaaifile, gappaqupdate, gappconnection, gappaqerror, gappedit, gappconfirmstart, gappconfirmdead, gapplastact, gappeditdate, gasichecked, gappnrlrec, gappnrorec, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gappconfirmation, g.Gappmpr, g.Gappmprdate, g.Gappoutcode, g.Gappincode, g.Gapprequestaq, g.Gappmsn, g.Gappcf, g.Gappimporm, g.Gappreadingf, g.Gappreadingunits, g.Gappdials, g.Gappstartdate, g.Gappstartreading, g.Gappenddate, g.Gappendreading, g.Gappttzcount, g.Gappemsn, g.Gappecf, g.Gappeimp, g.Gapperf, g.Gapperu, g.Gappedials, g.Gappestartdate, g.Gappestartreadin, g.Gappeenddate, g.Gappeeendreading, g.Gappettzcount, g.Gappmanualcheck, g.Gappsupp, g.Gappappealref, g.Gappourref, g.Gapptourref, g.Gapptcurrentaq, g.Gapptheiraq, g.Gappstatus, g.Gappc1, g.Gappc2, g.Gappn1, g.Gappn2, g.Gappn3, g.Gapptheirsread, g.Gapptheirsdate, g.Gapptheireread, g.Gapptheiredate, g.Gapptheirttz, g.Gappstatusn, g.Gapptranscoser, g.Gappcurrentcalaq, g.Gappnextaction, g.Gappasorej, g.Gappaaorej, g.Gappaporaaperiod, g.Gappasisent, g.Gappasoresp, g.Gappaaisent, g.Gappaaoresp, g.Gappapisent, g.Gappaporesp, g.Gappaporej, g.Gappnomination, g.Gapprecon, g.Gappreconstart, g.Gapps91aq, g.Gapps91msn, g.Gappourmsn, g.Gappsubbuilding, g.Gappbuilding, g.Gappthroughfare, g.Gappdependlocal, g.Gappposttown, g.Gapppostcode, g.Gappmamtransref, g.Gappmamdtransref, g.Gappnrqdate, g.Gapplastread, g.Gappreadaqcalc, g.Gappaqcalc, g.Gappaqcalcsdate, g.Gappaqcalcedate, g.Gappaqcalc1, g.Gappaqcalc1sdate, g.Gappaqcalc2, g.Gappaqcalc2sdate, g.Gappaqcalc6, g.Gappaqcalc6date, g.Gapp4aqcalcdate, g.Gappaqcalc24, g.Gappaqcalc24date, g.Gappasifile, g.Gappaaifile, g.Gappaqupdate, g.Gappconnection, g.Gappaqerror, g.Gappedit, g.Gappconfirmstart, g.Gappconfirmdead, g.Gapplastact, g.Gappeditdate, g.Gasichecked, g.Gappnrlrec, g.Gappnrorec, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gappconfirmation, g.Gappmpr, g.Gappmprdate, g.Gappoutcode, g.Gappincode, g.Gapprequestaq, g.Gappmsn, g.Gappcf, g.Gappimporm, g.Gappreadingf, g.Gappreadingunits, g.Gappdials, g.Gappstartdate, g.Gappstartreading, g.Gappenddate, g.Gappendreading, g.Gappttzcount, g.Gappemsn, g.Gappecf, g.Gappeimp, g.Gapperf, g.Gapperu, g.Gappedials, g.Gappestartdate, g.Gappestartreadin, g.Gappeenddate, g.Gappeeendreading, g.Gappettzcount, g.Gappmanualcheck, g.Gappsupp, g.Gappappealref, g.Gappourref, g.Gapptourref, g.Gapptcurrentaq, g.Gapptheiraq, g.Gappstatus, g.Gappc1, g.Gappc2, g.Gappn1, g.Gappn2, g.Gappn3, g.Gapptheirsread, g.Gapptheirsdate, g.Gapptheireread, g.Gapptheiredate, g.Gapptheirttz, g.Gappstatusn, g.Gapptranscoser, g.Gappcurrentcalaq, g.Gappnextaction, g.Gappasorej, g.Gappaaorej, g.Gappaporaaperiod, g.Gappasisent, g.Gappasoresp, g.Gappaaisent, g.Gappaaoresp, g.Gappapisent, g.Gappaporesp, g.Gappaporej, g.Gappnomination, g.Gapprecon, g.Gappreconstart, g.Gapps91aq, g.Gapps91msn, g.Gappourmsn, g.Gappsubbuilding, g.Gappbuilding, g.Gappthroughfare, g.Gappdependlocal, g.Gappposttown, g.Gapppostcode, g.Gappmamtransref, g.Gappmamdtransref, g.Gappnrqdate, g.Gapplastread, g.Gappreadaqcalc, g.Gappaqcalc, g.Gappaqcalcsdate, g.Gappaqcalcedate, g.Gappaqcalc1, g.Gappaqcalc1sdate, g.Gappaqcalc2, g.Gappaqcalc2sdate, g.Gappaqcalc6, g.Gappaqcalc6date, g.Gapp4aqcalcdate, g.Gappaqcalc24, g.Gappaqcalc24date, g.Gappasifile, g.Gappaaifile, g.Gappaqupdate, g.Gappconnection, g.Gappaqerror, g.Gappedit, g.Gappconfirmstart, g.Gappconfirmdead, g.Gapplastact, g.Gappeditdate, g.Gasichecked, g.Gappnrlrec, g.Gappnrorec, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gappeal in the database.
-func (g *Gappeal) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gappeals SET (` +
-		`gappconfirmation, gappmpr, gappmprdate, gappoutcode, gappincode, gapprequestaq, gappmsn, gappcf, gappimporm, gappreadingf, gappreadingunits, gappdials, gappstartdate, gappstartreading, gappenddate, gappendreading, gappttzcount, gappemsn, gappecf, gappeimp, gapperf, gapperu, gappedials, gappestartdate, gappestartreadin, gappeenddate, gappeeendreading, gappettzcount, gappmanualcheck, gappsupp, gappappealref, gappourref, gapptourref, gapptcurrentaq, gapptheiraq, gappstatus, gappc1, gappc2, gappn1, gappn2, gappn3, gapptheirsread, gapptheirsdate, gapptheireread, gapptheiredate, gapptheirttz, gappstatusn, gapptranscoser, gappcurrentcalaq, gappnextaction, gappasorej, gappaaorej, gappaporaaperiod, gappasisent, gappasoresp, gappaaisent, gappaaoresp, gappapisent, gappaporesp, gappaporej, gappnomination, gapprecon, gappreconstart, gapps91aq, gapps91msn, gappourmsn, gappsubbuilding, gappbuilding, gappthroughfare, gappdependlocal, gappposttown, gapppostcode, gappmamtransref, gappmamdtransref, gappnrqdate, gapplastread, gappreadaqcalc, gappaqcalc, gappaqcalcsdate, gappaqcalcedate, gappaqcalc1, gappaqcalc1sdate, gappaqcalc2, gappaqcalc2sdate, gappaqcalc6, gappaqcalc6date, gapp4aqcalcdate, gappaqcalc24, gappaqcalc24date, gappasifile, gappaaifile, gappaqupdate, gappconnection, gappaqerror, gappedit, gappconfirmstart, gappconfirmdead, gapplastact, gappeditdate, gasichecked, gappnrlrec, gappnrorec, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103` +
-		`) WHERE equinox_lrn = $104`
-
-	// run query
-	XOLog(sqlstr, g.Gappconfirmation, g.Gappmpr, g.Gappmprdate, g.Gappoutcode, g.Gappincode, g.Gapprequestaq, g.Gappmsn, g.Gappcf, g.Gappimporm, g.Gappreadingf, g.Gappreadingunits, g.Gappdials, g.Gappstartdate, g.Gappstartreading, g.Gappenddate, g.Gappendreading, g.Gappttzcount, g.Gappemsn, g.Gappecf, g.Gappeimp, g.Gapperf, g.Gapperu, g.Gappedials, g.Gappestartdate, g.Gappestartreadin, g.Gappeenddate, g.Gappeeendreading, g.Gappettzcount, g.Gappmanualcheck, g.Gappsupp, g.Gappappealref, g.Gappourref, g.Gapptourref, g.Gapptcurrentaq, g.Gapptheiraq, g.Gappstatus, g.Gappc1, g.Gappc2, g.Gappn1, g.Gappn2, g.Gappn3, g.Gapptheirsread, g.Gapptheirsdate, g.Gapptheireread, g.Gapptheiredate, g.Gapptheirttz, g.Gappstatusn, g.Gapptranscoser, g.Gappcurrentcalaq, g.Gappnextaction, g.Gappasorej, g.Gappaaorej, g.Gappaporaaperiod, g.Gappasisent, g.Gappasoresp, g.Gappaaisent, g.Gappaaoresp, g.Gappapisent, g.Gappaporesp, g.Gappaporej, g.Gappnomination, g.Gapprecon, g.Gappreconstart, g.Gapps91aq, g.Gapps91msn, g.Gappourmsn, g.Gappsubbuilding, g.Gappbuilding, g.Gappthroughfare, g.Gappdependlocal, g.Gappposttown, g.Gapppostcode, g.Gappmamtransref, g.Gappmamdtransref, g.Gappnrqdate, g.Gapplastread, g.Gappreadaqcalc, g.Gappaqcalc, g.Gappaqcalcsdate, g.Gappaqcalcedate, g.Gappaqcalc1, g.Gappaqcalc1sdate, g.Gappaqcalc2, g.Gappaqcalc2sdate, g.Gappaqcalc6, g.Gappaqcalc6date, g.Gapp4aqcalcdate, g.Gappaqcalc24, g.Gappaqcalc24date, g.Gappasifile, g.Gappaaifile, g.Gappaqupdate, g.Gappconnection, g.Gappaqerror, g.Gappedit, g.Gappconfirmstart, g.Gappconfirmdead, g.Gapplastact, g.Gappeditdate, g.Gasichecked, g.Gappnrlrec, g.Gappnrorec, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gappconfirmation, g.Gappmpr, g.Gappmprdate, g.Gappoutcode, g.Gappincode, g.Gapprequestaq, g.Gappmsn, g.Gappcf, g.Gappimporm, g.Gappreadingf, g.Gappreadingunits, g.Gappdials, g.Gappstartdate, g.Gappstartreading, g.Gappenddate, g.Gappendreading, g.Gappttzcount, g.Gappemsn, g.Gappecf, g.Gappeimp, g.Gapperf, g.Gapperu, g.Gappedials, g.Gappestartdate, g.Gappestartreadin, g.Gappeenddate, g.Gappeeendreading, g.Gappettzcount, g.Gappmanualcheck, g.Gappsupp, g.Gappappealref, g.Gappourref, g.Gapptourref, g.Gapptcurrentaq, g.Gapptheiraq, g.Gappstatus, g.Gappc1, g.Gappc2, g.Gappn1, g.Gappn2, g.Gappn3, g.Gapptheirsread, g.Gapptheirsdate, g.Gapptheireread, g.Gapptheiredate, g.Gapptheirttz, g.Gappstatusn, g.Gapptranscoser, g.Gappcurrentcalaq, g.Gappnextaction, g.Gappasorej, g.Gappaaorej, g.Gappaporaaperiod, g.Gappasisent, g.Gappasoresp, g.Gappaaisent, g.Gappaaoresp, g.Gappapisent, g.Gappaporesp, g.Gappaporej, g.Gappnomination, g.Gapprecon, g.Gappreconstart, g.Gapps91aq, g.Gapps91msn, g.Gappourmsn, g.Gappsubbuilding, g.Gappbuilding, g.Gappthroughfare, g.Gappdependlocal, g.Gappposttown, g.Gapppostcode, g.Gappmamtransref, g.Gappmamdtransref, g.Gappnrqdate, g.Gapplastread, g.Gappreadaqcalc, g.Gappaqcalc, g.Gappaqcalcsdate, g.Gappaqcalcedate, g.Gappaqcalc1, g.Gappaqcalc1sdate, g.Gappaqcalc2, g.Gappaqcalc2sdate, g.Gappaqcalc6, g.Gappaqcalc6date, g.Gapp4aqcalcdate, g.Gappaqcalc24, g.Gappaqcalc24date, g.Gappasifile, g.Gappaaifile, g.Gappaqupdate, g.Gappconnection, g.Gappaqerror, g.Gappedit, g.Gappconfirmstart, g.Gappconfirmdead, g.Gapplastact, g.Gappeditdate, g.Gasichecked, g.Gappnrlrec, g.Gappnrorec, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gappeal to the database.
-func (g *Gappeal) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gappeal.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gappeal) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gappeals (` +
-		`gappconfirmation, gappmpr, gappmprdate, gappoutcode, gappincode, gapprequestaq, gappmsn, gappcf, gappimporm, gappreadingf, gappreadingunits, gappdials, gappstartdate, gappstartreading, gappenddate, gappendreading, gappttzcount, gappemsn, gappecf, gappeimp, gapperf, gapperu, gappedials, gappestartdate, gappestartreadin, gappeenddate, gappeeendreading, gappettzcount, gappmanualcheck, gappsupp, gappappealref, gappourref, gapptourref, gapptcurrentaq, gapptheiraq, gappstatus, gappc1, gappc2, gappn1, gappn2, gappn3, gapptheirsread, gapptheirsdate, gapptheireread, gapptheiredate, gapptheirttz, gappstatusn, gapptranscoser, gappcurrentcalaq, gappnextaction, gappasorej, gappaaorej, gappaporaaperiod, gappasisent, gappasoresp, gappaaisent, gappaaoresp, gappapisent, gappaporesp, gappaporej, gappnomination, gapprecon, gappreconstart, gapps91aq, gapps91msn, gappourmsn, gappsubbuilding, gappbuilding, gappthroughfare, gappdependlocal, gappposttown, gapppostcode, gappmamtransref, gappmamdtransref, gappnrqdate, gapplastread, gappreadaqcalc, gappaqcalc, gappaqcalcsdate, gappaqcalcedate, gappaqcalc1, gappaqcalc1sdate, gappaqcalc2, gappaqcalc2sdate, gappaqcalc6, gappaqcalc6date, gapp4aqcalcdate, gappaqcalc24, gappaqcalc24date, gappasifile, gappaaifile, gappaqupdate, gappconnection, gappaqerror, gappedit, gappconfirmstart, gappconfirmdead, gapplastact, gappeditdate, gasichecked, gappnrlrec, gappnrorec, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99, $100, $101, $102, $103, $104` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gappconfirmation, gappmpr, gappmprdate, gappoutcode, gappincode, gapprequestaq, gappmsn, gappcf, gappimporm, gappreadingf, gappreadingunits, gappdials, gappstartdate, gappstartreading, gappenddate, gappendreading, gappttzcount, gappemsn, gappecf, gappeimp, gapperf, gapperu, gappedials, gappestartdate, gappestartreadin, gappeenddate, gappeeendreading, gappettzcount, gappmanualcheck, gappsupp, gappappealref, gappourref, gapptourref, gapptcurrentaq, gapptheiraq, gappstatus, gappc1, gappc2, gappn1, gappn2, gappn3, gapptheirsread, gapptheirsdate, gapptheireread, gapptheiredate, gapptheirttz, gappstatusn, gapptranscoser, gappcurrentcalaq, gappnextaction, gappasorej, gappaaorej, gappaporaaperiod, gappasisent, gappasoresp, gappaaisent, gappaaoresp, gappapisent, gappaporesp, gappaporej, gappnomination, gapprecon, gappreconstart, gapps91aq, gapps91msn, gappourmsn, gappsubbuilding, gappbuilding, gappthroughfare, gappdependlocal, gappposttown, gapppostcode, gappmamtransref, gappmamdtransref, gappnrqdate, gapplastread, gappreadaqcalc, gappaqcalc, gappaqcalcsdate, gappaqcalcedate, gappaqcalc1, gappaqcalc1sdate, gappaqcalc2, gappaqcalc2sdate, gappaqcalc6, gappaqcalc6date, gapp4aqcalcdate, gappaqcalc24, gappaqcalc24date, gappasifile, gappaaifile, gappaqupdate, gappconnection, gappaqerror, gappedit, gappconfirmstart, gappconfirmdead, gapplastact, gappeditdate, gasichecked, gappnrlrec, gappnrorec, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gappconfirmation, EXCLUDED.gappmpr, EXCLUDED.gappmprdate, EXCLUDED.gappoutcode, EXCLUDED.gappincode, EXCLUDED.gapprequestaq, EXCLUDED.gappmsn, EXCLUDED.gappcf, EXCLUDED.gappimporm, EXCLUDED.gappreadingf, EXCLUDED.gappreadingunits, EXCLUDED.gappdials, EXCLUDED.gappstartdate, EXCLUDED.gappstartreading, EXCLUDED.gappenddate, EXCLUDED.gappendreading, EXCLUDED.gappttzcount, EXCLUDED.gappemsn, EXCLUDED.gappecf, EXCLUDED.gappeimp, EXCLUDED.gapperf, EXCLUDED.gapperu, EXCLUDED.gappedials, EXCLUDED.gappestartdate, EXCLUDED.gappestartreadin, EXCLUDED.gappeenddate, EXCLUDED.gappeeendreading, EXCLUDED.gappettzcount, EXCLUDED.gappmanualcheck, EXCLUDED.gappsupp, EXCLUDED.gappappealref, EXCLUDED.gappourref, EXCLUDED.gapptourref, EXCLUDED.gapptcurrentaq, EXCLUDED.gapptheiraq, EXCLUDED.gappstatus, EXCLUDED.gappc1, EXCLUDED.gappc2, EXCLUDED.gappn1, EXCLUDED.gappn2, EXCLUDED.gappn3, EXCLUDED.gapptheirsread, EXCLUDED.gapptheirsdate, EXCLUDED.gapptheireread, EXCLUDED.gapptheiredate, EXCLUDED.gapptheirttz, EXCLUDED.gappstatusn, EXCLUDED.gapptranscoser, EXCLUDED.gappcurrentcalaq, EXCLUDED.gappnextaction, EXCLUDED.gappasorej, EXCLUDED.gappaaorej, EXCLUDED.gappaporaaperiod, EXCLUDED.gappasisent, EXCLUDED.gappasoresp, EXCLUDED.gappaaisent, EXCLUDED.gappaaoresp, EXCLUDED.gappapisent, EXCLUDED.gappaporesp, EXCLUDED.gappaporej, EXCLUDED.gappnomination, EXCLUDED.gapprecon, EXCLUDED.gappreconstart, EXCLUDED.gapps91aq, EXCLUDED.gapps91msn, EXCLUDED.gappourmsn, EXCLUDED.gappsubbuilding, EXCLUDED.gappbuilding, EXCLUDED.gappthroughfare, EXCLUDED.gappdependlocal, EXCLUDED.gappposttown, EXCLUDED.gapppostcode, EXCLUDED.gappmamtransref, EXCLUDED.gappmamdtransref, EXCLUDED.gappnrqdate, EXCLUDED.gapplastread, EXCLUDED.gappreadaqcalc, EXCLUDED.gappaqcalc, EXCLUDED.gappaqcalcsdate, EXCLUDED.gappaqcalcedate, EXCLUDED.gappaqcalc1, EXCLUDED.gappaqcalc1sdate, EXCLUDED.gappaqcalc2, EXCLUDED.gappaqcalc2sdate, EXCLUDED.gappaqcalc6, EXCLUDED.gappaqcalc6date, EXCLUDED.gapp4aqcalcdate, EXCLUDED.gappaqcalc24, EXCLUDED.gappaqcalc24date, EXCLUDED.gappasifile, EXCLUDED.gappaaifile, EXCLUDED.gappaqupdate, EXCLUDED.gappconnection, EXCLUDED.gappaqerror, EXCLUDED.gappedit, EXCLUDED.gappconfirmstart, EXCLUDED.gappconfirmdead, EXCLUDED.gapplastact, EXCLUDED.gappeditdate, EXCLUDED.gasichecked, EXCLUDED.gappnrlrec, EXCLUDED.gappnrorec, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gappconfirmation, g.Gappmpr, g.Gappmprdate, g.Gappoutcode, g.Gappincode, g.Gapprequestaq, g.Gappmsn, g.Gappcf, g.Gappimporm, g.Gappreadingf, g.Gappreadingunits, g.Gappdials, g.Gappstartdate, g.Gappstartreading, g.Gappenddate, g.Gappendreading, g.Gappttzcount, g.Gappemsn, g.Gappecf, g.Gappeimp, g.Gapperf, g.Gapperu, g.Gappedials, g.Gappestartdate, g.Gappestartreadin, g.Gappeenddate, g.Gappeeendreading, g.Gappettzcount, g.Gappmanualcheck, g.Gappsupp, g.Gappappealref, g.Gappourref, g.Gapptourref, g.Gapptcurrentaq, g.Gapptheiraq, g.Gappstatus, g.Gappc1, g.Gappc2, g.Gappn1, g.Gappn2, g.Gappn3, g.Gapptheirsread, g.Gapptheirsdate, g.Gapptheireread, g.Gapptheiredate, g.Gapptheirttz, g.Gappstatusn, g.Gapptranscoser, g.Gappcurrentcalaq, g.Gappnextaction, g.Gappasorej, g.Gappaaorej, g.Gappaporaaperiod, g.Gappasisent, g.Gappasoresp, g.Gappaaisent, g.Gappaaoresp, g.Gappapisent, g.Gappaporesp, g.Gappaporej, g.Gappnomination, g.Gapprecon, g.Gappreconstart, g.Gapps91aq, g.Gapps91msn, g.Gappourmsn, g.Gappsubbuilding, g.Gappbuilding, g.Gappthroughfare, g.Gappdependlocal, g.Gappposttown, g.Gapppostcode, g.Gappmamtransref, g.Gappmamdtransref, g.Gappnrqdate, g.Gapplastread, g.Gappreadaqcalc, g.Gappaqcalc, g.Gappaqcalcsdate, g.Gappaqcalcedate, g.Gappaqcalc1, g.Gappaqcalc1sdate, g.Gappaqcalc2, g.Gappaqcalc2sdate, g.Gappaqcalc6, g.Gappaqcalc6date, g.Gapp4aqcalcdate, g.Gappaqcalc24, g.Gappaqcalc24date, g.Gappasifile, g.Gappaaifile, g.Gappaqupdate, g.Gappconnection, g.Gappaqerror, g.Gappedit, g.Gappconfirmstart, g.Gappconfirmdead, g.Gapplastact, g.Gappeditdate, g.Gasichecked, g.Gappnrlrec, g.Gappnrorec, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gappconfirmation, g.Gappmpr, g.Gappmprdate, g.Gappoutcode, g.Gappincode, g.Gapprequestaq, g.Gappmsn, g.Gappcf, g.Gappimporm, g.Gappreadingf, g.Gappreadingunits, g.Gappdials, g.Gappstartdate, g.Gappstartreading, g.Gappenddate, g.Gappendreading, g.Gappttzcount, g.Gappemsn, g.Gappecf, g.Gappeimp, g.Gapperf, g.Gapperu, g.Gappedials, g.Gappestartdate, g.Gappestartreadin, g.Gappeenddate, g.Gappeeendreading, g.Gappettzcount, g.Gappmanualcheck, g.Gappsupp, g.Gappappealref, g.Gappourref, g.Gapptourref, g.Gapptcurrentaq, g.Gapptheiraq, g.Gappstatus, g.Gappc1, g.Gappc2, g.Gappn1, g.Gappn2, g.Gappn3, g.Gapptheirsread, g.Gapptheirsdate, g.Gapptheireread, g.Gapptheiredate, g.Gapptheirttz, g.Gappstatusn, g.Gapptranscoser, g.Gappcurrentcalaq, g.Gappnextaction, g.Gappasorej, g.Gappaaorej, g.Gappaporaaperiod, g.Gappasisent, g.Gappasoresp, g.Gappaaisent, g.Gappaaoresp, g.Gappapisent, g.Gappaporesp, g.Gappaporej, g.Gappnomination, g.Gapprecon, g.Gappreconstart, g.Gapps91aq, g.Gapps91msn, g.Gappourmsn, g.Gappsubbuilding, g.Gappbuilding, g.Gappthroughfare, g.Gappdependlocal, g.Gappposttown, g.Gapppostcode, g.Gappmamtransref, g.Gappmamdtransref, g.Gappnrqdate, g.Gapplastread, g.Gappreadaqcalc, g.Gappaqcalc, g.Gappaqcalcsdate, g.Gappaqcalcedate, g.Gappaqcalc1, g.Gappaqcalc1sdate, g.Gappaqcalc2, g.Gappaqcalc2sdate, g.Gappaqcalc6, g.Gappaqcalc6date, g.Gapp4aqcalcdate, g.Gappaqcalc24, g.Gappaqcalc24date, g.Gappasifile, g.Gappaaifile, g.Gappaqupdate, g.Gappconnection, g.Gappaqerror, g.Gappedit, g.Gappconfirmstart, g.Gappconfirmdead, g.Gapplastact, g.Gappeditdate, g.Gasichecked, g.Gappnrlrec, g.Gappnrorec, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gappeal from the database.
-func (g *Gappeal) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gappeals WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GappealByEquinoxLrn retrieves a row from 'equinox.gappeals' as a Gappeal.
@@ -275,9 +131,7 @@ func GappealByEquinoxLrn(db XODB, equinoxLrn int64) (*Gappeal, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gappeal{
-		_exists: true,
-	}
+	g := Gappeal{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gappconfirmation, &g.Gappmpr, &g.Gappmprdate, &g.Gappoutcode, &g.Gappincode, &g.Gapprequestaq, &g.Gappmsn, &g.Gappcf, &g.Gappimporm, &g.Gappreadingf, &g.Gappreadingunits, &g.Gappdials, &g.Gappstartdate, &g.Gappstartreading, &g.Gappenddate, &g.Gappendreading, &g.Gappttzcount, &g.Gappemsn, &g.Gappecf, &g.Gappeimp, &g.Gapperf, &g.Gapperu, &g.Gappedials, &g.Gappestartdate, &g.Gappestartreadin, &g.Gappeenddate, &g.Gappeeendreading, &g.Gappettzcount, &g.Gappmanualcheck, &g.Gappsupp, &g.Gappappealref, &g.Gappourref, &g.Gapptourref, &g.Gapptcurrentaq, &g.Gapptheiraq, &g.Gappstatus, &g.Gappc1, &g.Gappc2, &g.Gappn1, &g.Gappn2, &g.Gappn3, &g.Gapptheirsread, &g.Gapptheirsdate, &g.Gapptheireread, &g.Gapptheiredate, &g.Gapptheirttz, &g.Gappstatusn, &g.Gapptranscoser, &g.Gappcurrentcalaq, &g.Gappnextaction, &g.Gappasorej, &g.Gappaaorej, &g.Gappaporaaperiod, &g.Gappasisent, &g.Gappasoresp, &g.Gappaaisent, &g.Gappaaoresp, &g.Gappapisent, &g.Gappaporesp, &g.Gappaporej, &g.Gappnomination, &g.Gapprecon, &g.Gappreconstart, &g.Gapps91aq, &g.Gapps91msn, &g.Gappourmsn, &g.Gappsubbuilding, &g.Gappbuilding, &g.Gappthroughfare, &g.Gappdependlocal, &g.Gappposttown, &g.Gapppostcode, &g.Gappmamtransref, &g.Gappmamdtransref, &g.Gappnrqdate, &g.Gapplastread, &g.Gappreadaqcalc, &g.Gappaqcalc, &g.Gappaqcalcsdate, &g.Gappaqcalcedate, &g.Gappaqcalc1, &g.Gappaqcalc1sdate, &g.Gappaqcalc2, &g.Gappaqcalc2sdate, &g.Gappaqcalc6, &g.Gappaqcalc6date, &g.Gapp4aqcalcdate, &g.Gappaqcalc24, &g.Gappaqcalc24date, &g.Gappasifile, &g.Gappaaifile, &g.Gappaqupdate, &g.Gappconnection, &g.Gappaqerror, &g.Gappedit, &g.Gappconfirmstart, &g.Gappconfirmdead, &g.Gapplastact, &g.Gappeditdate, &g.Gasichecked, &g.Gappnrlrec, &g.Gappnrorec, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

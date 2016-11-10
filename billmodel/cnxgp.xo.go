@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -71,149 +70,6 @@ type Cnxgp struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxgp exists in the database.
-func (c *Cnxgp) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxgp has been deleted from the database.
-func (c *Cnxgp) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxgp to the database.
-func (c *Cnxgp) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxgp (` +
-		`cnxgpcli, cnxgpboxes, cnxgpfeature, cnxgpcable, cnxgpni, cnxgpservicelvl, cnxgpdatetocs, cnxgpdatefromc1, cnxgpdatefromc2, cnxgpdatetoopt, cnxgpdatefromopt, cnxgpstate, cnxgptermnum, cnxgpdateentered, cnxgpweborder, cnxgpdatetobill, cnxgpdateletter, cnxgpdateprepay, cnxgpenteredby, cnxgppromocd, cnxgppackageno, cnxgpsubtariff, cnxgpcpspostcode, cnxgpextras, cnxgpmaccode, cnxgpordtype, cnxgptariff, cnxgpfilters, cnxgpsparen2, cnxgpsparen3, cnxgpcsigndate, cnxgpagreeddate, cnxgpequipment, cnxgpnetwork, cnxgpdonoracc, cnxgpdeladdr, cnxgpdeladdref, cnxgpdoncliuni, cnxgpholduntil, cnxgphmdate, cnxgpaddserv, cnxgpsparec1, cnxgpnousbadap, cnxgpvaliddate, cnxgpvalidby, cnxgpcampaign, cnxgptype, cnxgpcommandid, cnxgpreqdate, cnxgpstatedate, cnxgppassword, cnxgpcancelrid, cnxgpgainingrid, cnxgpcpwnref, cnxgplorn, cnxgpsimprovord, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxgpcli, c.Cnxgpboxes, c.Cnxgpfeature, c.Cnxgpcable, c.Cnxgpni, c.Cnxgpservicelvl, c.Cnxgpdatetocs, c.Cnxgpdatefromc1, c.Cnxgpdatefromc2, c.Cnxgpdatetoopt, c.Cnxgpdatefromopt, c.Cnxgpstate, c.Cnxgptermnum, c.Cnxgpdateentered, c.Cnxgpweborder, c.Cnxgpdatetobill, c.Cnxgpdateletter, c.Cnxgpdateprepay, c.Cnxgpenteredby, c.Cnxgppromocd, c.Cnxgppackageno, c.Cnxgpsubtariff, c.Cnxgpcpspostcode, c.Cnxgpextras, c.Cnxgpmaccode, c.Cnxgpordtype, c.Cnxgptariff, c.Cnxgpfilters, c.Cnxgpsparen2, c.Cnxgpsparen3, c.Cnxgpcsigndate, c.Cnxgpagreeddate, c.Cnxgpequipment, c.Cnxgpnetwork, c.Cnxgpdonoracc, c.Cnxgpdeladdr, c.Cnxgpdeladdref, c.Cnxgpdoncliuni, c.Cnxgpholduntil, c.Cnxgphmdate, c.Cnxgpaddserv, c.Cnxgpsparec1, c.Cnxgpnousbadap, c.Cnxgpvaliddate, c.Cnxgpvalidby, c.Cnxgpcampaign, c.Cnxgptype, c.Cnxgpcommandid, c.Cnxgpreqdate, c.Cnxgpstatedate, c.Cnxgppassword, c.Cnxgpcancelrid, c.Cnxgpgainingrid, c.Cnxgpcpwnref, c.Cnxgplorn, c.Cnxgpsimprovord, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxgpcli, c.Cnxgpboxes, c.Cnxgpfeature, c.Cnxgpcable, c.Cnxgpni, c.Cnxgpservicelvl, c.Cnxgpdatetocs, c.Cnxgpdatefromc1, c.Cnxgpdatefromc2, c.Cnxgpdatetoopt, c.Cnxgpdatefromopt, c.Cnxgpstate, c.Cnxgptermnum, c.Cnxgpdateentered, c.Cnxgpweborder, c.Cnxgpdatetobill, c.Cnxgpdateletter, c.Cnxgpdateprepay, c.Cnxgpenteredby, c.Cnxgppromocd, c.Cnxgppackageno, c.Cnxgpsubtariff, c.Cnxgpcpspostcode, c.Cnxgpextras, c.Cnxgpmaccode, c.Cnxgpordtype, c.Cnxgptariff, c.Cnxgpfilters, c.Cnxgpsparen2, c.Cnxgpsparen3, c.Cnxgpcsigndate, c.Cnxgpagreeddate, c.Cnxgpequipment, c.Cnxgpnetwork, c.Cnxgpdonoracc, c.Cnxgpdeladdr, c.Cnxgpdeladdref, c.Cnxgpdoncliuni, c.Cnxgpholduntil, c.Cnxgphmdate, c.Cnxgpaddserv, c.Cnxgpsparec1, c.Cnxgpnousbadap, c.Cnxgpvaliddate, c.Cnxgpvalidby, c.Cnxgpcampaign, c.Cnxgptype, c.Cnxgpcommandid, c.Cnxgpreqdate, c.Cnxgpstatedate, c.Cnxgppassword, c.Cnxgpcancelrid, c.Cnxgpgainingrid, c.Cnxgpcpwnref, c.Cnxgplorn, c.Cnxgpsimprovord, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxgp in the database.
-func (c *Cnxgp) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxgp SET (` +
-		`cnxgpcli, cnxgpboxes, cnxgpfeature, cnxgpcable, cnxgpni, cnxgpservicelvl, cnxgpdatetocs, cnxgpdatefromc1, cnxgpdatefromc2, cnxgpdatetoopt, cnxgpdatefromopt, cnxgpstate, cnxgptermnum, cnxgpdateentered, cnxgpweborder, cnxgpdatetobill, cnxgpdateletter, cnxgpdateprepay, cnxgpenteredby, cnxgppromocd, cnxgppackageno, cnxgpsubtariff, cnxgpcpspostcode, cnxgpextras, cnxgpmaccode, cnxgpordtype, cnxgptariff, cnxgpfilters, cnxgpsparen2, cnxgpsparen3, cnxgpcsigndate, cnxgpagreeddate, cnxgpequipment, cnxgpnetwork, cnxgpdonoracc, cnxgpdeladdr, cnxgpdeladdref, cnxgpdoncliuni, cnxgpholduntil, cnxgphmdate, cnxgpaddserv, cnxgpsparec1, cnxgpnousbadap, cnxgpvaliddate, cnxgpvalidby, cnxgpcampaign, cnxgptype, cnxgpcommandid, cnxgpreqdate, cnxgpstatedate, cnxgppassword, cnxgpcancelrid, cnxgpgainingrid, cnxgpcpwnref, cnxgplorn, cnxgpsimprovord, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58` +
-		`) WHERE equinox_lrn = $59`
-
-	// run query
-	XOLog(sqlstr, c.Cnxgpcli, c.Cnxgpboxes, c.Cnxgpfeature, c.Cnxgpcable, c.Cnxgpni, c.Cnxgpservicelvl, c.Cnxgpdatetocs, c.Cnxgpdatefromc1, c.Cnxgpdatefromc2, c.Cnxgpdatetoopt, c.Cnxgpdatefromopt, c.Cnxgpstate, c.Cnxgptermnum, c.Cnxgpdateentered, c.Cnxgpweborder, c.Cnxgpdatetobill, c.Cnxgpdateletter, c.Cnxgpdateprepay, c.Cnxgpenteredby, c.Cnxgppromocd, c.Cnxgppackageno, c.Cnxgpsubtariff, c.Cnxgpcpspostcode, c.Cnxgpextras, c.Cnxgpmaccode, c.Cnxgpordtype, c.Cnxgptariff, c.Cnxgpfilters, c.Cnxgpsparen2, c.Cnxgpsparen3, c.Cnxgpcsigndate, c.Cnxgpagreeddate, c.Cnxgpequipment, c.Cnxgpnetwork, c.Cnxgpdonoracc, c.Cnxgpdeladdr, c.Cnxgpdeladdref, c.Cnxgpdoncliuni, c.Cnxgpholduntil, c.Cnxgphmdate, c.Cnxgpaddserv, c.Cnxgpsparec1, c.Cnxgpnousbadap, c.Cnxgpvaliddate, c.Cnxgpvalidby, c.Cnxgpcampaign, c.Cnxgptype, c.Cnxgpcommandid, c.Cnxgpreqdate, c.Cnxgpstatedate, c.Cnxgppassword, c.Cnxgpcancelrid, c.Cnxgpgainingrid, c.Cnxgpcpwnref, c.Cnxgplorn, c.Cnxgpsimprovord, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxgpcli, c.Cnxgpboxes, c.Cnxgpfeature, c.Cnxgpcable, c.Cnxgpni, c.Cnxgpservicelvl, c.Cnxgpdatetocs, c.Cnxgpdatefromc1, c.Cnxgpdatefromc2, c.Cnxgpdatetoopt, c.Cnxgpdatefromopt, c.Cnxgpstate, c.Cnxgptermnum, c.Cnxgpdateentered, c.Cnxgpweborder, c.Cnxgpdatetobill, c.Cnxgpdateletter, c.Cnxgpdateprepay, c.Cnxgpenteredby, c.Cnxgppromocd, c.Cnxgppackageno, c.Cnxgpsubtariff, c.Cnxgpcpspostcode, c.Cnxgpextras, c.Cnxgpmaccode, c.Cnxgpordtype, c.Cnxgptariff, c.Cnxgpfilters, c.Cnxgpsparen2, c.Cnxgpsparen3, c.Cnxgpcsigndate, c.Cnxgpagreeddate, c.Cnxgpequipment, c.Cnxgpnetwork, c.Cnxgpdonoracc, c.Cnxgpdeladdr, c.Cnxgpdeladdref, c.Cnxgpdoncliuni, c.Cnxgpholduntil, c.Cnxgphmdate, c.Cnxgpaddserv, c.Cnxgpsparec1, c.Cnxgpnousbadap, c.Cnxgpvaliddate, c.Cnxgpvalidby, c.Cnxgpcampaign, c.Cnxgptype, c.Cnxgpcommandid, c.Cnxgpreqdate, c.Cnxgpstatedate, c.Cnxgppassword, c.Cnxgpcancelrid, c.Cnxgpgainingrid, c.Cnxgpcpwnref, c.Cnxgplorn, c.Cnxgpsimprovord, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxgp to the database.
-func (c *Cnxgp) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxgp.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxgp) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxgp (` +
-		`cnxgpcli, cnxgpboxes, cnxgpfeature, cnxgpcable, cnxgpni, cnxgpservicelvl, cnxgpdatetocs, cnxgpdatefromc1, cnxgpdatefromc2, cnxgpdatetoopt, cnxgpdatefromopt, cnxgpstate, cnxgptermnum, cnxgpdateentered, cnxgpweborder, cnxgpdatetobill, cnxgpdateletter, cnxgpdateprepay, cnxgpenteredby, cnxgppromocd, cnxgppackageno, cnxgpsubtariff, cnxgpcpspostcode, cnxgpextras, cnxgpmaccode, cnxgpordtype, cnxgptariff, cnxgpfilters, cnxgpsparen2, cnxgpsparen3, cnxgpcsigndate, cnxgpagreeddate, cnxgpequipment, cnxgpnetwork, cnxgpdonoracc, cnxgpdeladdr, cnxgpdeladdref, cnxgpdoncliuni, cnxgpholduntil, cnxgphmdate, cnxgpaddserv, cnxgpsparec1, cnxgpnousbadap, cnxgpvaliddate, cnxgpvalidby, cnxgpcampaign, cnxgptype, cnxgpcommandid, cnxgpreqdate, cnxgpstatedate, cnxgppassword, cnxgpcancelrid, cnxgpgainingrid, cnxgpcpwnref, cnxgplorn, cnxgpsimprovord, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxgpcli, cnxgpboxes, cnxgpfeature, cnxgpcable, cnxgpni, cnxgpservicelvl, cnxgpdatetocs, cnxgpdatefromc1, cnxgpdatefromc2, cnxgpdatetoopt, cnxgpdatefromopt, cnxgpstate, cnxgptermnum, cnxgpdateentered, cnxgpweborder, cnxgpdatetobill, cnxgpdateletter, cnxgpdateprepay, cnxgpenteredby, cnxgppromocd, cnxgppackageno, cnxgpsubtariff, cnxgpcpspostcode, cnxgpextras, cnxgpmaccode, cnxgpordtype, cnxgptariff, cnxgpfilters, cnxgpsparen2, cnxgpsparen3, cnxgpcsigndate, cnxgpagreeddate, cnxgpequipment, cnxgpnetwork, cnxgpdonoracc, cnxgpdeladdr, cnxgpdeladdref, cnxgpdoncliuni, cnxgpholduntil, cnxgphmdate, cnxgpaddserv, cnxgpsparec1, cnxgpnousbadap, cnxgpvaliddate, cnxgpvalidby, cnxgpcampaign, cnxgptype, cnxgpcommandid, cnxgpreqdate, cnxgpstatedate, cnxgppassword, cnxgpcancelrid, cnxgpgainingrid, cnxgpcpwnref, cnxgplorn, cnxgpsimprovord, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxgpcli, EXCLUDED.cnxgpboxes, EXCLUDED.cnxgpfeature, EXCLUDED.cnxgpcable, EXCLUDED.cnxgpni, EXCLUDED.cnxgpservicelvl, EXCLUDED.cnxgpdatetocs, EXCLUDED.cnxgpdatefromc1, EXCLUDED.cnxgpdatefromc2, EXCLUDED.cnxgpdatetoopt, EXCLUDED.cnxgpdatefromopt, EXCLUDED.cnxgpstate, EXCLUDED.cnxgptermnum, EXCLUDED.cnxgpdateentered, EXCLUDED.cnxgpweborder, EXCLUDED.cnxgpdatetobill, EXCLUDED.cnxgpdateletter, EXCLUDED.cnxgpdateprepay, EXCLUDED.cnxgpenteredby, EXCLUDED.cnxgppromocd, EXCLUDED.cnxgppackageno, EXCLUDED.cnxgpsubtariff, EXCLUDED.cnxgpcpspostcode, EXCLUDED.cnxgpextras, EXCLUDED.cnxgpmaccode, EXCLUDED.cnxgpordtype, EXCLUDED.cnxgptariff, EXCLUDED.cnxgpfilters, EXCLUDED.cnxgpsparen2, EXCLUDED.cnxgpsparen3, EXCLUDED.cnxgpcsigndate, EXCLUDED.cnxgpagreeddate, EXCLUDED.cnxgpequipment, EXCLUDED.cnxgpnetwork, EXCLUDED.cnxgpdonoracc, EXCLUDED.cnxgpdeladdr, EXCLUDED.cnxgpdeladdref, EXCLUDED.cnxgpdoncliuni, EXCLUDED.cnxgpholduntil, EXCLUDED.cnxgphmdate, EXCLUDED.cnxgpaddserv, EXCLUDED.cnxgpsparec1, EXCLUDED.cnxgpnousbadap, EXCLUDED.cnxgpvaliddate, EXCLUDED.cnxgpvalidby, EXCLUDED.cnxgpcampaign, EXCLUDED.cnxgptype, EXCLUDED.cnxgpcommandid, EXCLUDED.cnxgpreqdate, EXCLUDED.cnxgpstatedate, EXCLUDED.cnxgppassword, EXCLUDED.cnxgpcancelrid, EXCLUDED.cnxgpgainingrid, EXCLUDED.cnxgpcpwnref, EXCLUDED.cnxgplorn, EXCLUDED.cnxgpsimprovord, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxgpcli, c.Cnxgpboxes, c.Cnxgpfeature, c.Cnxgpcable, c.Cnxgpni, c.Cnxgpservicelvl, c.Cnxgpdatetocs, c.Cnxgpdatefromc1, c.Cnxgpdatefromc2, c.Cnxgpdatetoopt, c.Cnxgpdatefromopt, c.Cnxgpstate, c.Cnxgptermnum, c.Cnxgpdateentered, c.Cnxgpweborder, c.Cnxgpdatetobill, c.Cnxgpdateletter, c.Cnxgpdateprepay, c.Cnxgpenteredby, c.Cnxgppromocd, c.Cnxgppackageno, c.Cnxgpsubtariff, c.Cnxgpcpspostcode, c.Cnxgpextras, c.Cnxgpmaccode, c.Cnxgpordtype, c.Cnxgptariff, c.Cnxgpfilters, c.Cnxgpsparen2, c.Cnxgpsparen3, c.Cnxgpcsigndate, c.Cnxgpagreeddate, c.Cnxgpequipment, c.Cnxgpnetwork, c.Cnxgpdonoracc, c.Cnxgpdeladdr, c.Cnxgpdeladdref, c.Cnxgpdoncliuni, c.Cnxgpholduntil, c.Cnxgphmdate, c.Cnxgpaddserv, c.Cnxgpsparec1, c.Cnxgpnousbadap, c.Cnxgpvaliddate, c.Cnxgpvalidby, c.Cnxgpcampaign, c.Cnxgptype, c.Cnxgpcommandid, c.Cnxgpreqdate, c.Cnxgpstatedate, c.Cnxgppassword, c.Cnxgpcancelrid, c.Cnxgpgainingrid, c.Cnxgpcpwnref, c.Cnxgplorn, c.Cnxgpsimprovord, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxgpcli, c.Cnxgpboxes, c.Cnxgpfeature, c.Cnxgpcable, c.Cnxgpni, c.Cnxgpservicelvl, c.Cnxgpdatetocs, c.Cnxgpdatefromc1, c.Cnxgpdatefromc2, c.Cnxgpdatetoopt, c.Cnxgpdatefromopt, c.Cnxgpstate, c.Cnxgptermnum, c.Cnxgpdateentered, c.Cnxgpweborder, c.Cnxgpdatetobill, c.Cnxgpdateletter, c.Cnxgpdateprepay, c.Cnxgpenteredby, c.Cnxgppromocd, c.Cnxgppackageno, c.Cnxgpsubtariff, c.Cnxgpcpspostcode, c.Cnxgpextras, c.Cnxgpmaccode, c.Cnxgpordtype, c.Cnxgptariff, c.Cnxgpfilters, c.Cnxgpsparen2, c.Cnxgpsparen3, c.Cnxgpcsigndate, c.Cnxgpagreeddate, c.Cnxgpequipment, c.Cnxgpnetwork, c.Cnxgpdonoracc, c.Cnxgpdeladdr, c.Cnxgpdeladdref, c.Cnxgpdoncliuni, c.Cnxgpholduntil, c.Cnxgphmdate, c.Cnxgpaddserv, c.Cnxgpsparec1, c.Cnxgpnousbadap, c.Cnxgpvaliddate, c.Cnxgpvalidby, c.Cnxgpcampaign, c.Cnxgptype, c.Cnxgpcommandid, c.Cnxgpreqdate, c.Cnxgpstatedate, c.Cnxgppassword, c.Cnxgpcancelrid, c.Cnxgpgainingrid, c.Cnxgpcpwnref, c.Cnxgplorn, c.Cnxgpsimprovord, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxgp from the database.
-func (c *Cnxgp) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxgp WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxgpByEquinoxLrn retrieves a row from 'equinox.cnxgp' as a Cnxgp.
@@ -230,9 +86,7 @@ func CnxgpByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxgp, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxgp{
-		_exists: true,
-	}
+	c := Cnxgp{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxgpcli, &c.Cnxgpboxes, &c.Cnxgpfeature, &c.Cnxgpcable, &c.Cnxgpni, &c.Cnxgpservicelvl, &c.Cnxgpdatetocs, &c.Cnxgpdatefromc1, &c.Cnxgpdatefromc2, &c.Cnxgpdatetoopt, &c.Cnxgpdatefromopt, &c.Cnxgpstate, &c.Cnxgptermnum, &c.Cnxgpdateentered, &c.Cnxgpweborder, &c.Cnxgpdatetobill, &c.Cnxgpdateletter, &c.Cnxgpdateprepay, &c.Cnxgpenteredby, &c.Cnxgppromocd, &c.Cnxgppackageno, &c.Cnxgpsubtariff, &c.Cnxgpcpspostcode, &c.Cnxgpextras, &c.Cnxgpmaccode, &c.Cnxgpordtype, &c.Cnxgptariff, &c.Cnxgpfilters, &c.Cnxgpsparen2, &c.Cnxgpsparen3, &c.Cnxgpcsigndate, &c.Cnxgpagreeddate, &c.Cnxgpequipment, &c.Cnxgpnetwork, &c.Cnxgpdonoracc, &c.Cnxgpdeladdr, &c.Cnxgpdeladdref, &c.Cnxgpdoncliuni, &c.Cnxgpholduntil, &c.Cnxgphmdate, &c.Cnxgpaddserv, &c.Cnxgpsparec1, &c.Cnxgpnousbadap, &c.Cnxgpvaliddate, &c.Cnxgpvalidby, &c.Cnxgpcampaign, &c.Cnxgptype, &c.Cnxgpcommandid, &c.Cnxgpreqdate, &c.Cnxgpstatedate, &c.Cnxgppassword, &c.Cnxgpcancelrid, &c.Cnxgpgainingrid, &c.Cnxgpcpwnref, &c.Cnxgplorn, &c.Cnxgpsimprovord, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

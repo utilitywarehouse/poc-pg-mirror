@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -69,149 +68,6 @@ type Recfile struct {
 	Grecimportedtime pq.NullTime     `json:"grecimportedtime"` // grecimportedtime
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Recfile exists in the database.
-func (r *Recfile) Exists() bool {
-	return r._exists
-}
-
-// Deleted provides information if the Recfile has been deleted from the database.
-func (r *Recfile) Deleted() bool {
-	return r._deleted
-}
-
-// Insert inserts the Recfile to the database.
-func (r *Recfile) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.recfiles (` +
-		`grectranstype, grecrchseqno, grecmprn, grecmsn, grecctpcode, grecmtrrdrefno, grecamount, grecstatus, grecconfirmref, grecvariancersn, greccurrchrgeind, grecldz, grecinvnumber, grecnominref, grecstartrddate, grecendrddate, grecstartmetrrdg, grecendmeterrdg, grecvolconsumed, grecdmdallocvol, grecdmdallocengy, grectotactenergy, grecunmtrdcons, grecrveactenrgy, grecrvestartdate, grecorigmtrread, grecstartrdreasn, grecendrdreason, grecshipperref, grecendreadtype, grecrveenddate, grecmmoname, greccrmname, grecmmodials, greccrmdials, grecmpocorrfactr, greccrrcorrfactr, grecmmordfactor, greccrmrdfactor, grecmeterpntaq, grecsupplypntaq, greceucnumber, grecstrtcorrrdng, grecendcorrrdng, greccorrrdngflag, grecprevinvno, grecprevamount, grecprevmtrrdref, grecoriginvno, grecoriginalamnt, grecreconqatity, grecmeterttzcnt, grecfilename, grecimporteddate, grecimportedtime, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, r.Grectranstype, r.Grecrchseqno, r.Grecmprn, r.Grecmsn, r.Grecctpcode, r.Grecmtrrdrefno, r.Grecamount, r.Grecstatus, r.Grecconfirmref, r.Grecvariancersn, r.Greccurrchrgeind, r.Grecldz, r.Grecinvnumber, r.Grecnominref, r.Grecstartrddate, r.Grecendrddate, r.Grecstartmetrrdg, r.Grecendmeterrdg, r.Grecvolconsumed, r.Grecdmdallocvol, r.Grecdmdallocengy, r.Grectotactenergy, r.Grecunmtrdcons, r.Grecrveactenrgy, r.Grecrvestartdate, r.Grecorigmtrread, r.Grecstartrdreasn, r.Grecendrdreason, r.Grecshipperref, r.Grecendreadtype, r.Grecrveenddate, r.Grecmmoname, r.Greccrmname, r.Grecmmodials, r.Greccrmdials, r.Grecmpocorrfactr, r.Greccrrcorrfactr, r.Grecmmordfactor, r.Greccrmrdfactor, r.Grecmeterpntaq, r.Grecsupplypntaq, r.Greceucnumber, r.Grecstrtcorrrdng, r.Grecendcorrrdng, r.Greccorrrdngflag, r.Grecprevinvno, r.Grecprevamount, r.Grecprevmtrrdref, r.Grecoriginvno, r.Grecoriginalamnt, r.Grecreconqatity, r.Grecmeterttzcnt, r.Grecfilename, r.Grecimporteddate, r.Grecimportedtime, r.EquinoxSec)
-	err = db.QueryRow(sqlstr, r.Grectranstype, r.Grecrchseqno, r.Grecmprn, r.Grecmsn, r.Grecctpcode, r.Grecmtrrdrefno, r.Grecamount, r.Grecstatus, r.Grecconfirmref, r.Grecvariancersn, r.Greccurrchrgeind, r.Grecldz, r.Grecinvnumber, r.Grecnominref, r.Grecstartrddate, r.Grecendrddate, r.Grecstartmetrrdg, r.Grecendmeterrdg, r.Grecvolconsumed, r.Grecdmdallocvol, r.Grecdmdallocengy, r.Grectotactenergy, r.Grecunmtrdcons, r.Grecrveactenrgy, r.Grecrvestartdate, r.Grecorigmtrread, r.Grecstartrdreasn, r.Grecendrdreason, r.Grecshipperref, r.Grecendreadtype, r.Grecrveenddate, r.Grecmmoname, r.Greccrmname, r.Grecmmodials, r.Greccrmdials, r.Grecmpocorrfactr, r.Greccrrcorrfactr, r.Grecmmordfactor, r.Greccrmrdfactor, r.Grecmeterpntaq, r.Grecsupplypntaq, r.Greceucnumber, r.Grecstrtcorrrdng, r.Grecendcorrrdng, r.Greccorrrdngflag, r.Grecprevinvno, r.Grecprevamount, r.Grecprevmtrrdref, r.Grecoriginvno, r.Grecoriginalamnt, r.Grecreconqatity, r.Grecmeterttzcnt, r.Grecfilename, r.Grecimporteddate, r.Grecimportedtime, r.EquinoxSec).Scan(&r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Update updates the Recfile in the database.
-func (r *Recfile) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.recfiles SET (` +
-		`grectranstype, grecrchseqno, grecmprn, grecmsn, grecctpcode, grecmtrrdrefno, grecamount, grecstatus, grecconfirmref, grecvariancersn, greccurrchrgeind, grecldz, grecinvnumber, grecnominref, grecstartrddate, grecendrddate, grecstartmetrrdg, grecendmeterrdg, grecvolconsumed, grecdmdallocvol, grecdmdallocengy, grectotactenergy, grecunmtrdcons, grecrveactenrgy, grecrvestartdate, grecorigmtrread, grecstartrdreasn, grecendrdreason, grecshipperref, grecendreadtype, grecrveenddate, grecmmoname, greccrmname, grecmmodials, greccrmdials, grecmpocorrfactr, greccrrcorrfactr, grecmmordfactor, greccrmrdfactor, grecmeterpntaq, grecsupplypntaq, greceucnumber, grecstrtcorrrdng, grecendcorrrdng, greccorrrdngflag, grecprevinvno, grecprevamount, grecprevmtrrdref, grecoriginvno, grecoriginalamnt, grecreconqatity, grecmeterttzcnt, grecfilename, grecimporteddate, grecimportedtime, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56` +
-		`) WHERE equinox_lrn = $57`
-
-	// run query
-	XOLog(sqlstr, r.Grectranstype, r.Grecrchseqno, r.Grecmprn, r.Grecmsn, r.Grecctpcode, r.Grecmtrrdrefno, r.Grecamount, r.Grecstatus, r.Grecconfirmref, r.Grecvariancersn, r.Greccurrchrgeind, r.Grecldz, r.Grecinvnumber, r.Grecnominref, r.Grecstartrddate, r.Grecendrddate, r.Grecstartmetrrdg, r.Grecendmeterrdg, r.Grecvolconsumed, r.Grecdmdallocvol, r.Grecdmdallocengy, r.Grectotactenergy, r.Grecunmtrdcons, r.Grecrveactenrgy, r.Grecrvestartdate, r.Grecorigmtrread, r.Grecstartrdreasn, r.Grecendrdreason, r.Grecshipperref, r.Grecendreadtype, r.Grecrveenddate, r.Grecmmoname, r.Greccrmname, r.Grecmmodials, r.Greccrmdials, r.Grecmpocorrfactr, r.Greccrrcorrfactr, r.Grecmmordfactor, r.Greccrmrdfactor, r.Grecmeterpntaq, r.Grecsupplypntaq, r.Greceucnumber, r.Grecstrtcorrrdng, r.Grecendcorrrdng, r.Greccorrrdngflag, r.Grecprevinvno, r.Grecprevamount, r.Grecprevmtrrdref, r.Grecoriginvno, r.Grecoriginalamnt, r.Grecreconqatity, r.Grecmeterttzcnt, r.Grecfilename, r.Grecimporteddate, r.Grecimportedtime, r.EquinoxSec, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.Grectranstype, r.Grecrchseqno, r.Grecmprn, r.Grecmsn, r.Grecctpcode, r.Grecmtrrdrefno, r.Grecamount, r.Grecstatus, r.Grecconfirmref, r.Grecvariancersn, r.Greccurrchrgeind, r.Grecldz, r.Grecinvnumber, r.Grecnominref, r.Grecstartrddate, r.Grecendrddate, r.Grecstartmetrrdg, r.Grecendmeterrdg, r.Grecvolconsumed, r.Grecdmdallocvol, r.Grecdmdallocengy, r.Grectotactenergy, r.Grecunmtrdcons, r.Grecrveactenrgy, r.Grecrvestartdate, r.Grecorigmtrread, r.Grecstartrdreasn, r.Grecendrdreason, r.Grecshipperref, r.Grecendreadtype, r.Grecrveenddate, r.Grecmmoname, r.Greccrmname, r.Grecmmodials, r.Greccrmdials, r.Grecmpocorrfactr, r.Greccrrcorrfactr, r.Grecmmordfactor, r.Greccrmrdfactor, r.Grecmeterpntaq, r.Grecsupplypntaq, r.Greceucnumber, r.Grecstrtcorrrdng, r.Grecendcorrrdng, r.Greccorrrdngflag, r.Grecprevinvno, r.Grecprevamount, r.Grecprevmtrrdref, r.Grecoriginvno, r.Grecoriginalamnt, r.Grecreconqatity, r.Grecmeterttzcnt, r.Grecfilename, r.Grecimporteddate, r.Grecimportedtime, r.EquinoxSec, r.EquinoxLrn)
-	return err
-}
-
-// Save saves the Recfile to the database.
-func (r *Recfile) Save(db XODB) error {
-	if r.Exists() {
-		return r.Update(db)
-	}
-
-	return r.Insert(db)
-}
-
-// Upsert performs an upsert for Recfile.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (r *Recfile) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if r._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.recfiles (` +
-		`grectranstype, grecrchseqno, grecmprn, grecmsn, grecctpcode, grecmtrrdrefno, grecamount, grecstatus, grecconfirmref, grecvariancersn, greccurrchrgeind, grecldz, grecinvnumber, grecnominref, grecstartrddate, grecendrddate, grecstartmetrrdg, grecendmeterrdg, grecvolconsumed, grecdmdallocvol, grecdmdallocengy, grectotactenergy, grecunmtrdcons, grecrveactenrgy, grecrvestartdate, grecorigmtrread, grecstartrdreasn, grecendrdreason, grecshipperref, grecendreadtype, grecrveenddate, grecmmoname, greccrmname, grecmmodials, greccrmdials, grecmpocorrfactr, greccrrcorrfactr, grecmmordfactor, greccrmrdfactor, grecmeterpntaq, grecsupplypntaq, greceucnumber, grecstrtcorrrdng, grecendcorrrdng, greccorrrdngflag, grecprevinvno, grecprevamount, grecprevmtrrdref, grecoriginvno, grecoriginalamnt, grecreconqatity, grecmeterttzcnt, grecfilename, grecimporteddate, grecimportedtime, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`grectranstype, grecrchseqno, grecmprn, grecmsn, grecctpcode, grecmtrrdrefno, grecamount, grecstatus, grecconfirmref, grecvariancersn, greccurrchrgeind, grecldz, grecinvnumber, grecnominref, grecstartrddate, grecendrddate, grecstartmetrrdg, grecendmeterrdg, grecvolconsumed, grecdmdallocvol, grecdmdallocengy, grectotactenergy, grecunmtrdcons, grecrveactenrgy, grecrvestartdate, grecorigmtrread, grecstartrdreasn, grecendrdreason, grecshipperref, grecendreadtype, grecrveenddate, grecmmoname, greccrmname, grecmmodials, greccrmdials, grecmpocorrfactr, greccrrcorrfactr, grecmmordfactor, greccrmrdfactor, grecmeterpntaq, grecsupplypntaq, greceucnumber, grecstrtcorrrdng, grecendcorrrdng, greccorrrdngflag, grecprevinvno, grecprevamount, grecprevmtrrdref, grecoriginvno, grecoriginalamnt, grecreconqatity, grecmeterttzcnt, grecfilename, grecimporteddate, grecimportedtime, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.grectranstype, EXCLUDED.grecrchseqno, EXCLUDED.grecmprn, EXCLUDED.grecmsn, EXCLUDED.grecctpcode, EXCLUDED.grecmtrrdrefno, EXCLUDED.grecamount, EXCLUDED.grecstatus, EXCLUDED.grecconfirmref, EXCLUDED.grecvariancersn, EXCLUDED.greccurrchrgeind, EXCLUDED.grecldz, EXCLUDED.grecinvnumber, EXCLUDED.grecnominref, EXCLUDED.grecstartrddate, EXCLUDED.grecendrddate, EXCLUDED.grecstartmetrrdg, EXCLUDED.grecendmeterrdg, EXCLUDED.grecvolconsumed, EXCLUDED.grecdmdallocvol, EXCLUDED.grecdmdallocengy, EXCLUDED.grectotactenergy, EXCLUDED.grecunmtrdcons, EXCLUDED.grecrveactenrgy, EXCLUDED.grecrvestartdate, EXCLUDED.grecorigmtrread, EXCLUDED.grecstartrdreasn, EXCLUDED.grecendrdreason, EXCLUDED.grecshipperref, EXCLUDED.grecendreadtype, EXCLUDED.grecrveenddate, EXCLUDED.grecmmoname, EXCLUDED.greccrmname, EXCLUDED.grecmmodials, EXCLUDED.greccrmdials, EXCLUDED.grecmpocorrfactr, EXCLUDED.greccrrcorrfactr, EXCLUDED.grecmmordfactor, EXCLUDED.greccrmrdfactor, EXCLUDED.grecmeterpntaq, EXCLUDED.grecsupplypntaq, EXCLUDED.greceucnumber, EXCLUDED.grecstrtcorrrdng, EXCLUDED.grecendcorrrdng, EXCLUDED.greccorrrdngflag, EXCLUDED.grecprevinvno, EXCLUDED.grecprevamount, EXCLUDED.grecprevmtrrdref, EXCLUDED.grecoriginvno, EXCLUDED.grecoriginalamnt, EXCLUDED.grecreconqatity, EXCLUDED.grecmeterttzcnt, EXCLUDED.grecfilename, EXCLUDED.grecimporteddate, EXCLUDED.grecimportedtime, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, r.Grectranstype, r.Grecrchseqno, r.Grecmprn, r.Grecmsn, r.Grecctpcode, r.Grecmtrrdrefno, r.Grecamount, r.Grecstatus, r.Grecconfirmref, r.Grecvariancersn, r.Greccurrchrgeind, r.Grecldz, r.Grecinvnumber, r.Grecnominref, r.Grecstartrddate, r.Grecendrddate, r.Grecstartmetrrdg, r.Grecendmeterrdg, r.Grecvolconsumed, r.Grecdmdallocvol, r.Grecdmdallocengy, r.Grectotactenergy, r.Grecunmtrdcons, r.Grecrveactenrgy, r.Grecrvestartdate, r.Grecorigmtrread, r.Grecstartrdreasn, r.Grecendrdreason, r.Grecshipperref, r.Grecendreadtype, r.Grecrveenddate, r.Grecmmoname, r.Greccrmname, r.Grecmmodials, r.Greccrmdials, r.Grecmpocorrfactr, r.Greccrrcorrfactr, r.Grecmmordfactor, r.Greccrmrdfactor, r.Grecmeterpntaq, r.Grecsupplypntaq, r.Greceucnumber, r.Grecstrtcorrrdng, r.Grecendcorrrdng, r.Greccorrrdngflag, r.Grecprevinvno, r.Grecprevamount, r.Grecprevmtrrdref, r.Grecoriginvno, r.Grecoriginalamnt, r.Grecreconqatity, r.Grecmeterttzcnt, r.Grecfilename, r.Grecimporteddate, r.Grecimportedtime, r.EquinoxLrn, r.EquinoxSec)
-	_, err = db.Exec(sqlstr, r.Grectranstype, r.Grecrchseqno, r.Grecmprn, r.Grecmsn, r.Grecctpcode, r.Grecmtrrdrefno, r.Grecamount, r.Grecstatus, r.Grecconfirmref, r.Grecvariancersn, r.Greccurrchrgeind, r.Grecldz, r.Grecinvnumber, r.Grecnominref, r.Grecstartrddate, r.Grecendrddate, r.Grecstartmetrrdg, r.Grecendmeterrdg, r.Grecvolconsumed, r.Grecdmdallocvol, r.Grecdmdallocengy, r.Grectotactenergy, r.Grecunmtrdcons, r.Grecrveactenrgy, r.Grecrvestartdate, r.Grecorigmtrread, r.Grecstartrdreasn, r.Grecendrdreason, r.Grecshipperref, r.Grecendreadtype, r.Grecrveenddate, r.Grecmmoname, r.Greccrmname, r.Grecmmodials, r.Greccrmdials, r.Grecmpocorrfactr, r.Greccrrcorrfactr, r.Grecmmordfactor, r.Greccrmrdfactor, r.Grecmeterpntaq, r.Grecsupplypntaq, r.Greceucnumber, r.Grecstrtcorrrdng, r.Grecendcorrrdng, r.Greccorrrdngflag, r.Grecprevinvno, r.Grecprevamount, r.Grecprevmtrrdref, r.Grecoriginvno, r.Grecoriginalamnt, r.Grecreconqatity, r.Grecmeterttzcnt, r.Grecfilename, r.Grecimporteddate, r.Grecimportedtime, r.EquinoxLrn, r.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	r._exists = true
-
-	return nil
-}
-
-// Delete deletes the Recfile from the database.
-func (r *Recfile) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !r._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if r._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.recfiles WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, r.EquinoxLrn)
-	_, err = db.Exec(sqlstr, r.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	r._deleted = true
-
-	return nil
 }
 
 // RecfileByEquinoxLrn retrieves a row from 'equinox.recfiles' as a Recfile.
@@ -228,9 +84,7 @@ func RecfileByEquinoxLrn(db XODB, equinoxLrn int64) (*Recfile, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	r := Recfile{
-		_exists: true,
-	}
+	r := Recfile{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&r.Grectranstype, &r.Grecrchseqno, &r.Grecmprn, &r.Grecmsn, &r.Grecctpcode, &r.Grecmtrrdrefno, &r.Grecamount, &r.Grecstatus, &r.Grecconfirmref, &r.Grecvariancersn, &r.Greccurrchrgeind, &r.Grecldz, &r.Grecinvnumber, &r.Grecnominref, &r.Grecstartrddate, &r.Grecendrddate, &r.Grecstartmetrrdg, &r.Grecendmeterrdg, &r.Grecvolconsumed, &r.Grecdmdallocvol, &r.Grecdmdallocengy, &r.Grectotactenergy, &r.Grecunmtrdcons, &r.Grecrveactenrgy, &r.Grecrvestartdate, &r.Grecorigmtrread, &r.Grecstartrdreasn, &r.Grecendrdreason, &r.Grecshipperref, &r.Grecendreadtype, &r.Grecrveenddate, &r.Grecmmoname, &r.Greccrmname, &r.Grecmmodials, &r.Greccrmdials, &r.Grecmpocorrfactr, &r.Greccrrcorrfactr, &r.Grecmmordfactor, &r.Greccrmrdfactor, &r.Grecmeterpntaq, &r.Grecsupplypntaq, &r.Greceucnumber, &r.Grecstrtcorrrdng, &r.Grecendcorrrdng, &r.Greccorrrdngflag, &r.Grecprevinvno, &r.Grecprevamount, &r.Grecprevmtrrdref, &r.Grecoriginvno, &r.Grecoriginalamnt, &r.Grecreconqatity, &r.Grecmeterttzcnt, &r.Grecfilename, &r.Grecimporteddate, &r.Grecimportedtime, &r.EquinoxLrn, &r.EquinoxSec)
 	if err != nil {

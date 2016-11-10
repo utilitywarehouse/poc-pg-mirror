@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -23,149 +22,6 @@ type Gdpayer struct {
 	EquinoxPrn      sql.NullInt64   `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gdpayer exists in the database.
-func (g *Gdpayer) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gdpayer has been deleted from the database.
-func (g *Gdpayer) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gdpayer to the database.
-func (g *Gdpayer) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gdpayer (` +
-		`gdpaccno, gdpgref, gdppaiduntil, gdppaiduntilbr, gdpthisbillnett, gdpthisbillno, gdpstartdate, gdpenddate, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gdpaccno, g.Gdpgref, g.Gdppaiduntil, g.Gdppaiduntilbr, g.Gdpthisbillnett, g.Gdpthisbillno, g.Gdpstartdate, g.Gdpenddate, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gdpaccno, g.Gdpgref, g.Gdppaiduntil, g.Gdppaiduntilbr, g.Gdpthisbillnett, g.Gdpthisbillno, g.Gdpstartdate, g.Gdpenddate, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gdpayer in the database.
-func (g *Gdpayer) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gdpayer SET (` +
-		`gdpaccno, gdpgref, gdppaiduntil, gdppaiduntilbr, gdpthisbillnett, gdpthisbillno, gdpstartdate, gdpenddate, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10` +
-		`) WHERE equinox_lrn = $11`
-
-	// run query
-	XOLog(sqlstr, g.Gdpaccno, g.Gdpgref, g.Gdppaiduntil, g.Gdppaiduntilbr, g.Gdpthisbillnett, g.Gdpthisbillno, g.Gdpstartdate, g.Gdpenddate, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gdpaccno, g.Gdpgref, g.Gdppaiduntil, g.Gdppaiduntilbr, g.Gdpthisbillnett, g.Gdpthisbillno, g.Gdpstartdate, g.Gdpenddate, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gdpayer to the database.
-func (g *Gdpayer) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gdpayer.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gdpayer) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gdpayer (` +
-		`gdpaccno, gdpgref, gdppaiduntil, gdppaiduntilbr, gdpthisbillnett, gdpthisbillno, gdpstartdate, gdpenddate, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gdpaccno, gdpgref, gdppaiduntil, gdppaiduntilbr, gdpthisbillnett, gdpthisbillno, gdpstartdate, gdpenddate, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gdpaccno, EXCLUDED.gdpgref, EXCLUDED.gdppaiduntil, EXCLUDED.gdppaiduntilbr, EXCLUDED.gdpthisbillnett, EXCLUDED.gdpthisbillno, EXCLUDED.gdpstartdate, EXCLUDED.gdpenddate, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gdpaccno, g.Gdpgref, g.Gdppaiduntil, g.Gdppaiduntilbr, g.Gdpthisbillnett, g.Gdpthisbillno, g.Gdpstartdate, g.Gdpenddate, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gdpaccno, g.Gdpgref, g.Gdppaiduntil, g.Gdppaiduntilbr, g.Gdpthisbillnett, g.Gdpthisbillno, g.Gdpstartdate, g.Gdpenddate, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gdpayer from the database.
-func (g *Gdpayer) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gdpayer WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GdpayerByEquinoxLrn retrieves a row from 'equinox.gdpayer' as a Gdpayer.
@@ -182,9 +38,7 @@ func GdpayerByEquinoxLrn(db XODB, equinoxLrn int64) (*Gdpayer, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gdpayer{
-		_exists: true,
-	}
+	g := Gdpayer{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gdpaccno, &g.Gdpgref, &g.Gdppaiduntil, &g.Gdppaiduntilbr, &g.Gdpthisbillnett, &g.Gdpthisbillno, &g.Gdpstartdate, &g.Gdpenddate, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

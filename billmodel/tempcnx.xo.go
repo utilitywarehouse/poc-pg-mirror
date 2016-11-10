@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -72,149 +71,6 @@ type TempCnx struct {
 	TempSparel5     sql.NullInt64  `json:"temp_sparel5"`     // temp_sparel5
 	EquinoxLrn      int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the TempCnx exists in the database.
-func (tc *TempCnx) Exists() bool {
-	return tc._exists
-}
-
-// Deleted provides information if the TempCnx has been deleted from the database.
-func (tc *TempCnx) Deleted() bool {
-	return tc._deleted
-}
-
-// Insert inserts the TempCnx to the database.
-func (tc *TempCnx) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if tc._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.temp_cnx (` +
-		`temp_refno, temp_reward, temp_custpostcod, temp_custadd1, temp_custadd2, temp_custadd3, temp_custadd4, temp_custadd5, temp_custni, temp_custver, temp_custinvadd, temp_title, temp_surname, temp_firstname, temp_accname, temp_ownertenant, temp_tenenddate, temp_tenclubleve, temp_dob, temp_homeno, temp_mobile, temp_email, temp_bankaccname, temp_banksortc, temp_bankaccno, temp_cardtype, temp_cardno, temp_startdate, temp_expdate, temp_issue, temp_emailbills, temp_nomarketing, temp_enteredby, temp_entereddate, temp_enteredtime, temp_status, temp_custaccno, temp_sparec2, temp_sparec3, temp_spared1, temp_spared2, temp_spared3, temp_nli, temp_callback, temp_sparel3, temp_sparec1, temp_noofserv, temp_bc, temp_hp, temp_fp, temp_mob, temp_int, temp_gas, temp_elec, temp_ip, temp_reason, temp_sparel4, temp_sparel5, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, tc.TempRefno, tc.TempReward, tc.TempCustpostcod, tc.TempCustadd1, tc.TempCustadd2, tc.TempCustadd3, tc.TempCustadd4, tc.TempCustadd5, tc.TempCustni, tc.TempCustver, tc.TempCustinvadd, tc.TempTitle, tc.TempSurname, tc.TempFirstname, tc.TempAccname, tc.TempOwnertenant, tc.TempTenenddate, tc.TempTenclubleve, tc.TempDob, tc.TempHomeno, tc.TempMobile, tc.TempEmail, tc.TempBankaccname, tc.TempBanksortc, tc.TempBankaccno, tc.TempCardtype, tc.TempCardno, tc.TempStartdate, tc.TempExpdate, tc.TempIssue, tc.TempEmailbills, tc.TempNomarketing, tc.TempEnteredby, tc.TempEntereddate, tc.TempEnteredtime, tc.TempStatus, tc.TempCustaccno, tc.TempSparec2, tc.TempSparec3, tc.TempSpared1, tc.TempSpared2, tc.TempSpared3, tc.TempNli, tc.TempCallback, tc.TempSparel3, tc.TempSparec1, tc.TempNoofserv, tc.TempBc, tc.TempHp, tc.TempFp, tc.TempMob, tc.TempInt, tc.TempGas, tc.TempElec, tc.TempIP, tc.TempReason, tc.TempSparel4, tc.TempSparel5, tc.EquinoxSec)
-	err = db.QueryRow(sqlstr, tc.TempRefno, tc.TempReward, tc.TempCustpostcod, tc.TempCustadd1, tc.TempCustadd2, tc.TempCustadd3, tc.TempCustadd4, tc.TempCustadd5, tc.TempCustni, tc.TempCustver, tc.TempCustinvadd, tc.TempTitle, tc.TempSurname, tc.TempFirstname, tc.TempAccname, tc.TempOwnertenant, tc.TempTenenddate, tc.TempTenclubleve, tc.TempDob, tc.TempHomeno, tc.TempMobile, tc.TempEmail, tc.TempBankaccname, tc.TempBanksortc, tc.TempBankaccno, tc.TempCardtype, tc.TempCardno, tc.TempStartdate, tc.TempExpdate, tc.TempIssue, tc.TempEmailbills, tc.TempNomarketing, tc.TempEnteredby, tc.TempEntereddate, tc.TempEnteredtime, tc.TempStatus, tc.TempCustaccno, tc.TempSparec2, tc.TempSparec3, tc.TempSpared1, tc.TempSpared2, tc.TempSpared3, tc.TempNli, tc.TempCallback, tc.TempSparel3, tc.TempSparec1, tc.TempNoofserv, tc.TempBc, tc.TempHp, tc.TempFp, tc.TempMob, tc.TempInt, tc.TempGas, tc.TempElec, tc.TempIP, tc.TempReason, tc.TempSparel4, tc.TempSparel5, tc.EquinoxSec).Scan(&tc.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	tc._exists = true
-
-	return nil
-}
-
-// Update updates the TempCnx in the database.
-func (tc *TempCnx) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !tc._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if tc._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.temp_cnx SET (` +
-		`temp_refno, temp_reward, temp_custpostcod, temp_custadd1, temp_custadd2, temp_custadd3, temp_custadd4, temp_custadd5, temp_custni, temp_custver, temp_custinvadd, temp_title, temp_surname, temp_firstname, temp_accname, temp_ownertenant, temp_tenenddate, temp_tenclubleve, temp_dob, temp_homeno, temp_mobile, temp_email, temp_bankaccname, temp_banksortc, temp_bankaccno, temp_cardtype, temp_cardno, temp_startdate, temp_expdate, temp_issue, temp_emailbills, temp_nomarketing, temp_enteredby, temp_entereddate, temp_enteredtime, temp_status, temp_custaccno, temp_sparec2, temp_sparec3, temp_spared1, temp_spared2, temp_spared3, temp_nli, temp_callback, temp_sparel3, temp_sparec1, temp_noofserv, temp_bc, temp_hp, temp_fp, temp_mob, temp_int, temp_gas, temp_elec, temp_ip, temp_reason, temp_sparel4, temp_sparel5, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59` +
-		`) WHERE equinox_lrn = $60`
-
-	// run query
-	XOLog(sqlstr, tc.TempRefno, tc.TempReward, tc.TempCustpostcod, tc.TempCustadd1, tc.TempCustadd2, tc.TempCustadd3, tc.TempCustadd4, tc.TempCustadd5, tc.TempCustni, tc.TempCustver, tc.TempCustinvadd, tc.TempTitle, tc.TempSurname, tc.TempFirstname, tc.TempAccname, tc.TempOwnertenant, tc.TempTenenddate, tc.TempTenclubleve, tc.TempDob, tc.TempHomeno, tc.TempMobile, tc.TempEmail, tc.TempBankaccname, tc.TempBanksortc, tc.TempBankaccno, tc.TempCardtype, tc.TempCardno, tc.TempStartdate, tc.TempExpdate, tc.TempIssue, tc.TempEmailbills, tc.TempNomarketing, tc.TempEnteredby, tc.TempEntereddate, tc.TempEnteredtime, tc.TempStatus, tc.TempCustaccno, tc.TempSparec2, tc.TempSparec3, tc.TempSpared1, tc.TempSpared2, tc.TempSpared3, tc.TempNli, tc.TempCallback, tc.TempSparel3, tc.TempSparec1, tc.TempNoofserv, tc.TempBc, tc.TempHp, tc.TempFp, tc.TempMob, tc.TempInt, tc.TempGas, tc.TempElec, tc.TempIP, tc.TempReason, tc.TempSparel4, tc.TempSparel5, tc.EquinoxSec, tc.EquinoxLrn)
-	_, err = db.Exec(sqlstr, tc.TempRefno, tc.TempReward, tc.TempCustpostcod, tc.TempCustadd1, tc.TempCustadd2, tc.TempCustadd3, tc.TempCustadd4, tc.TempCustadd5, tc.TempCustni, tc.TempCustver, tc.TempCustinvadd, tc.TempTitle, tc.TempSurname, tc.TempFirstname, tc.TempAccname, tc.TempOwnertenant, tc.TempTenenddate, tc.TempTenclubleve, tc.TempDob, tc.TempHomeno, tc.TempMobile, tc.TempEmail, tc.TempBankaccname, tc.TempBanksortc, tc.TempBankaccno, tc.TempCardtype, tc.TempCardno, tc.TempStartdate, tc.TempExpdate, tc.TempIssue, tc.TempEmailbills, tc.TempNomarketing, tc.TempEnteredby, tc.TempEntereddate, tc.TempEnteredtime, tc.TempStatus, tc.TempCustaccno, tc.TempSparec2, tc.TempSparec3, tc.TempSpared1, tc.TempSpared2, tc.TempSpared3, tc.TempNli, tc.TempCallback, tc.TempSparel3, tc.TempSparec1, tc.TempNoofserv, tc.TempBc, tc.TempHp, tc.TempFp, tc.TempMob, tc.TempInt, tc.TempGas, tc.TempElec, tc.TempIP, tc.TempReason, tc.TempSparel4, tc.TempSparel5, tc.EquinoxSec, tc.EquinoxLrn)
-	return err
-}
-
-// Save saves the TempCnx to the database.
-func (tc *TempCnx) Save(db XODB) error {
-	if tc.Exists() {
-		return tc.Update(db)
-	}
-
-	return tc.Insert(db)
-}
-
-// Upsert performs an upsert for TempCnx.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (tc *TempCnx) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if tc._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.temp_cnx (` +
-		`temp_refno, temp_reward, temp_custpostcod, temp_custadd1, temp_custadd2, temp_custadd3, temp_custadd4, temp_custadd5, temp_custni, temp_custver, temp_custinvadd, temp_title, temp_surname, temp_firstname, temp_accname, temp_ownertenant, temp_tenenddate, temp_tenclubleve, temp_dob, temp_homeno, temp_mobile, temp_email, temp_bankaccname, temp_banksortc, temp_bankaccno, temp_cardtype, temp_cardno, temp_startdate, temp_expdate, temp_issue, temp_emailbills, temp_nomarketing, temp_enteredby, temp_entereddate, temp_enteredtime, temp_status, temp_custaccno, temp_sparec2, temp_sparec3, temp_spared1, temp_spared2, temp_spared3, temp_nli, temp_callback, temp_sparel3, temp_sparec1, temp_noofserv, temp_bc, temp_hp, temp_fp, temp_mob, temp_int, temp_gas, temp_elec, temp_ip, temp_reason, temp_sparel4, temp_sparel5, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`temp_refno, temp_reward, temp_custpostcod, temp_custadd1, temp_custadd2, temp_custadd3, temp_custadd4, temp_custadd5, temp_custni, temp_custver, temp_custinvadd, temp_title, temp_surname, temp_firstname, temp_accname, temp_ownertenant, temp_tenenddate, temp_tenclubleve, temp_dob, temp_homeno, temp_mobile, temp_email, temp_bankaccname, temp_banksortc, temp_bankaccno, temp_cardtype, temp_cardno, temp_startdate, temp_expdate, temp_issue, temp_emailbills, temp_nomarketing, temp_enteredby, temp_entereddate, temp_enteredtime, temp_status, temp_custaccno, temp_sparec2, temp_sparec3, temp_spared1, temp_spared2, temp_spared3, temp_nli, temp_callback, temp_sparel3, temp_sparec1, temp_noofserv, temp_bc, temp_hp, temp_fp, temp_mob, temp_int, temp_gas, temp_elec, temp_ip, temp_reason, temp_sparel4, temp_sparel5, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.temp_refno, EXCLUDED.temp_reward, EXCLUDED.temp_custpostcod, EXCLUDED.temp_custadd1, EXCLUDED.temp_custadd2, EXCLUDED.temp_custadd3, EXCLUDED.temp_custadd4, EXCLUDED.temp_custadd5, EXCLUDED.temp_custni, EXCLUDED.temp_custver, EXCLUDED.temp_custinvadd, EXCLUDED.temp_title, EXCLUDED.temp_surname, EXCLUDED.temp_firstname, EXCLUDED.temp_accname, EXCLUDED.temp_ownertenant, EXCLUDED.temp_tenenddate, EXCLUDED.temp_tenclubleve, EXCLUDED.temp_dob, EXCLUDED.temp_homeno, EXCLUDED.temp_mobile, EXCLUDED.temp_email, EXCLUDED.temp_bankaccname, EXCLUDED.temp_banksortc, EXCLUDED.temp_bankaccno, EXCLUDED.temp_cardtype, EXCLUDED.temp_cardno, EXCLUDED.temp_startdate, EXCLUDED.temp_expdate, EXCLUDED.temp_issue, EXCLUDED.temp_emailbills, EXCLUDED.temp_nomarketing, EXCLUDED.temp_enteredby, EXCLUDED.temp_entereddate, EXCLUDED.temp_enteredtime, EXCLUDED.temp_status, EXCLUDED.temp_custaccno, EXCLUDED.temp_sparec2, EXCLUDED.temp_sparec3, EXCLUDED.temp_spared1, EXCLUDED.temp_spared2, EXCLUDED.temp_spared3, EXCLUDED.temp_nli, EXCLUDED.temp_callback, EXCLUDED.temp_sparel3, EXCLUDED.temp_sparec1, EXCLUDED.temp_noofserv, EXCLUDED.temp_bc, EXCLUDED.temp_hp, EXCLUDED.temp_fp, EXCLUDED.temp_mob, EXCLUDED.temp_int, EXCLUDED.temp_gas, EXCLUDED.temp_elec, EXCLUDED.temp_ip, EXCLUDED.temp_reason, EXCLUDED.temp_sparel4, EXCLUDED.temp_sparel5, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, tc.TempRefno, tc.TempReward, tc.TempCustpostcod, tc.TempCustadd1, tc.TempCustadd2, tc.TempCustadd3, tc.TempCustadd4, tc.TempCustadd5, tc.TempCustni, tc.TempCustver, tc.TempCustinvadd, tc.TempTitle, tc.TempSurname, tc.TempFirstname, tc.TempAccname, tc.TempOwnertenant, tc.TempTenenddate, tc.TempTenclubleve, tc.TempDob, tc.TempHomeno, tc.TempMobile, tc.TempEmail, tc.TempBankaccname, tc.TempBanksortc, tc.TempBankaccno, tc.TempCardtype, tc.TempCardno, tc.TempStartdate, tc.TempExpdate, tc.TempIssue, tc.TempEmailbills, tc.TempNomarketing, tc.TempEnteredby, tc.TempEntereddate, tc.TempEnteredtime, tc.TempStatus, tc.TempCustaccno, tc.TempSparec2, tc.TempSparec3, tc.TempSpared1, tc.TempSpared2, tc.TempSpared3, tc.TempNli, tc.TempCallback, tc.TempSparel3, tc.TempSparec1, tc.TempNoofserv, tc.TempBc, tc.TempHp, tc.TempFp, tc.TempMob, tc.TempInt, tc.TempGas, tc.TempElec, tc.TempIP, tc.TempReason, tc.TempSparel4, tc.TempSparel5, tc.EquinoxLrn, tc.EquinoxSec)
-	_, err = db.Exec(sqlstr, tc.TempRefno, tc.TempReward, tc.TempCustpostcod, tc.TempCustadd1, tc.TempCustadd2, tc.TempCustadd3, tc.TempCustadd4, tc.TempCustadd5, tc.TempCustni, tc.TempCustver, tc.TempCustinvadd, tc.TempTitle, tc.TempSurname, tc.TempFirstname, tc.TempAccname, tc.TempOwnertenant, tc.TempTenenddate, tc.TempTenclubleve, tc.TempDob, tc.TempHomeno, tc.TempMobile, tc.TempEmail, tc.TempBankaccname, tc.TempBanksortc, tc.TempBankaccno, tc.TempCardtype, tc.TempCardno, tc.TempStartdate, tc.TempExpdate, tc.TempIssue, tc.TempEmailbills, tc.TempNomarketing, tc.TempEnteredby, tc.TempEntereddate, tc.TempEnteredtime, tc.TempStatus, tc.TempCustaccno, tc.TempSparec2, tc.TempSparec3, tc.TempSpared1, tc.TempSpared2, tc.TempSpared3, tc.TempNli, tc.TempCallback, tc.TempSparel3, tc.TempSparec1, tc.TempNoofserv, tc.TempBc, tc.TempHp, tc.TempFp, tc.TempMob, tc.TempInt, tc.TempGas, tc.TempElec, tc.TempIP, tc.TempReason, tc.TempSparel4, tc.TempSparel5, tc.EquinoxLrn, tc.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	tc._exists = true
-
-	return nil
-}
-
-// Delete deletes the TempCnx from the database.
-func (tc *TempCnx) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !tc._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if tc._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.temp_cnx WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, tc.EquinoxLrn)
-	_, err = db.Exec(sqlstr, tc.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	tc._deleted = true
-
-	return nil
 }
 
 // TempCnxByEquinoxLrn retrieves a row from 'equinox.temp_cnx' as a TempCnx.
@@ -231,9 +87,7 @@ func TempCnxByEquinoxLrn(db XODB, equinoxLrn int64) (*TempCnx, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	tc := TempCnx{
-		_exists: true,
-	}
+	tc := TempCnx{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&tc.TempRefno, &tc.TempReward, &tc.TempCustpostcod, &tc.TempCustadd1, &tc.TempCustadd2, &tc.TempCustadd3, &tc.TempCustadd4, &tc.TempCustadd5, &tc.TempCustni, &tc.TempCustver, &tc.TempCustinvadd, &tc.TempTitle, &tc.TempSurname, &tc.TempFirstname, &tc.TempAccname, &tc.TempOwnertenant, &tc.TempTenenddate, &tc.TempTenclubleve, &tc.TempDob, &tc.TempHomeno, &tc.TempMobile, &tc.TempEmail, &tc.TempBankaccname, &tc.TempBanksortc, &tc.TempBankaccno, &tc.TempCardtype, &tc.TempCardno, &tc.TempStartdate, &tc.TempExpdate, &tc.TempIssue, &tc.TempEmailbills, &tc.TempNomarketing, &tc.TempEnteredby, &tc.TempEntereddate, &tc.TempEnteredtime, &tc.TempStatus, &tc.TempCustaccno, &tc.TempSparec2, &tc.TempSparec3, &tc.TempSpared1, &tc.TempSpared2, &tc.TempSpared3, &tc.TempNli, &tc.TempCallback, &tc.TempSparel3, &tc.TempSparec1, &tc.TempNoofserv, &tc.TempBc, &tc.TempHp, &tc.TempFp, &tc.TempMob, &tc.TempInt, &tc.TempGas, &tc.TempElec, &tc.TempIP, &tc.TempReason, &tc.TempSparel4, &tc.TempSparel5, &tc.EquinoxLrn, &tc.EquinoxSec)
 	if err != nil {

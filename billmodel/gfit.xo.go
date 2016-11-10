@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -68,149 +67,6 @@ type Gfit struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gfit exists in the database.
-func (g *Gfit) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gfit has been deleted from the database.
-func (g *Gfit) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gfit to the database.
-func (g *Gfit) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gfit (` +
-		`gfitid, gfitgenid, gfitmcsnum, gfitenddate, gfittariffcode, gfittariffdescrp, gfittariffrate, gfitextariffrate, gfitpaystatus, gfitconfirmation, gfitcommisiond, gfiteligibility, gfiteligibilend, gfittechnoltype, gfitcustaccno, gfitenergyref, gfitinstallcap, gfitnetcap, gfitmetermodel, gfitexmetermod, gfitmetermanuf, gfitexmeterman, gfitexmetermpan, gfitmeterserial, gfitexmeterser, gfitmeterlocatio, gfitexmeterloc, gfitinstaller, gfitinstallphone, gfitinstalltype, gfitexref, gfitgrantref, gfitsparec4, gfitsigneddate, gfitgrantdate, gfitchglicdate, gfitappdate, gfiteayield, gfitexeayield, gfitstartread, gfitexstartread, gfitgridref, gfitsitedescrip, gfitgrantrepaid, gfitoffgrid, gfitquartnom, gfitexdeemed, gfitsigdate, gfitnotes, gfitchkdate, gfitepcrating, gfitepccertno, gfitgenpay25, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gfitid, g.Gfitgenid, g.Gfitmcsnum, g.Gfitenddate, g.Gfittariffcode, g.Gfittariffdescrp, g.Gfittariffrate, g.Gfitextariffrate, g.Gfitpaystatus, g.Gfitconfirmation, g.Gfitcommisiond, g.Gfiteligibility, g.Gfiteligibilend, g.Gfittechnoltype, g.Gfitcustaccno, g.Gfitenergyref, g.Gfitinstallcap, g.Gfitnetcap, g.Gfitmetermodel, g.Gfitexmetermod, g.Gfitmetermanuf, g.Gfitexmeterman, g.Gfitexmetermpan, g.Gfitmeterserial, g.Gfitexmeterser, g.Gfitmeterlocatio, g.Gfitexmeterloc, g.Gfitinstaller, g.Gfitinstallphone, g.Gfitinstalltype, g.Gfitexref, g.Gfitgrantref, g.Gfitsparec4, g.Gfitsigneddate, g.Gfitgrantdate, g.Gfitchglicdate, g.Gfitappdate, g.Gfiteayield, g.Gfitexeayield, g.Gfitstartread, g.Gfitexstartread, g.Gfitgridref, g.Gfitsitedescrip, g.Gfitgrantrepaid, g.Gfitoffgrid, g.Gfitquartnom, g.Gfitexdeemed, g.Gfitsigdate, g.Gfitnotes, g.Gfitchkdate, g.Gfitepcrating, g.Gfitepccertno, g.Gfitgenpay25, g.EquinoxPrn, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gfitid, g.Gfitgenid, g.Gfitmcsnum, g.Gfitenddate, g.Gfittariffcode, g.Gfittariffdescrp, g.Gfittariffrate, g.Gfitextariffrate, g.Gfitpaystatus, g.Gfitconfirmation, g.Gfitcommisiond, g.Gfiteligibility, g.Gfiteligibilend, g.Gfittechnoltype, g.Gfitcustaccno, g.Gfitenergyref, g.Gfitinstallcap, g.Gfitnetcap, g.Gfitmetermodel, g.Gfitexmetermod, g.Gfitmetermanuf, g.Gfitexmeterman, g.Gfitexmetermpan, g.Gfitmeterserial, g.Gfitexmeterser, g.Gfitmeterlocatio, g.Gfitexmeterloc, g.Gfitinstaller, g.Gfitinstallphone, g.Gfitinstalltype, g.Gfitexref, g.Gfitgrantref, g.Gfitsparec4, g.Gfitsigneddate, g.Gfitgrantdate, g.Gfitchglicdate, g.Gfitappdate, g.Gfiteayield, g.Gfitexeayield, g.Gfitstartread, g.Gfitexstartread, g.Gfitgridref, g.Gfitsitedescrip, g.Gfitgrantrepaid, g.Gfitoffgrid, g.Gfitquartnom, g.Gfitexdeemed, g.Gfitsigdate, g.Gfitnotes, g.Gfitchkdate, g.Gfitepcrating, g.Gfitepccertno, g.Gfitgenpay25, g.EquinoxPrn, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gfit in the database.
-func (g *Gfit) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gfit SET (` +
-		`gfitid, gfitgenid, gfitmcsnum, gfitenddate, gfittariffcode, gfittariffdescrp, gfittariffrate, gfitextariffrate, gfitpaystatus, gfitconfirmation, gfitcommisiond, gfiteligibility, gfiteligibilend, gfittechnoltype, gfitcustaccno, gfitenergyref, gfitinstallcap, gfitnetcap, gfitmetermodel, gfitexmetermod, gfitmetermanuf, gfitexmeterman, gfitexmetermpan, gfitmeterserial, gfitexmeterser, gfitmeterlocatio, gfitexmeterloc, gfitinstaller, gfitinstallphone, gfitinstalltype, gfitexref, gfitgrantref, gfitsparec4, gfitsigneddate, gfitgrantdate, gfitchglicdate, gfitappdate, gfiteayield, gfitexeayield, gfitstartread, gfitexstartread, gfitgridref, gfitsitedescrip, gfitgrantrepaid, gfitoffgrid, gfitquartnom, gfitexdeemed, gfitsigdate, gfitnotes, gfitchkdate, gfitepcrating, gfitepccertno, gfitgenpay25, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55` +
-		`) WHERE equinox_lrn = $56`
-
-	// run query
-	XOLog(sqlstr, g.Gfitid, g.Gfitgenid, g.Gfitmcsnum, g.Gfitenddate, g.Gfittariffcode, g.Gfittariffdescrp, g.Gfittariffrate, g.Gfitextariffrate, g.Gfitpaystatus, g.Gfitconfirmation, g.Gfitcommisiond, g.Gfiteligibility, g.Gfiteligibilend, g.Gfittechnoltype, g.Gfitcustaccno, g.Gfitenergyref, g.Gfitinstallcap, g.Gfitnetcap, g.Gfitmetermodel, g.Gfitexmetermod, g.Gfitmetermanuf, g.Gfitexmeterman, g.Gfitexmetermpan, g.Gfitmeterserial, g.Gfitexmeterser, g.Gfitmeterlocatio, g.Gfitexmeterloc, g.Gfitinstaller, g.Gfitinstallphone, g.Gfitinstalltype, g.Gfitexref, g.Gfitgrantref, g.Gfitsparec4, g.Gfitsigneddate, g.Gfitgrantdate, g.Gfitchglicdate, g.Gfitappdate, g.Gfiteayield, g.Gfitexeayield, g.Gfitstartread, g.Gfitexstartread, g.Gfitgridref, g.Gfitsitedescrip, g.Gfitgrantrepaid, g.Gfitoffgrid, g.Gfitquartnom, g.Gfitexdeemed, g.Gfitsigdate, g.Gfitnotes, g.Gfitchkdate, g.Gfitepcrating, g.Gfitepccertno, g.Gfitgenpay25, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gfitid, g.Gfitgenid, g.Gfitmcsnum, g.Gfitenddate, g.Gfittariffcode, g.Gfittariffdescrp, g.Gfittariffrate, g.Gfitextariffrate, g.Gfitpaystatus, g.Gfitconfirmation, g.Gfitcommisiond, g.Gfiteligibility, g.Gfiteligibilend, g.Gfittechnoltype, g.Gfitcustaccno, g.Gfitenergyref, g.Gfitinstallcap, g.Gfitnetcap, g.Gfitmetermodel, g.Gfitexmetermod, g.Gfitmetermanuf, g.Gfitexmeterman, g.Gfitexmetermpan, g.Gfitmeterserial, g.Gfitexmeterser, g.Gfitmeterlocatio, g.Gfitexmeterloc, g.Gfitinstaller, g.Gfitinstallphone, g.Gfitinstalltype, g.Gfitexref, g.Gfitgrantref, g.Gfitsparec4, g.Gfitsigneddate, g.Gfitgrantdate, g.Gfitchglicdate, g.Gfitappdate, g.Gfiteayield, g.Gfitexeayield, g.Gfitstartread, g.Gfitexstartread, g.Gfitgridref, g.Gfitsitedescrip, g.Gfitgrantrepaid, g.Gfitoffgrid, g.Gfitquartnom, g.Gfitexdeemed, g.Gfitsigdate, g.Gfitnotes, g.Gfitchkdate, g.Gfitepcrating, g.Gfitepccertno, g.Gfitgenpay25, g.EquinoxPrn, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gfit to the database.
-func (g *Gfit) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gfit.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gfit) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gfit (` +
-		`gfitid, gfitgenid, gfitmcsnum, gfitenddate, gfittariffcode, gfittariffdescrp, gfittariffrate, gfitextariffrate, gfitpaystatus, gfitconfirmation, gfitcommisiond, gfiteligibility, gfiteligibilend, gfittechnoltype, gfitcustaccno, gfitenergyref, gfitinstallcap, gfitnetcap, gfitmetermodel, gfitexmetermod, gfitmetermanuf, gfitexmeterman, gfitexmetermpan, gfitmeterserial, gfitexmeterser, gfitmeterlocatio, gfitexmeterloc, gfitinstaller, gfitinstallphone, gfitinstalltype, gfitexref, gfitgrantref, gfitsparec4, gfitsigneddate, gfitgrantdate, gfitchglicdate, gfitappdate, gfiteayield, gfitexeayield, gfitstartread, gfitexstartread, gfitgridref, gfitsitedescrip, gfitgrantrepaid, gfitoffgrid, gfitquartnom, gfitexdeemed, gfitsigdate, gfitnotes, gfitchkdate, gfitepcrating, gfitepccertno, gfitgenpay25, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gfitid, gfitgenid, gfitmcsnum, gfitenddate, gfittariffcode, gfittariffdescrp, gfittariffrate, gfitextariffrate, gfitpaystatus, gfitconfirmation, gfitcommisiond, gfiteligibility, gfiteligibilend, gfittechnoltype, gfitcustaccno, gfitenergyref, gfitinstallcap, gfitnetcap, gfitmetermodel, gfitexmetermod, gfitmetermanuf, gfitexmeterman, gfitexmetermpan, gfitmeterserial, gfitexmeterser, gfitmeterlocatio, gfitexmeterloc, gfitinstaller, gfitinstallphone, gfitinstalltype, gfitexref, gfitgrantref, gfitsparec4, gfitsigneddate, gfitgrantdate, gfitchglicdate, gfitappdate, gfiteayield, gfitexeayield, gfitstartread, gfitexstartread, gfitgridref, gfitsitedescrip, gfitgrantrepaid, gfitoffgrid, gfitquartnom, gfitexdeemed, gfitsigdate, gfitnotes, gfitchkdate, gfitepcrating, gfitepccertno, gfitgenpay25, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gfitid, EXCLUDED.gfitgenid, EXCLUDED.gfitmcsnum, EXCLUDED.gfitenddate, EXCLUDED.gfittariffcode, EXCLUDED.gfittariffdescrp, EXCLUDED.gfittariffrate, EXCLUDED.gfitextariffrate, EXCLUDED.gfitpaystatus, EXCLUDED.gfitconfirmation, EXCLUDED.gfitcommisiond, EXCLUDED.gfiteligibility, EXCLUDED.gfiteligibilend, EXCLUDED.gfittechnoltype, EXCLUDED.gfitcustaccno, EXCLUDED.gfitenergyref, EXCLUDED.gfitinstallcap, EXCLUDED.gfitnetcap, EXCLUDED.gfitmetermodel, EXCLUDED.gfitexmetermod, EXCLUDED.gfitmetermanuf, EXCLUDED.gfitexmeterman, EXCLUDED.gfitexmetermpan, EXCLUDED.gfitmeterserial, EXCLUDED.gfitexmeterser, EXCLUDED.gfitmeterlocatio, EXCLUDED.gfitexmeterloc, EXCLUDED.gfitinstaller, EXCLUDED.gfitinstallphone, EXCLUDED.gfitinstalltype, EXCLUDED.gfitexref, EXCLUDED.gfitgrantref, EXCLUDED.gfitsparec4, EXCLUDED.gfitsigneddate, EXCLUDED.gfitgrantdate, EXCLUDED.gfitchglicdate, EXCLUDED.gfitappdate, EXCLUDED.gfiteayield, EXCLUDED.gfitexeayield, EXCLUDED.gfitstartread, EXCLUDED.gfitexstartread, EXCLUDED.gfitgridref, EXCLUDED.gfitsitedescrip, EXCLUDED.gfitgrantrepaid, EXCLUDED.gfitoffgrid, EXCLUDED.gfitquartnom, EXCLUDED.gfitexdeemed, EXCLUDED.gfitsigdate, EXCLUDED.gfitnotes, EXCLUDED.gfitchkdate, EXCLUDED.gfitepcrating, EXCLUDED.gfitepccertno, EXCLUDED.gfitgenpay25, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gfitid, g.Gfitgenid, g.Gfitmcsnum, g.Gfitenddate, g.Gfittariffcode, g.Gfittariffdescrp, g.Gfittariffrate, g.Gfitextariffrate, g.Gfitpaystatus, g.Gfitconfirmation, g.Gfitcommisiond, g.Gfiteligibility, g.Gfiteligibilend, g.Gfittechnoltype, g.Gfitcustaccno, g.Gfitenergyref, g.Gfitinstallcap, g.Gfitnetcap, g.Gfitmetermodel, g.Gfitexmetermod, g.Gfitmetermanuf, g.Gfitexmeterman, g.Gfitexmetermpan, g.Gfitmeterserial, g.Gfitexmeterser, g.Gfitmeterlocatio, g.Gfitexmeterloc, g.Gfitinstaller, g.Gfitinstallphone, g.Gfitinstalltype, g.Gfitexref, g.Gfitgrantref, g.Gfitsparec4, g.Gfitsigneddate, g.Gfitgrantdate, g.Gfitchglicdate, g.Gfitappdate, g.Gfiteayield, g.Gfitexeayield, g.Gfitstartread, g.Gfitexstartread, g.Gfitgridref, g.Gfitsitedescrip, g.Gfitgrantrepaid, g.Gfitoffgrid, g.Gfitquartnom, g.Gfitexdeemed, g.Gfitsigdate, g.Gfitnotes, g.Gfitchkdate, g.Gfitepcrating, g.Gfitepccertno, g.Gfitgenpay25, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gfitid, g.Gfitgenid, g.Gfitmcsnum, g.Gfitenddate, g.Gfittariffcode, g.Gfittariffdescrp, g.Gfittariffrate, g.Gfitextariffrate, g.Gfitpaystatus, g.Gfitconfirmation, g.Gfitcommisiond, g.Gfiteligibility, g.Gfiteligibilend, g.Gfittechnoltype, g.Gfitcustaccno, g.Gfitenergyref, g.Gfitinstallcap, g.Gfitnetcap, g.Gfitmetermodel, g.Gfitexmetermod, g.Gfitmetermanuf, g.Gfitexmeterman, g.Gfitexmetermpan, g.Gfitmeterserial, g.Gfitexmeterser, g.Gfitmeterlocatio, g.Gfitexmeterloc, g.Gfitinstaller, g.Gfitinstallphone, g.Gfitinstalltype, g.Gfitexref, g.Gfitgrantref, g.Gfitsparec4, g.Gfitsigneddate, g.Gfitgrantdate, g.Gfitchglicdate, g.Gfitappdate, g.Gfiteayield, g.Gfitexeayield, g.Gfitstartread, g.Gfitexstartread, g.Gfitgridref, g.Gfitsitedescrip, g.Gfitgrantrepaid, g.Gfitoffgrid, g.Gfitquartnom, g.Gfitexdeemed, g.Gfitsigdate, g.Gfitnotes, g.Gfitchkdate, g.Gfitepcrating, g.Gfitepccertno, g.Gfitgenpay25, g.EquinoxPrn, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gfit from the database.
-func (g *Gfit) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gfit WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GfitByEquinoxLrn retrieves a row from 'equinox.gfit' as a Gfit.
@@ -227,9 +83,7 @@ func GfitByEquinoxLrn(db XODB, equinoxLrn int64) (*Gfit, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gfit{
-		_exists: true,
-	}
+	g := Gfit{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gfitid, &g.Gfitgenid, &g.Gfitmcsnum, &g.Gfitenddate, &g.Gfittariffcode, &g.Gfittariffdescrp, &g.Gfittariffrate, &g.Gfitextariffrate, &g.Gfitpaystatus, &g.Gfitconfirmation, &g.Gfitcommisiond, &g.Gfiteligibility, &g.Gfiteligibilend, &g.Gfittechnoltype, &g.Gfitcustaccno, &g.Gfitenergyref, &g.Gfitinstallcap, &g.Gfitnetcap, &g.Gfitmetermodel, &g.Gfitexmetermod, &g.Gfitmetermanuf, &g.Gfitexmeterman, &g.Gfitexmetermpan, &g.Gfitmeterserial, &g.Gfitexmeterser, &g.Gfitmeterlocatio, &g.Gfitexmeterloc, &g.Gfitinstaller, &g.Gfitinstallphone, &g.Gfitinstalltype, &g.Gfitexref, &g.Gfitgrantref, &g.Gfitsparec4, &g.Gfitsigneddate, &g.Gfitgrantdate, &g.Gfitchglicdate, &g.Gfitappdate, &g.Gfiteayield, &g.Gfitexeayield, &g.Gfitstartread, &g.Gfitexstartread, &g.Gfitgridref, &g.Gfitsitedescrip, &g.Gfitgrantrepaid, &g.Gfitoffgrid, &g.Gfitquartnom, &g.Gfitexdeemed, &g.Gfitsigdate, &g.Gfitnotes, &g.Gfitchkdate, &g.Gfitepcrating, &g.Gfitepccertno, &g.Gfitgenpay25, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

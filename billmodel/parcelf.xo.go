@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -44,149 +43,6 @@ type Parcelf struct {
 	PfDeliverytype sql.NullString  `json:"pf_deliverytype"` // pf_deliverytype
 	EquinoxLrn     int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Parcelf exists in the database.
-func (p *Parcelf) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Parcelf has been deleted from the database.
-func (p *Parcelf) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Parcelf to the database.
-func (p *Parcelf) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.parcelf (` +
-		`pf_uniqueid, pf_address1, pf_address2, pf_address3, pf_address4, pf_postcode, pf_buildingname, pf_buildingno, pf_street, pf_locale, pf_posttown, pf_county, pf_packs, pf_name, pf_accountname, pf_accountno, pf_printed, pf_entereddate, pf_source, pf_createfile, pf_sparec1, pf_sparec2, pf_spared1, pf_spared2, pf_sparen1, pf_sparen2, pf_sparel1, pf_sparel2, pf_consignid, pf_deliverytype, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.PfUniqueid, p.PfAddress1, p.PfAddress2, p.PfAddress3, p.PfAddress4, p.PfPostcode, p.PfBuildingname, p.PfBuildingno, p.PfStreet, p.PfLocale, p.PfPosttown, p.PfCounty, p.PfPacks, p.PfName, p.PfAccountname, p.PfAccountno, p.PfPrinted, p.PfEntereddate, p.PfSource, p.PfCreatefile, p.PfSparec1, p.PfSparec2, p.PfSpared1, p.PfSpared2, p.PfSparen1, p.PfSparen2, p.PfSparel1, p.PfSparel2, p.PfConsignid, p.PfDeliverytype, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.PfUniqueid, p.PfAddress1, p.PfAddress2, p.PfAddress3, p.PfAddress4, p.PfPostcode, p.PfBuildingname, p.PfBuildingno, p.PfStreet, p.PfLocale, p.PfPosttown, p.PfCounty, p.PfPacks, p.PfName, p.PfAccountname, p.PfAccountno, p.PfPrinted, p.PfEntereddate, p.PfSource, p.PfCreatefile, p.PfSparec1, p.PfSparec2, p.PfSpared1, p.PfSpared2, p.PfSparen1, p.PfSparen2, p.PfSparel1, p.PfSparel2, p.PfConsignid, p.PfDeliverytype, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Parcelf in the database.
-func (p *Parcelf) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.parcelf SET (` +
-		`pf_uniqueid, pf_address1, pf_address2, pf_address3, pf_address4, pf_postcode, pf_buildingname, pf_buildingno, pf_street, pf_locale, pf_posttown, pf_county, pf_packs, pf_name, pf_accountname, pf_accountno, pf_printed, pf_entereddate, pf_source, pf_createfile, pf_sparec1, pf_sparec2, pf_spared1, pf_spared2, pf_sparen1, pf_sparen2, pf_sparel1, pf_sparel2, pf_consignid, pf_deliverytype, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31` +
-		`) WHERE equinox_lrn = $32`
-
-	// run query
-	XOLog(sqlstr, p.PfUniqueid, p.PfAddress1, p.PfAddress2, p.PfAddress3, p.PfAddress4, p.PfPostcode, p.PfBuildingname, p.PfBuildingno, p.PfStreet, p.PfLocale, p.PfPosttown, p.PfCounty, p.PfPacks, p.PfName, p.PfAccountname, p.PfAccountno, p.PfPrinted, p.PfEntereddate, p.PfSource, p.PfCreatefile, p.PfSparec1, p.PfSparec2, p.PfSpared1, p.PfSpared2, p.PfSparen1, p.PfSparen2, p.PfSparel1, p.PfSparel2, p.PfConsignid, p.PfDeliverytype, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.PfUniqueid, p.PfAddress1, p.PfAddress2, p.PfAddress3, p.PfAddress4, p.PfPostcode, p.PfBuildingname, p.PfBuildingno, p.PfStreet, p.PfLocale, p.PfPosttown, p.PfCounty, p.PfPacks, p.PfName, p.PfAccountname, p.PfAccountno, p.PfPrinted, p.PfEntereddate, p.PfSource, p.PfCreatefile, p.PfSparec1, p.PfSparec2, p.PfSpared1, p.PfSpared2, p.PfSparen1, p.PfSparen2, p.PfSparel1, p.PfSparel2, p.PfConsignid, p.PfDeliverytype, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Parcelf to the database.
-func (p *Parcelf) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Parcelf.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Parcelf) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.parcelf (` +
-		`pf_uniqueid, pf_address1, pf_address2, pf_address3, pf_address4, pf_postcode, pf_buildingname, pf_buildingno, pf_street, pf_locale, pf_posttown, pf_county, pf_packs, pf_name, pf_accountname, pf_accountno, pf_printed, pf_entereddate, pf_source, pf_createfile, pf_sparec1, pf_sparec2, pf_spared1, pf_spared2, pf_sparen1, pf_sparen2, pf_sparel1, pf_sparel2, pf_consignid, pf_deliverytype, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`pf_uniqueid, pf_address1, pf_address2, pf_address3, pf_address4, pf_postcode, pf_buildingname, pf_buildingno, pf_street, pf_locale, pf_posttown, pf_county, pf_packs, pf_name, pf_accountname, pf_accountno, pf_printed, pf_entereddate, pf_source, pf_createfile, pf_sparec1, pf_sparec2, pf_spared1, pf_spared2, pf_sparen1, pf_sparen2, pf_sparel1, pf_sparel2, pf_consignid, pf_deliverytype, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.pf_uniqueid, EXCLUDED.pf_address1, EXCLUDED.pf_address2, EXCLUDED.pf_address3, EXCLUDED.pf_address4, EXCLUDED.pf_postcode, EXCLUDED.pf_buildingname, EXCLUDED.pf_buildingno, EXCLUDED.pf_street, EXCLUDED.pf_locale, EXCLUDED.pf_posttown, EXCLUDED.pf_county, EXCLUDED.pf_packs, EXCLUDED.pf_name, EXCLUDED.pf_accountname, EXCLUDED.pf_accountno, EXCLUDED.pf_printed, EXCLUDED.pf_entereddate, EXCLUDED.pf_source, EXCLUDED.pf_createfile, EXCLUDED.pf_sparec1, EXCLUDED.pf_sparec2, EXCLUDED.pf_spared1, EXCLUDED.pf_spared2, EXCLUDED.pf_sparen1, EXCLUDED.pf_sparen2, EXCLUDED.pf_sparel1, EXCLUDED.pf_sparel2, EXCLUDED.pf_consignid, EXCLUDED.pf_deliverytype, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.PfUniqueid, p.PfAddress1, p.PfAddress2, p.PfAddress3, p.PfAddress4, p.PfPostcode, p.PfBuildingname, p.PfBuildingno, p.PfStreet, p.PfLocale, p.PfPosttown, p.PfCounty, p.PfPacks, p.PfName, p.PfAccountname, p.PfAccountno, p.PfPrinted, p.PfEntereddate, p.PfSource, p.PfCreatefile, p.PfSparec1, p.PfSparec2, p.PfSpared1, p.PfSpared2, p.PfSparen1, p.PfSparen2, p.PfSparel1, p.PfSparel2, p.PfConsignid, p.PfDeliverytype, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.PfUniqueid, p.PfAddress1, p.PfAddress2, p.PfAddress3, p.PfAddress4, p.PfPostcode, p.PfBuildingname, p.PfBuildingno, p.PfStreet, p.PfLocale, p.PfPosttown, p.PfCounty, p.PfPacks, p.PfName, p.PfAccountname, p.PfAccountno, p.PfPrinted, p.PfEntereddate, p.PfSource, p.PfCreatefile, p.PfSparec1, p.PfSparec2, p.PfSpared1, p.PfSpared2, p.PfSparen1, p.PfSparen2, p.PfSparel1, p.PfSparel2, p.PfConsignid, p.PfDeliverytype, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Parcelf from the database.
-func (p *Parcelf) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.parcelf WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // ParcelfByEquinoxLrn retrieves a row from 'equinox.parcelf' as a Parcelf.
@@ -203,9 +59,7 @@ func ParcelfByEquinoxLrn(db XODB, equinoxLrn int64) (*Parcelf, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Parcelf{
-		_exists: true,
-	}
+	p := Parcelf{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.PfUniqueid, &p.PfAddress1, &p.PfAddress2, &p.PfAddress3, &p.PfAddress4, &p.PfPostcode, &p.PfBuildingname, &p.PfBuildingno, &p.PfStreet, &p.PfLocale, &p.PfPosttown, &p.PfCounty, &p.PfPacks, &p.PfName, &p.PfAccountname, &p.PfAccountno, &p.PfPrinted, &p.PfEntereddate, &p.PfSource, &p.PfCreatefile, &p.PfSparec1, &p.PfSparec2, &p.PfSpared1, &p.PfSpared2, &p.PfSparen1, &p.PfSparen2, &p.PfSparel1, &p.PfSparel2, &p.PfConsignid, &p.PfDeliverytype, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

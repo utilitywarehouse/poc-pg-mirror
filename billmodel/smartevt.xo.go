@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -29,149 +28,6 @@ type Smartevt struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Smartevt exists in the database.
-func (s *Smartevt) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Smartevt has been deleted from the database.
-func (s *Smartevt) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Smartevt to the database.
-func (s *Smartevt) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartevt (` +
-		`smeid, smedate, smetime, smereceived, smecustom1, smecustom2, smecustom3, smecustom4, smecustom5, smecustom6, smenotes, smeprocessed, smegasonlyevent, smeeleconlyevent, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Smeid, s.Smedate, s.Smetime, s.Smereceived, s.Smecustom1, s.Smecustom2, s.Smecustom3, s.Smecustom4, s.Smecustom5, s.Smecustom6, s.Smenotes, s.Smeprocessed, s.Smegasonlyevent, s.Smeeleconlyevent, s.EquinoxPrn, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Smeid, s.Smedate, s.Smetime, s.Smereceived, s.Smecustom1, s.Smecustom2, s.Smecustom3, s.Smecustom4, s.Smecustom5, s.Smecustom6, s.Smenotes, s.Smeprocessed, s.Smegasonlyevent, s.Smeeleconlyevent, s.EquinoxPrn, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Smartevt in the database.
-func (s *Smartevt) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.smartevt SET (` +
-		`smeid, smedate, smetime, smereceived, smecustom1, smecustom2, smecustom3, smecustom4, smecustom5, smecustom6, smenotes, smeprocessed, smegasonlyevent, smeeleconlyevent, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) WHERE equinox_lrn = $17`
-
-	// run query
-	XOLog(sqlstr, s.Smeid, s.Smedate, s.Smetime, s.Smereceived, s.Smecustom1, s.Smecustom2, s.Smecustom3, s.Smecustom4, s.Smecustom5, s.Smecustom6, s.Smenotes, s.Smeprocessed, s.Smegasonlyevent, s.Smeeleconlyevent, s.EquinoxPrn, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Smeid, s.Smedate, s.Smetime, s.Smereceived, s.Smecustom1, s.Smecustom2, s.Smecustom3, s.Smecustom4, s.Smecustom5, s.Smecustom6, s.Smenotes, s.Smeprocessed, s.Smegasonlyevent, s.Smeeleconlyevent, s.EquinoxPrn, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Smartevt to the database.
-func (s *Smartevt) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Smartevt.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Smartevt) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartevt (` +
-		`smeid, smedate, smetime, smereceived, smecustom1, smecustom2, smecustom3, smecustom4, smecustom5, smecustom6, smenotes, smeprocessed, smegasonlyevent, smeeleconlyevent, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`smeid, smedate, smetime, smereceived, smecustom1, smecustom2, smecustom3, smecustom4, smecustom5, smecustom6, smenotes, smeprocessed, smegasonlyevent, smeeleconlyevent, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.smeid, EXCLUDED.smedate, EXCLUDED.smetime, EXCLUDED.smereceived, EXCLUDED.smecustom1, EXCLUDED.smecustom2, EXCLUDED.smecustom3, EXCLUDED.smecustom4, EXCLUDED.smecustom5, EXCLUDED.smecustom6, EXCLUDED.smenotes, EXCLUDED.smeprocessed, EXCLUDED.smegasonlyevent, EXCLUDED.smeeleconlyevent, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Smeid, s.Smedate, s.Smetime, s.Smereceived, s.Smecustom1, s.Smecustom2, s.Smecustom3, s.Smecustom4, s.Smecustom5, s.Smecustom6, s.Smenotes, s.Smeprocessed, s.Smegasonlyevent, s.Smeeleconlyevent, s.EquinoxPrn, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Smeid, s.Smedate, s.Smetime, s.Smereceived, s.Smecustom1, s.Smecustom2, s.Smecustom3, s.Smecustom4, s.Smecustom5, s.Smecustom6, s.Smenotes, s.Smeprocessed, s.Smegasonlyevent, s.Smeeleconlyevent, s.EquinoxPrn, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Smartevt from the database.
-func (s *Smartevt) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.smartevt WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SmartevtByEquinoxLrn retrieves a row from 'equinox.smartevt' as a Smartevt.
@@ -188,9 +44,7 @@ func SmartevtByEquinoxLrn(db XODB, equinoxLrn int64) (*Smartevt, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Smartevt{
-		_exists: true,
-	}
+	s := Smartevt{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Smeid, &s.Smedate, &s.Smetime, &s.Smereceived, &s.Smecustom1, &s.Smecustom2, &s.Smecustom3, &s.Smecustom4, &s.Smecustom5, &s.Smecustom6, &s.Smenotes, &s.Smeprocessed, &s.Smegasonlyevent, &s.Smeeleconlyevent, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

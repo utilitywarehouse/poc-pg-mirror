@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -33,149 +32,6 @@ type Sim struct {
 	Simappformno     sql.NullString  `json:"simappformno"`     // simappformno
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Sim exists in the database.
-func (s *Sim) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Sim has been deleted from the database.
-func (s *Sim) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Sim to the database.
-func (s *Sim) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.sim (` +
-		`simcli, simserialnumber, simpuk, simpin, simcost, simaccoutnumber, simdateallocated, simmpcstatus, simmpcstatusdate, simoriginalcli, simimsi, simsparec1, simsparen1, simspared1, simtype, simstatus, simexecid, simlocation, simappformno, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Simcli, s.Simserialnumber, s.Simpuk, s.Simpin, s.Simcost, s.Simaccoutnumber, s.Simdateallocated, s.Simmpcstatus, s.Simmpcstatusdate, s.Simoriginalcli, s.Simimsi, s.Simsparec1, s.Simsparen1, s.Simspared1, s.Simtype, s.Simstatus, s.Simexecid, s.Simlocation, s.Simappformno, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Simcli, s.Simserialnumber, s.Simpuk, s.Simpin, s.Simcost, s.Simaccoutnumber, s.Simdateallocated, s.Simmpcstatus, s.Simmpcstatusdate, s.Simoriginalcli, s.Simimsi, s.Simsparec1, s.Simsparen1, s.Simspared1, s.Simtype, s.Simstatus, s.Simexecid, s.Simlocation, s.Simappformno, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Sim in the database.
-func (s *Sim) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.sim SET (` +
-		`simcli, simserialnumber, simpuk, simpin, simcost, simaccoutnumber, simdateallocated, simmpcstatus, simmpcstatusdate, simoriginalcli, simimsi, simsparec1, simsparen1, simspared1, simtype, simstatus, simexecid, simlocation, simappformno, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) WHERE equinox_lrn = $21`
-
-	// run query
-	XOLog(sqlstr, s.Simcli, s.Simserialnumber, s.Simpuk, s.Simpin, s.Simcost, s.Simaccoutnumber, s.Simdateallocated, s.Simmpcstatus, s.Simmpcstatusdate, s.Simoriginalcli, s.Simimsi, s.Simsparec1, s.Simsparen1, s.Simspared1, s.Simtype, s.Simstatus, s.Simexecid, s.Simlocation, s.Simappformno, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Simcli, s.Simserialnumber, s.Simpuk, s.Simpin, s.Simcost, s.Simaccoutnumber, s.Simdateallocated, s.Simmpcstatus, s.Simmpcstatusdate, s.Simoriginalcli, s.Simimsi, s.Simsparec1, s.Simsparen1, s.Simspared1, s.Simtype, s.Simstatus, s.Simexecid, s.Simlocation, s.Simappformno, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Sim to the database.
-func (s *Sim) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Sim.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Sim) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.sim (` +
-		`simcli, simserialnumber, simpuk, simpin, simcost, simaccoutnumber, simdateallocated, simmpcstatus, simmpcstatusdate, simoriginalcli, simimsi, simsparec1, simsparen1, simspared1, simtype, simstatus, simexecid, simlocation, simappformno, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`simcli, simserialnumber, simpuk, simpin, simcost, simaccoutnumber, simdateallocated, simmpcstatus, simmpcstatusdate, simoriginalcli, simimsi, simsparec1, simsparen1, simspared1, simtype, simstatus, simexecid, simlocation, simappformno, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.simcli, EXCLUDED.simserialnumber, EXCLUDED.simpuk, EXCLUDED.simpin, EXCLUDED.simcost, EXCLUDED.simaccoutnumber, EXCLUDED.simdateallocated, EXCLUDED.simmpcstatus, EXCLUDED.simmpcstatusdate, EXCLUDED.simoriginalcli, EXCLUDED.simimsi, EXCLUDED.simsparec1, EXCLUDED.simsparen1, EXCLUDED.simspared1, EXCLUDED.simtype, EXCLUDED.simstatus, EXCLUDED.simexecid, EXCLUDED.simlocation, EXCLUDED.simappformno, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Simcli, s.Simserialnumber, s.Simpuk, s.Simpin, s.Simcost, s.Simaccoutnumber, s.Simdateallocated, s.Simmpcstatus, s.Simmpcstatusdate, s.Simoriginalcli, s.Simimsi, s.Simsparec1, s.Simsparen1, s.Simspared1, s.Simtype, s.Simstatus, s.Simexecid, s.Simlocation, s.Simappformno, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Simcli, s.Simserialnumber, s.Simpuk, s.Simpin, s.Simcost, s.Simaccoutnumber, s.Simdateallocated, s.Simmpcstatus, s.Simmpcstatusdate, s.Simoriginalcli, s.Simimsi, s.Simsparec1, s.Simsparen1, s.Simspared1, s.Simtype, s.Simstatus, s.Simexecid, s.Simlocation, s.Simappformno, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Sim from the database.
-func (s *Sim) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.sim WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SimByEquinoxLrn retrieves a row from 'equinox.sim' as a Sim.
@@ -192,9 +48,7 @@ func SimByEquinoxLrn(db XODB, equinoxLrn int64) (*Sim, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Sim{
-		_exists: true,
-	}
+	s := Sim{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Simcli, &s.Simserialnumber, &s.Simpuk, &s.Simpin, &s.Simcost, &s.Simaccoutnumber, &s.Simdateallocated, &s.Simmpcstatus, &s.Simmpcstatusdate, &s.Simoriginalcli, &s.Simimsi, &s.Simsparec1, &s.Simsparen1, &s.Simspared1, &s.Simtype, &s.Simstatus, &s.Simexecid, &s.Simlocation, &s.Simappformno, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -33,149 +32,6 @@ type Cnxcomm struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxcomm exists in the database.
-func (c *Cnxcomm) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxcomm has been deleted from the database.
-func (c *Cnxcomm) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxcomm to the database.
-func (c *Cnxcomm) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxcomm (` +
-		`cnxcomdate, cnxcomtime, cnxcomuser, cnxcomcomment, cnxcomreceived, cnxcomreasoncode, cnxcomactioncode, cnxcomsupervisor, cnxcomlastaction, cnxcomresolved, cnxcomdead, cnxcomdropped, cnxcomserial, cnxcomservice, cnxcomapptype, cnxcomsparec1, cnxcomdueaction, cnxcomspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxcomdate, c.Cnxcomtime, c.Cnxcomuser, c.Cnxcomcomment, c.Cnxcomreceived, c.Cnxcomreasoncode, c.Cnxcomactioncode, c.Cnxcomsupervisor, c.Cnxcomlastaction, c.Cnxcomresolved, c.Cnxcomdead, c.Cnxcomdropped, c.Cnxcomserial, c.Cnxcomservice, c.Cnxcomapptype, c.Cnxcomsparec1, c.Cnxcomdueaction, c.Cnxcomspared1, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxcomdate, c.Cnxcomtime, c.Cnxcomuser, c.Cnxcomcomment, c.Cnxcomreceived, c.Cnxcomreasoncode, c.Cnxcomactioncode, c.Cnxcomsupervisor, c.Cnxcomlastaction, c.Cnxcomresolved, c.Cnxcomdead, c.Cnxcomdropped, c.Cnxcomserial, c.Cnxcomservice, c.Cnxcomapptype, c.Cnxcomsparec1, c.Cnxcomdueaction, c.Cnxcomspared1, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxcomm in the database.
-func (c *Cnxcomm) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxcomm SET (` +
-		`cnxcomdate, cnxcomtime, cnxcomuser, cnxcomcomment, cnxcomreceived, cnxcomreasoncode, cnxcomactioncode, cnxcomsupervisor, cnxcomlastaction, cnxcomresolved, cnxcomdead, cnxcomdropped, cnxcomserial, cnxcomservice, cnxcomapptype, cnxcomsparec1, cnxcomdueaction, cnxcomspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) WHERE equinox_lrn = $21`
-
-	// run query
-	XOLog(sqlstr, c.Cnxcomdate, c.Cnxcomtime, c.Cnxcomuser, c.Cnxcomcomment, c.Cnxcomreceived, c.Cnxcomreasoncode, c.Cnxcomactioncode, c.Cnxcomsupervisor, c.Cnxcomlastaction, c.Cnxcomresolved, c.Cnxcomdead, c.Cnxcomdropped, c.Cnxcomserial, c.Cnxcomservice, c.Cnxcomapptype, c.Cnxcomsparec1, c.Cnxcomdueaction, c.Cnxcomspared1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxcomdate, c.Cnxcomtime, c.Cnxcomuser, c.Cnxcomcomment, c.Cnxcomreceived, c.Cnxcomreasoncode, c.Cnxcomactioncode, c.Cnxcomsupervisor, c.Cnxcomlastaction, c.Cnxcomresolved, c.Cnxcomdead, c.Cnxcomdropped, c.Cnxcomserial, c.Cnxcomservice, c.Cnxcomapptype, c.Cnxcomsparec1, c.Cnxcomdueaction, c.Cnxcomspared1, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxcomm to the database.
-func (c *Cnxcomm) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxcomm.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxcomm) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxcomm (` +
-		`cnxcomdate, cnxcomtime, cnxcomuser, cnxcomcomment, cnxcomreceived, cnxcomreasoncode, cnxcomactioncode, cnxcomsupervisor, cnxcomlastaction, cnxcomresolved, cnxcomdead, cnxcomdropped, cnxcomserial, cnxcomservice, cnxcomapptype, cnxcomsparec1, cnxcomdueaction, cnxcomspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxcomdate, cnxcomtime, cnxcomuser, cnxcomcomment, cnxcomreceived, cnxcomreasoncode, cnxcomactioncode, cnxcomsupervisor, cnxcomlastaction, cnxcomresolved, cnxcomdead, cnxcomdropped, cnxcomserial, cnxcomservice, cnxcomapptype, cnxcomsparec1, cnxcomdueaction, cnxcomspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxcomdate, EXCLUDED.cnxcomtime, EXCLUDED.cnxcomuser, EXCLUDED.cnxcomcomment, EXCLUDED.cnxcomreceived, EXCLUDED.cnxcomreasoncode, EXCLUDED.cnxcomactioncode, EXCLUDED.cnxcomsupervisor, EXCLUDED.cnxcomlastaction, EXCLUDED.cnxcomresolved, EXCLUDED.cnxcomdead, EXCLUDED.cnxcomdropped, EXCLUDED.cnxcomserial, EXCLUDED.cnxcomservice, EXCLUDED.cnxcomapptype, EXCLUDED.cnxcomsparec1, EXCLUDED.cnxcomdueaction, EXCLUDED.cnxcomspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxcomdate, c.Cnxcomtime, c.Cnxcomuser, c.Cnxcomcomment, c.Cnxcomreceived, c.Cnxcomreasoncode, c.Cnxcomactioncode, c.Cnxcomsupervisor, c.Cnxcomlastaction, c.Cnxcomresolved, c.Cnxcomdead, c.Cnxcomdropped, c.Cnxcomserial, c.Cnxcomservice, c.Cnxcomapptype, c.Cnxcomsparec1, c.Cnxcomdueaction, c.Cnxcomspared1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxcomdate, c.Cnxcomtime, c.Cnxcomuser, c.Cnxcomcomment, c.Cnxcomreceived, c.Cnxcomreasoncode, c.Cnxcomactioncode, c.Cnxcomsupervisor, c.Cnxcomlastaction, c.Cnxcomresolved, c.Cnxcomdead, c.Cnxcomdropped, c.Cnxcomserial, c.Cnxcomservice, c.Cnxcomapptype, c.Cnxcomsparec1, c.Cnxcomdueaction, c.Cnxcomspared1, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxcomm from the database.
-func (c *Cnxcomm) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxcomm WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxcommByEquinoxLrn retrieves a row from 'equinox.cnxcomm' as a Cnxcomm.
@@ -192,9 +48,7 @@ func CnxcommByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxcomm, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxcomm{
-		_exists: true,
-	}
+	c := Cnxcomm{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxcomdate, &c.Cnxcomtime, &c.Cnxcomuser, &c.Cnxcomcomment, &c.Cnxcomreceived, &c.Cnxcomreasoncode, &c.Cnxcomactioncode, &c.Cnxcomsupervisor, &c.Cnxcomlastaction, &c.Cnxcomresolved, &c.Cnxcomdead, &c.Cnxcomdropped, &c.Cnxcomserial, &c.Cnxcomservice, &c.Cnxcomapptype, &c.Cnxcomsparec1, &c.Cnxcomdueaction, &c.Cnxcomspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

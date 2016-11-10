@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -41,149 +40,6 @@ type Pprec struct {
 	Pprinitcredit    sql.NullFloat64 `json:"pprinitcredit"`    // pprinitcredit
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Pprec exists in the database.
-func (p *Pprec) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Pprec has been deleted from the database.
-func (p *Pprec) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Pprec to the database.
-func (p *Pprec) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pprec (` +
-		`pprref, pprperiod, pprstartreadreg1, pprstrdreg1tp, pprendreadreg1, ppredrdreg1tp, pprstartreadreg2, pprstrdreg2tp, pprendreadreg2, ppredrdreg2tp, pprusage, pprstdcharge, pprtariff, pprpayments, pprmeterstartbal, pprmeterendbal, pprexcode, pprcv, pprbilltype, pprkwh, pprspared1, pprmx, ppradjust, pprdebtlanded, pprdebtbalance, pprimpormetric, pprinitcredit, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Pprref, p.Pprperiod, p.Pprstartreadreg1, p.Pprstrdreg1tp, p.Pprendreadreg1, p.Ppredrdreg1tp, p.Pprstartreadreg2, p.Pprstrdreg2tp, p.Pprendreadreg2, p.Ppredrdreg2tp, p.Pprusage, p.Pprstdcharge, p.Pprtariff, p.Pprpayments, p.Pprmeterstartbal, p.Pprmeterendbal, p.Pprexcode, p.Pprcv, p.Pprbilltype, p.Pprkwh, p.Pprspared1, p.Pprmx, p.Ppradjust, p.Pprdebtlanded, p.Pprdebtbalance, p.Pprimpormetric, p.Pprinitcredit, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Pprref, p.Pprperiod, p.Pprstartreadreg1, p.Pprstrdreg1tp, p.Pprendreadreg1, p.Ppredrdreg1tp, p.Pprstartreadreg2, p.Pprstrdreg2tp, p.Pprendreadreg2, p.Ppredrdreg2tp, p.Pprusage, p.Pprstdcharge, p.Pprtariff, p.Pprpayments, p.Pprmeterstartbal, p.Pprmeterendbal, p.Pprexcode, p.Pprcv, p.Pprbilltype, p.Pprkwh, p.Pprspared1, p.Pprmx, p.Ppradjust, p.Pprdebtlanded, p.Pprdebtbalance, p.Pprimpormetric, p.Pprinitcredit, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Pprec in the database.
-func (p *Pprec) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.pprec SET (` +
-		`pprref, pprperiod, pprstartreadreg1, pprstrdreg1tp, pprendreadreg1, ppredrdreg1tp, pprstartreadreg2, pprstrdreg2tp, pprendreadreg2, ppredrdreg2tp, pprusage, pprstdcharge, pprtariff, pprpayments, pprmeterstartbal, pprmeterendbal, pprexcode, pprcv, pprbilltype, pprkwh, pprspared1, pprmx, ppradjust, pprdebtlanded, pprdebtbalance, pprimpormetric, pprinitcredit, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28` +
-		`) WHERE equinox_lrn = $29`
-
-	// run query
-	XOLog(sqlstr, p.Pprref, p.Pprperiod, p.Pprstartreadreg1, p.Pprstrdreg1tp, p.Pprendreadreg1, p.Ppredrdreg1tp, p.Pprstartreadreg2, p.Pprstrdreg2tp, p.Pprendreadreg2, p.Ppredrdreg2tp, p.Pprusage, p.Pprstdcharge, p.Pprtariff, p.Pprpayments, p.Pprmeterstartbal, p.Pprmeterendbal, p.Pprexcode, p.Pprcv, p.Pprbilltype, p.Pprkwh, p.Pprspared1, p.Pprmx, p.Ppradjust, p.Pprdebtlanded, p.Pprdebtbalance, p.Pprimpormetric, p.Pprinitcredit, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Pprref, p.Pprperiod, p.Pprstartreadreg1, p.Pprstrdreg1tp, p.Pprendreadreg1, p.Ppredrdreg1tp, p.Pprstartreadreg2, p.Pprstrdreg2tp, p.Pprendreadreg2, p.Ppredrdreg2tp, p.Pprusage, p.Pprstdcharge, p.Pprtariff, p.Pprpayments, p.Pprmeterstartbal, p.Pprmeterendbal, p.Pprexcode, p.Pprcv, p.Pprbilltype, p.Pprkwh, p.Pprspared1, p.Pprmx, p.Ppradjust, p.Pprdebtlanded, p.Pprdebtbalance, p.Pprimpormetric, p.Pprinitcredit, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Pprec to the database.
-func (p *Pprec) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Pprec.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Pprec) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.pprec (` +
-		`pprref, pprperiod, pprstartreadreg1, pprstrdreg1tp, pprendreadreg1, ppredrdreg1tp, pprstartreadreg2, pprstrdreg2tp, pprendreadreg2, ppredrdreg2tp, pprusage, pprstdcharge, pprtariff, pprpayments, pprmeterstartbal, pprmeterendbal, pprexcode, pprcv, pprbilltype, pprkwh, pprspared1, pprmx, ppradjust, pprdebtlanded, pprdebtbalance, pprimpormetric, pprinitcredit, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`pprref, pprperiod, pprstartreadreg1, pprstrdreg1tp, pprendreadreg1, ppredrdreg1tp, pprstartreadreg2, pprstrdreg2tp, pprendreadreg2, ppredrdreg2tp, pprusage, pprstdcharge, pprtariff, pprpayments, pprmeterstartbal, pprmeterendbal, pprexcode, pprcv, pprbilltype, pprkwh, pprspared1, pprmx, ppradjust, pprdebtlanded, pprdebtbalance, pprimpormetric, pprinitcredit, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.pprref, EXCLUDED.pprperiod, EXCLUDED.pprstartreadreg1, EXCLUDED.pprstrdreg1tp, EXCLUDED.pprendreadreg1, EXCLUDED.ppredrdreg1tp, EXCLUDED.pprstartreadreg2, EXCLUDED.pprstrdreg2tp, EXCLUDED.pprendreadreg2, EXCLUDED.ppredrdreg2tp, EXCLUDED.pprusage, EXCLUDED.pprstdcharge, EXCLUDED.pprtariff, EXCLUDED.pprpayments, EXCLUDED.pprmeterstartbal, EXCLUDED.pprmeterendbal, EXCLUDED.pprexcode, EXCLUDED.pprcv, EXCLUDED.pprbilltype, EXCLUDED.pprkwh, EXCLUDED.pprspared1, EXCLUDED.pprmx, EXCLUDED.ppradjust, EXCLUDED.pprdebtlanded, EXCLUDED.pprdebtbalance, EXCLUDED.pprimpormetric, EXCLUDED.pprinitcredit, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Pprref, p.Pprperiod, p.Pprstartreadreg1, p.Pprstrdreg1tp, p.Pprendreadreg1, p.Ppredrdreg1tp, p.Pprstartreadreg2, p.Pprstrdreg2tp, p.Pprendreadreg2, p.Ppredrdreg2tp, p.Pprusage, p.Pprstdcharge, p.Pprtariff, p.Pprpayments, p.Pprmeterstartbal, p.Pprmeterendbal, p.Pprexcode, p.Pprcv, p.Pprbilltype, p.Pprkwh, p.Pprspared1, p.Pprmx, p.Ppradjust, p.Pprdebtlanded, p.Pprdebtbalance, p.Pprimpormetric, p.Pprinitcredit, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Pprref, p.Pprperiod, p.Pprstartreadreg1, p.Pprstrdreg1tp, p.Pprendreadreg1, p.Ppredrdreg1tp, p.Pprstartreadreg2, p.Pprstrdreg2tp, p.Pprendreadreg2, p.Ppredrdreg2tp, p.Pprusage, p.Pprstdcharge, p.Pprtariff, p.Pprpayments, p.Pprmeterstartbal, p.Pprmeterendbal, p.Pprexcode, p.Pprcv, p.Pprbilltype, p.Pprkwh, p.Pprspared1, p.Pprmx, p.Ppradjust, p.Pprdebtlanded, p.Pprdebtbalance, p.Pprimpormetric, p.Pprinitcredit, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Pprec from the database.
-func (p *Pprec) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.pprec WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PprecByEquinoxLrn retrieves a row from 'equinox.pprec' as a Pprec.
@@ -200,9 +56,7 @@ func PprecByEquinoxLrn(db XODB, equinoxLrn int64) (*Pprec, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Pprec{
-		_exists: true,
-	}
+	p := Pprec{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Pprref, &p.Pprperiod, &p.Pprstartreadreg1, &p.Pprstrdreg1tp, &p.Pprendreadreg1, &p.Ppredrdreg1tp, &p.Pprstartreadreg2, &p.Pprstrdreg2tp, &p.Pprendreadreg2, &p.Ppredrdreg2tp, &p.Pprusage, &p.Pprstdcharge, &p.Pprtariff, &p.Pprpayments, &p.Pprmeterstartbal, &p.Pprmeterendbal, &p.Pprexcode, &p.Pprcv, &p.Pprbilltype, &p.Pprkwh, &p.Pprspared1, &p.Pprmx, &p.Ppradjust, &p.Pprdebtlanded, &p.Pprdebtbalance, &p.Pprimpormetric, &p.Pprinitcredit, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

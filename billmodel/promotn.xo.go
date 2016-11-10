@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -64,149 +63,6 @@ type Promotn struct {
 	Promoclisubtar   sql.NullString  `json:"promoclisubtar"`   // promoclisubtar
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Promotn exists in the database.
-func (p *Promotn) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Promotn has been deleted from the database.
-func (p *Promotn) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Promotn to the database.
-func (p *Promotn) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.promotn (` +
-		`promocode, promodescrip, promostart, promoend, promonumber, promoloyalty, promofreecalls, promoloyaltylvl, promoownership, promotariff, promo_nettariff, promo_linerent, promo_rpc, promo_sms, promo_mms, promo_gprs, promo_local, promo_internatl, promo_pack, promo_spare2, promo_spare3, promo_suspend, promo_available, promo_discount, promo_disclevel1, promo_disclevel2, promo_disclevel3, promo_disclevel4, promoshortdesc, promosetupcharge, promofreetexts, promoconnbonus, promoconnbonusam, promoconnbonusa2, promocommisonlr, promouserlevel, promo_notes, promo_tariffchg, promomustcli_sl, promooptcli_sl, promosparec3, promosparen1, promosparen2, promosparen3, promospared1, promospared2, promospared3, promodataopts, promobbopts, promoclisubtar, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Promocode, p.Promodescrip, p.Promostart, p.Promoend, p.Promonumber, p.Promoloyalty, p.Promofreecalls, p.Promoloyaltylvl, p.Promoownership, p.Promotariff, p.PromoNettariff, p.PromoLinerent, p.PromoRPC, p.PromoSms, p.PromoMms, p.PromoGprs, p.PromoLocal, p.PromoInternatl, p.PromoPack, p.PromoSpare2, p.PromoSpare3, p.PromoSuspend, p.PromoAvailable, p.PromoDiscount, p.PromoDisclevel1, p.PromoDisclevel2, p.PromoDisclevel3, p.PromoDisclevel4, p.Promoshortdesc, p.Promosetupcharge, p.Promofreetexts, p.Promoconnbonus, p.Promoconnbonusam, p.Promoconnbonusa2, p.Promocommisonlr, p.Promouserlevel, p.PromoNotes, p.PromoTariffchg, p.PromomustcliSl, p.PromooptcliSl, p.Promosparec3, p.Promosparen1, p.Promosparen2, p.Promosparen3, p.Promospared1, p.Promospared2, p.Promospared3, p.Promodataopts, p.Promobbopts, p.Promoclisubtar, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Promocode, p.Promodescrip, p.Promostart, p.Promoend, p.Promonumber, p.Promoloyalty, p.Promofreecalls, p.Promoloyaltylvl, p.Promoownership, p.Promotariff, p.PromoNettariff, p.PromoLinerent, p.PromoRPC, p.PromoSms, p.PromoMms, p.PromoGprs, p.PromoLocal, p.PromoInternatl, p.PromoPack, p.PromoSpare2, p.PromoSpare3, p.PromoSuspend, p.PromoAvailable, p.PromoDiscount, p.PromoDisclevel1, p.PromoDisclevel2, p.PromoDisclevel3, p.PromoDisclevel4, p.Promoshortdesc, p.Promosetupcharge, p.Promofreetexts, p.Promoconnbonus, p.Promoconnbonusam, p.Promoconnbonusa2, p.Promocommisonlr, p.Promouserlevel, p.PromoNotes, p.PromoTariffchg, p.PromomustcliSl, p.PromooptcliSl, p.Promosparec3, p.Promosparen1, p.Promosparen2, p.Promosparen3, p.Promospared1, p.Promospared2, p.Promospared3, p.Promodataopts, p.Promobbopts, p.Promoclisubtar, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Promotn in the database.
-func (p *Promotn) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.promotn SET (` +
-		`promocode, promodescrip, promostart, promoend, promonumber, promoloyalty, promofreecalls, promoloyaltylvl, promoownership, promotariff, promo_nettariff, promo_linerent, promo_rpc, promo_sms, promo_mms, promo_gprs, promo_local, promo_internatl, promo_pack, promo_spare2, promo_spare3, promo_suspend, promo_available, promo_discount, promo_disclevel1, promo_disclevel2, promo_disclevel3, promo_disclevel4, promoshortdesc, promosetupcharge, promofreetexts, promoconnbonus, promoconnbonusam, promoconnbonusa2, promocommisonlr, promouserlevel, promo_notes, promo_tariffchg, promomustcli_sl, promooptcli_sl, promosparec3, promosparen1, promosparen2, promosparen3, promospared1, promospared2, promospared3, promodataopts, promobbopts, promoclisubtar, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51` +
-		`) WHERE equinox_lrn = $52`
-
-	// run query
-	XOLog(sqlstr, p.Promocode, p.Promodescrip, p.Promostart, p.Promoend, p.Promonumber, p.Promoloyalty, p.Promofreecalls, p.Promoloyaltylvl, p.Promoownership, p.Promotariff, p.PromoNettariff, p.PromoLinerent, p.PromoRPC, p.PromoSms, p.PromoMms, p.PromoGprs, p.PromoLocal, p.PromoInternatl, p.PromoPack, p.PromoSpare2, p.PromoSpare3, p.PromoSuspend, p.PromoAvailable, p.PromoDiscount, p.PromoDisclevel1, p.PromoDisclevel2, p.PromoDisclevel3, p.PromoDisclevel4, p.Promoshortdesc, p.Promosetupcharge, p.Promofreetexts, p.Promoconnbonus, p.Promoconnbonusam, p.Promoconnbonusa2, p.Promocommisonlr, p.Promouserlevel, p.PromoNotes, p.PromoTariffchg, p.PromomustcliSl, p.PromooptcliSl, p.Promosparec3, p.Promosparen1, p.Promosparen2, p.Promosparen3, p.Promospared1, p.Promospared2, p.Promospared3, p.Promodataopts, p.Promobbopts, p.Promoclisubtar, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Promocode, p.Promodescrip, p.Promostart, p.Promoend, p.Promonumber, p.Promoloyalty, p.Promofreecalls, p.Promoloyaltylvl, p.Promoownership, p.Promotariff, p.PromoNettariff, p.PromoLinerent, p.PromoRPC, p.PromoSms, p.PromoMms, p.PromoGprs, p.PromoLocal, p.PromoInternatl, p.PromoPack, p.PromoSpare2, p.PromoSpare3, p.PromoSuspend, p.PromoAvailable, p.PromoDiscount, p.PromoDisclevel1, p.PromoDisclevel2, p.PromoDisclevel3, p.PromoDisclevel4, p.Promoshortdesc, p.Promosetupcharge, p.Promofreetexts, p.Promoconnbonus, p.Promoconnbonusam, p.Promoconnbonusa2, p.Promocommisonlr, p.Promouserlevel, p.PromoNotes, p.PromoTariffchg, p.PromomustcliSl, p.PromooptcliSl, p.Promosparec3, p.Promosparen1, p.Promosparen2, p.Promosparen3, p.Promospared1, p.Promospared2, p.Promospared3, p.Promodataopts, p.Promobbopts, p.Promoclisubtar, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Promotn to the database.
-func (p *Promotn) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Promotn.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Promotn) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.promotn (` +
-		`promocode, promodescrip, promostart, promoend, promonumber, promoloyalty, promofreecalls, promoloyaltylvl, promoownership, promotariff, promo_nettariff, promo_linerent, promo_rpc, promo_sms, promo_mms, promo_gprs, promo_local, promo_internatl, promo_pack, promo_spare2, promo_spare3, promo_suspend, promo_available, promo_discount, promo_disclevel1, promo_disclevel2, promo_disclevel3, promo_disclevel4, promoshortdesc, promosetupcharge, promofreetexts, promoconnbonus, promoconnbonusam, promoconnbonusa2, promocommisonlr, promouserlevel, promo_notes, promo_tariffchg, promomustcli_sl, promooptcli_sl, promosparec3, promosparen1, promosparen2, promosparen3, promospared1, promospared2, promospared3, promodataopts, promobbopts, promoclisubtar, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`promocode, promodescrip, promostart, promoend, promonumber, promoloyalty, promofreecalls, promoloyaltylvl, promoownership, promotariff, promo_nettariff, promo_linerent, promo_rpc, promo_sms, promo_mms, promo_gprs, promo_local, promo_internatl, promo_pack, promo_spare2, promo_spare3, promo_suspend, promo_available, promo_discount, promo_disclevel1, promo_disclevel2, promo_disclevel3, promo_disclevel4, promoshortdesc, promosetupcharge, promofreetexts, promoconnbonus, promoconnbonusam, promoconnbonusa2, promocommisonlr, promouserlevel, promo_notes, promo_tariffchg, promomustcli_sl, promooptcli_sl, promosparec3, promosparen1, promosparen2, promosparen3, promospared1, promospared2, promospared3, promodataopts, promobbopts, promoclisubtar, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.promocode, EXCLUDED.promodescrip, EXCLUDED.promostart, EXCLUDED.promoend, EXCLUDED.promonumber, EXCLUDED.promoloyalty, EXCLUDED.promofreecalls, EXCLUDED.promoloyaltylvl, EXCLUDED.promoownership, EXCLUDED.promotariff, EXCLUDED.promo_nettariff, EXCLUDED.promo_linerent, EXCLUDED.promo_rpc, EXCLUDED.promo_sms, EXCLUDED.promo_mms, EXCLUDED.promo_gprs, EXCLUDED.promo_local, EXCLUDED.promo_internatl, EXCLUDED.promo_pack, EXCLUDED.promo_spare2, EXCLUDED.promo_spare3, EXCLUDED.promo_suspend, EXCLUDED.promo_available, EXCLUDED.promo_discount, EXCLUDED.promo_disclevel1, EXCLUDED.promo_disclevel2, EXCLUDED.promo_disclevel3, EXCLUDED.promo_disclevel4, EXCLUDED.promoshortdesc, EXCLUDED.promosetupcharge, EXCLUDED.promofreetexts, EXCLUDED.promoconnbonus, EXCLUDED.promoconnbonusam, EXCLUDED.promoconnbonusa2, EXCLUDED.promocommisonlr, EXCLUDED.promouserlevel, EXCLUDED.promo_notes, EXCLUDED.promo_tariffchg, EXCLUDED.promomustcli_sl, EXCLUDED.promooptcli_sl, EXCLUDED.promosparec3, EXCLUDED.promosparen1, EXCLUDED.promosparen2, EXCLUDED.promosparen3, EXCLUDED.promospared1, EXCLUDED.promospared2, EXCLUDED.promospared3, EXCLUDED.promodataopts, EXCLUDED.promobbopts, EXCLUDED.promoclisubtar, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Promocode, p.Promodescrip, p.Promostart, p.Promoend, p.Promonumber, p.Promoloyalty, p.Promofreecalls, p.Promoloyaltylvl, p.Promoownership, p.Promotariff, p.PromoNettariff, p.PromoLinerent, p.PromoRPC, p.PromoSms, p.PromoMms, p.PromoGprs, p.PromoLocal, p.PromoInternatl, p.PromoPack, p.PromoSpare2, p.PromoSpare3, p.PromoSuspend, p.PromoAvailable, p.PromoDiscount, p.PromoDisclevel1, p.PromoDisclevel2, p.PromoDisclevel3, p.PromoDisclevel4, p.Promoshortdesc, p.Promosetupcharge, p.Promofreetexts, p.Promoconnbonus, p.Promoconnbonusam, p.Promoconnbonusa2, p.Promocommisonlr, p.Promouserlevel, p.PromoNotes, p.PromoTariffchg, p.PromomustcliSl, p.PromooptcliSl, p.Promosparec3, p.Promosparen1, p.Promosparen2, p.Promosparen3, p.Promospared1, p.Promospared2, p.Promospared3, p.Promodataopts, p.Promobbopts, p.Promoclisubtar, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Promocode, p.Promodescrip, p.Promostart, p.Promoend, p.Promonumber, p.Promoloyalty, p.Promofreecalls, p.Promoloyaltylvl, p.Promoownership, p.Promotariff, p.PromoNettariff, p.PromoLinerent, p.PromoRPC, p.PromoSms, p.PromoMms, p.PromoGprs, p.PromoLocal, p.PromoInternatl, p.PromoPack, p.PromoSpare2, p.PromoSpare3, p.PromoSuspend, p.PromoAvailable, p.PromoDiscount, p.PromoDisclevel1, p.PromoDisclevel2, p.PromoDisclevel3, p.PromoDisclevel4, p.Promoshortdesc, p.Promosetupcharge, p.Promofreetexts, p.Promoconnbonus, p.Promoconnbonusam, p.Promoconnbonusa2, p.Promocommisonlr, p.Promouserlevel, p.PromoNotes, p.PromoTariffchg, p.PromomustcliSl, p.PromooptcliSl, p.Promosparec3, p.Promosparen1, p.Promosparen2, p.Promosparen3, p.Promospared1, p.Promospared2, p.Promospared3, p.Promodataopts, p.Promobbopts, p.Promoclisubtar, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Promotn from the database.
-func (p *Promotn) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.promotn WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PromotnByEquinoxLrn retrieves a row from 'equinox.promotn' as a Promotn.
@@ -223,9 +79,7 @@ func PromotnByEquinoxLrn(db XODB, equinoxLrn int64) (*Promotn, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Promotn{
-		_exists: true,
-	}
+	p := Promotn{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Promocode, &p.Promodescrip, &p.Promostart, &p.Promoend, &p.Promonumber, &p.Promoloyalty, &p.Promofreecalls, &p.Promoloyaltylvl, &p.Promoownership, &p.Promotariff, &p.PromoNettariff, &p.PromoLinerent, &p.PromoRPC, &p.PromoSms, &p.PromoMms, &p.PromoGprs, &p.PromoLocal, &p.PromoInternatl, &p.PromoPack, &p.PromoSpare2, &p.PromoSpare3, &p.PromoSuspend, &p.PromoAvailable, &p.PromoDiscount, &p.PromoDisclevel1, &p.PromoDisclevel2, &p.PromoDisclevel3, &p.PromoDisclevel4, &p.Promoshortdesc, &p.Promosetupcharge, &p.Promofreetexts, &p.Promoconnbonus, &p.Promoconnbonusam, &p.Promoconnbonusa2, &p.Promocommisonlr, &p.Promouserlevel, &p.PromoNotes, &p.PromoTariffchg, &p.PromomustcliSl, &p.PromooptcliSl, &p.Promosparec3, &p.Promosparen1, &p.Promosparen2, &p.Promosparen3, &p.Promospared1, &p.Promospared2, &p.Promospared3, &p.Promodataopts, &p.Promobbopts, &p.Promoclisubtar, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

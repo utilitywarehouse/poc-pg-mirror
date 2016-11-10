@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -70,149 +69,6 @@ type Porting struct {
 	Porttml          sql.NullInt64  `json:"porttml"`          // porttml
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Porting exists in the database.
-func (p *Porting) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Porting has been deleted from the database.
-func (p *Porting) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Porting to the database.
-func (p *Porting) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.porting (` +
-		`porttitle, portinits, portsurname, portname, portadd1, portadd2, portadd3, portadd4, portadd5, portpostcode, portexecid, portbusname, portaccountno, portreference, portday1, portexpect, portday, portusrdate, portusreject1, portusreject2, portusreject3, portusreject4, portusreject5, portusreject6, portusreject7, portusreject8, portstatus, portdsp, portdno, portdsprequest, portdspacknow, portdspdecision, portdsprejecttoc, portwithdraw, portwithdrawall, portdspwithdraw, portmanual, porttelephone, paperrec, portnoreturn, portready, portcomplete, portconnectacc, portdouble, porttransferee, portwelcome, portcoverage, portstart, portpac, portpacexpire, porttagged, portlocked, port00263, porttype, portedit, porttml, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Porttitle, p.Portinits, p.Portsurname, p.Portname, p.Portadd1, p.Portadd2, p.Portadd3, p.Portadd4, p.Portadd5, p.Portpostcode, p.Portexecid, p.Portbusname, p.Portaccountno, p.Portreference, p.Portday1, p.Portexpect, p.Portday, p.Portusrdate, p.Portusreject1, p.Portusreject2, p.Portusreject3, p.Portusreject4, p.Portusreject5, p.Portusreject6, p.Portusreject7, p.Portusreject8, p.Portstatus, p.Portdsp, p.Portdno, p.Portdsprequest, p.Portdspacknow, p.Portdspdecision, p.Portdsprejecttoc, p.Portwithdraw, p.Portwithdrawall, p.Portdspwithdraw, p.Portmanual, p.Porttelephone, p.Paperrec, p.Portnoreturn, p.Portready, p.Portcomplete, p.Portconnectacc, p.Portdouble, p.Porttransferee, p.Portwelcome, p.Portcoverage, p.Portstart, p.Portpac, p.Portpacexpire, p.Porttagged, p.Portlocked, p.Port00263, p.Porttype, p.Portedit, p.Porttml, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Porttitle, p.Portinits, p.Portsurname, p.Portname, p.Portadd1, p.Portadd2, p.Portadd3, p.Portadd4, p.Portadd5, p.Portpostcode, p.Portexecid, p.Portbusname, p.Portaccountno, p.Portreference, p.Portday1, p.Portexpect, p.Portday, p.Portusrdate, p.Portusreject1, p.Portusreject2, p.Portusreject3, p.Portusreject4, p.Portusreject5, p.Portusreject6, p.Portusreject7, p.Portusreject8, p.Portstatus, p.Portdsp, p.Portdno, p.Portdsprequest, p.Portdspacknow, p.Portdspdecision, p.Portdsprejecttoc, p.Portwithdraw, p.Portwithdrawall, p.Portdspwithdraw, p.Portmanual, p.Porttelephone, p.Paperrec, p.Portnoreturn, p.Portready, p.Portcomplete, p.Portconnectacc, p.Portdouble, p.Porttransferee, p.Portwelcome, p.Portcoverage, p.Portstart, p.Portpac, p.Portpacexpire, p.Porttagged, p.Portlocked, p.Port00263, p.Porttype, p.Portedit, p.Porttml, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Porting in the database.
-func (p *Porting) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.porting SET (` +
-		`porttitle, portinits, portsurname, portname, portadd1, portadd2, portadd3, portadd4, portadd5, portpostcode, portexecid, portbusname, portaccountno, portreference, portday1, portexpect, portday, portusrdate, portusreject1, portusreject2, portusreject3, portusreject4, portusreject5, portusreject6, portusreject7, portusreject8, portstatus, portdsp, portdno, portdsprequest, portdspacknow, portdspdecision, portdsprejecttoc, portwithdraw, portwithdrawall, portdspwithdraw, portmanual, porttelephone, paperrec, portnoreturn, portready, portcomplete, portconnectacc, portdouble, porttransferee, portwelcome, portcoverage, portstart, portpac, portpacexpire, porttagged, portlocked, port00263, porttype, portedit, porttml, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57` +
-		`) WHERE equinox_lrn = $58`
-
-	// run query
-	XOLog(sqlstr, p.Porttitle, p.Portinits, p.Portsurname, p.Portname, p.Portadd1, p.Portadd2, p.Portadd3, p.Portadd4, p.Portadd5, p.Portpostcode, p.Portexecid, p.Portbusname, p.Portaccountno, p.Portreference, p.Portday1, p.Portexpect, p.Portday, p.Portusrdate, p.Portusreject1, p.Portusreject2, p.Portusreject3, p.Portusreject4, p.Portusreject5, p.Portusreject6, p.Portusreject7, p.Portusreject8, p.Portstatus, p.Portdsp, p.Portdno, p.Portdsprequest, p.Portdspacknow, p.Portdspdecision, p.Portdsprejecttoc, p.Portwithdraw, p.Portwithdrawall, p.Portdspwithdraw, p.Portmanual, p.Porttelephone, p.Paperrec, p.Portnoreturn, p.Portready, p.Portcomplete, p.Portconnectacc, p.Portdouble, p.Porttransferee, p.Portwelcome, p.Portcoverage, p.Portstart, p.Portpac, p.Portpacexpire, p.Porttagged, p.Portlocked, p.Port00263, p.Porttype, p.Portedit, p.Porttml, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Porttitle, p.Portinits, p.Portsurname, p.Portname, p.Portadd1, p.Portadd2, p.Portadd3, p.Portadd4, p.Portadd5, p.Portpostcode, p.Portexecid, p.Portbusname, p.Portaccountno, p.Portreference, p.Portday1, p.Portexpect, p.Portday, p.Portusrdate, p.Portusreject1, p.Portusreject2, p.Portusreject3, p.Portusreject4, p.Portusreject5, p.Portusreject6, p.Portusreject7, p.Portusreject8, p.Portstatus, p.Portdsp, p.Portdno, p.Portdsprequest, p.Portdspacknow, p.Portdspdecision, p.Portdsprejecttoc, p.Portwithdraw, p.Portwithdrawall, p.Portdspwithdraw, p.Portmanual, p.Porttelephone, p.Paperrec, p.Portnoreturn, p.Portready, p.Portcomplete, p.Portconnectacc, p.Portdouble, p.Porttransferee, p.Portwelcome, p.Portcoverage, p.Portstart, p.Portpac, p.Portpacexpire, p.Porttagged, p.Portlocked, p.Port00263, p.Porttype, p.Portedit, p.Porttml, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Porting to the database.
-func (p *Porting) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Porting.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Porting) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.porting (` +
-		`porttitle, portinits, portsurname, portname, portadd1, portadd2, portadd3, portadd4, portadd5, portpostcode, portexecid, portbusname, portaccountno, portreference, portday1, portexpect, portday, portusrdate, portusreject1, portusreject2, portusreject3, portusreject4, portusreject5, portusreject6, portusreject7, portusreject8, portstatus, portdsp, portdno, portdsprequest, portdspacknow, portdspdecision, portdsprejecttoc, portwithdraw, portwithdrawall, portdspwithdraw, portmanual, porttelephone, paperrec, portnoreturn, portready, portcomplete, portconnectacc, portdouble, porttransferee, portwelcome, portcoverage, portstart, portpac, portpacexpire, porttagged, portlocked, port00263, porttype, portedit, porttml, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`porttitle, portinits, portsurname, portname, portadd1, portadd2, portadd3, portadd4, portadd5, portpostcode, portexecid, portbusname, portaccountno, portreference, portday1, portexpect, portday, portusrdate, portusreject1, portusreject2, portusreject3, portusreject4, portusreject5, portusreject6, portusreject7, portusreject8, portstatus, portdsp, portdno, portdsprequest, portdspacknow, portdspdecision, portdsprejecttoc, portwithdraw, portwithdrawall, portdspwithdraw, portmanual, porttelephone, paperrec, portnoreturn, portready, portcomplete, portconnectacc, portdouble, porttransferee, portwelcome, portcoverage, portstart, portpac, portpacexpire, porttagged, portlocked, port00263, porttype, portedit, porttml, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.porttitle, EXCLUDED.portinits, EXCLUDED.portsurname, EXCLUDED.portname, EXCLUDED.portadd1, EXCLUDED.portadd2, EXCLUDED.portadd3, EXCLUDED.portadd4, EXCLUDED.portadd5, EXCLUDED.portpostcode, EXCLUDED.portexecid, EXCLUDED.portbusname, EXCLUDED.portaccountno, EXCLUDED.portreference, EXCLUDED.portday1, EXCLUDED.portexpect, EXCLUDED.portday, EXCLUDED.portusrdate, EXCLUDED.portusreject1, EXCLUDED.portusreject2, EXCLUDED.portusreject3, EXCLUDED.portusreject4, EXCLUDED.portusreject5, EXCLUDED.portusreject6, EXCLUDED.portusreject7, EXCLUDED.portusreject8, EXCLUDED.portstatus, EXCLUDED.portdsp, EXCLUDED.portdno, EXCLUDED.portdsprequest, EXCLUDED.portdspacknow, EXCLUDED.portdspdecision, EXCLUDED.portdsprejecttoc, EXCLUDED.portwithdraw, EXCLUDED.portwithdrawall, EXCLUDED.portdspwithdraw, EXCLUDED.portmanual, EXCLUDED.porttelephone, EXCLUDED.paperrec, EXCLUDED.portnoreturn, EXCLUDED.portready, EXCLUDED.portcomplete, EXCLUDED.portconnectacc, EXCLUDED.portdouble, EXCLUDED.porttransferee, EXCLUDED.portwelcome, EXCLUDED.portcoverage, EXCLUDED.portstart, EXCLUDED.portpac, EXCLUDED.portpacexpire, EXCLUDED.porttagged, EXCLUDED.portlocked, EXCLUDED.port00263, EXCLUDED.porttype, EXCLUDED.portedit, EXCLUDED.porttml, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Porttitle, p.Portinits, p.Portsurname, p.Portname, p.Portadd1, p.Portadd2, p.Portadd3, p.Portadd4, p.Portadd5, p.Portpostcode, p.Portexecid, p.Portbusname, p.Portaccountno, p.Portreference, p.Portday1, p.Portexpect, p.Portday, p.Portusrdate, p.Portusreject1, p.Portusreject2, p.Portusreject3, p.Portusreject4, p.Portusreject5, p.Portusreject6, p.Portusreject7, p.Portusreject8, p.Portstatus, p.Portdsp, p.Portdno, p.Portdsprequest, p.Portdspacknow, p.Portdspdecision, p.Portdsprejecttoc, p.Portwithdraw, p.Portwithdrawall, p.Portdspwithdraw, p.Portmanual, p.Porttelephone, p.Paperrec, p.Portnoreturn, p.Portready, p.Portcomplete, p.Portconnectacc, p.Portdouble, p.Porttransferee, p.Portwelcome, p.Portcoverage, p.Portstart, p.Portpac, p.Portpacexpire, p.Porttagged, p.Portlocked, p.Port00263, p.Porttype, p.Portedit, p.Porttml, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Porttitle, p.Portinits, p.Portsurname, p.Portname, p.Portadd1, p.Portadd2, p.Portadd3, p.Portadd4, p.Portadd5, p.Portpostcode, p.Portexecid, p.Portbusname, p.Portaccountno, p.Portreference, p.Portday1, p.Portexpect, p.Portday, p.Portusrdate, p.Portusreject1, p.Portusreject2, p.Portusreject3, p.Portusreject4, p.Portusreject5, p.Portusreject6, p.Portusreject7, p.Portusreject8, p.Portstatus, p.Portdsp, p.Portdno, p.Portdsprequest, p.Portdspacknow, p.Portdspdecision, p.Portdsprejecttoc, p.Portwithdraw, p.Portwithdrawall, p.Portdspwithdraw, p.Portmanual, p.Porttelephone, p.Paperrec, p.Portnoreturn, p.Portready, p.Portcomplete, p.Portconnectacc, p.Portdouble, p.Porttransferee, p.Portwelcome, p.Portcoverage, p.Portstart, p.Portpac, p.Portpacexpire, p.Porttagged, p.Portlocked, p.Port00263, p.Porttype, p.Portedit, p.Porttml, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Porting from the database.
-func (p *Porting) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.porting WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PortingByEquinoxLrn retrieves a row from 'equinox.porting' as a Porting.
@@ -229,9 +85,7 @@ func PortingByEquinoxLrn(db XODB, equinoxLrn int64) (*Porting, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Porting{
-		_exists: true,
-	}
+	p := Porting{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Porttitle, &p.Portinits, &p.Portsurname, &p.Portname, &p.Portadd1, &p.Portadd2, &p.Portadd3, &p.Portadd4, &p.Portadd5, &p.Portpostcode, &p.Portexecid, &p.Portbusname, &p.Portaccountno, &p.Portreference, &p.Portday1, &p.Portexpect, &p.Portday, &p.Portusrdate, &p.Portusreject1, &p.Portusreject2, &p.Portusreject3, &p.Portusreject4, &p.Portusreject5, &p.Portusreject6, &p.Portusreject7, &p.Portusreject8, &p.Portstatus, &p.Portdsp, &p.Portdno, &p.Portdsprequest, &p.Portdspacknow, &p.Portdspdecision, &p.Portdsprejecttoc, &p.Portwithdraw, &p.Portwithdrawall, &p.Portdspwithdraw, &p.Portmanual, &p.Porttelephone, &p.Paperrec, &p.Portnoreturn, &p.Portready, &p.Portcomplete, &p.Portconnectacc, &p.Portdouble, &p.Porttransferee, &p.Portwelcome, &p.Portcoverage, &p.Portstart, &p.Portpac, &p.Portpacexpire, &p.Porttagged, &p.Portlocked, &p.Port00263, &p.Porttype, &p.Portedit, &p.Porttml, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

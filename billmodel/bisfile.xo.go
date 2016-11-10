@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -37,149 +36,6 @@ type Bisfile struct {
 	EquinoxPrn       sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Bisfile exists in the database.
-func (b *Bisfile) Exists() bool {
-	return b._exists
-}
-
-// Deleted provides information if the Bisfile has been deleted from the database.
-func (b *Bisfile) Deleted() bool {
-	return b._deleted
-}
-
-// Insert inserts the Bisfile to the database.
-func (b *Bisfile) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.bisfile (` +
-		`bisfiletype, bisdate, bisfilehandshake, bisfileresponse, bisfilename, biszipname, bisfileoutcome, bisnum1, bisnum2, bisfilecontid, bischar2, bischar3, bischar4, bisdate1, bisdate2, bisdate3, bisdate4, bisfiledetail, bisfileidentify, bisfilesparec1, bisfilesparen1, bisfilespared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, b.Bisfiletype, b.Bisdate, b.Bisfilehandshake, b.Bisfileresponse, b.Bisfilename, b.Biszipname, b.Bisfileoutcome, b.Bisnum1, b.Bisnum2, b.Bisfilecontid, b.Bischar2, b.Bischar3, b.Bischar4, b.Bisdate1, b.Bisdate2, b.Bisdate3, b.Bisdate4, b.Bisfiledetail, b.Bisfileidentify, b.Bisfilesparec1, b.Bisfilesparen1, b.Bisfilespared1, b.EquinoxPrn, b.EquinoxSec)
-	err = db.QueryRow(sqlstr, b.Bisfiletype, b.Bisdate, b.Bisfilehandshake, b.Bisfileresponse, b.Bisfilename, b.Biszipname, b.Bisfileoutcome, b.Bisnum1, b.Bisnum2, b.Bisfilecontid, b.Bischar2, b.Bischar3, b.Bischar4, b.Bisdate1, b.Bisdate2, b.Bisdate3, b.Bisdate4, b.Bisfiledetail, b.Bisfileidentify, b.Bisfilesparec1, b.Bisfilesparen1, b.Bisfilespared1, b.EquinoxPrn, b.EquinoxSec).Scan(&b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Update updates the Bisfile in the database.
-func (b *Bisfile) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.bisfile SET (` +
-		`bisfiletype, bisdate, bisfilehandshake, bisfileresponse, bisfilename, biszipname, bisfileoutcome, bisnum1, bisnum2, bisfilecontid, bischar2, bischar3, bischar4, bisdate1, bisdate2, bisdate3, bisdate4, bisfiledetail, bisfileidentify, bisfilesparec1, bisfilesparen1, bisfilespared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) WHERE equinox_lrn = $25`
-
-	// run query
-	XOLog(sqlstr, b.Bisfiletype, b.Bisdate, b.Bisfilehandshake, b.Bisfileresponse, b.Bisfilename, b.Biszipname, b.Bisfileoutcome, b.Bisnum1, b.Bisnum2, b.Bisfilecontid, b.Bischar2, b.Bischar3, b.Bischar4, b.Bisdate1, b.Bisdate2, b.Bisdate3, b.Bisdate4, b.Bisfiledetail, b.Bisfileidentify, b.Bisfilesparec1, b.Bisfilesparen1, b.Bisfilespared1, b.EquinoxPrn, b.EquinoxSec, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.Bisfiletype, b.Bisdate, b.Bisfilehandshake, b.Bisfileresponse, b.Bisfilename, b.Biszipname, b.Bisfileoutcome, b.Bisnum1, b.Bisnum2, b.Bisfilecontid, b.Bischar2, b.Bischar3, b.Bischar4, b.Bisdate1, b.Bisdate2, b.Bisdate3, b.Bisdate4, b.Bisfiledetail, b.Bisfileidentify, b.Bisfilesparec1, b.Bisfilesparen1, b.Bisfilespared1, b.EquinoxPrn, b.EquinoxSec, b.EquinoxLrn)
-	return err
-}
-
-// Save saves the Bisfile to the database.
-func (b *Bisfile) Save(db XODB) error {
-	if b.Exists() {
-		return b.Update(db)
-	}
-
-	return b.Insert(db)
-}
-
-// Upsert performs an upsert for Bisfile.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (b *Bisfile) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if b._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.bisfile (` +
-		`bisfiletype, bisdate, bisfilehandshake, bisfileresponse, bisfilename, biszipname, bisfileoutcome, bisnum1, bisnum2, bisfilecontid, bischar2, bischar3, bischar4, bisdate1, bisdate2, bisdate3, bisdate4, bisfiledetail, bisfileidentify, bisfilesparec1, bisfilesparen1, bisfilespared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`bisfiletype, bisdate, bisfilehandshake, bisfileresponse, bisfilename, biszipname, bisfileoutcome, bisnum1, bisnum2, bisfilecontid, bischar2, bischar3, bischar4, bisdate1, bisdate2, bisdate3, bisdate4, bisfiledetail, bisfileidentify, bisfilesparec1, bisfilesparen1, bisfilespared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.bisfiletype, EXCLUDED.bisdate, EXCLUDED.bisfilehandshake, EXCLUDED.bisfileresponse, EXCLUDED.bisfilename, EXCLUDED.biszipname, EXCLUDED.bisfileoutcome, EXCLUDED.bisnum1, EXCLUDED.bisnum2, EXCLUDED.bisfilecontid, EXCLUDED.bischar2, EXCLUDED.bischar3, EXCLUDED.bischar4, EXCLUDED.bisdate1, EXCLUDED.bisdate2, EXCLUDED.bisdate3, EXCLUDED.bisdate4, EXCLUDED.bisfiledetail, EXCLUDED.bisfileidentify, EXCLUDED.bisfilesparec1, EXCLUDED.bisfilesparen1, EXCLUDED.bisfilespared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, b.Bisfiletype, b.Bisdate, b.Bisfilehandshake, b.Bisfileresponse, b.Bisfilename, b.Biszipname, b.Bisfileoutcome, b.Bisnum1, b.Bisnum2, b.Bisfilecontid, b.Bischar2, b.Bischar3, b.Bischar4, b.Bisdate1, b.Bisdate2, b.Bisdate3, b.Bisdate4, b.Bisfiledetail, b.Bisfileidentify, b.Bisfilesparec1, b.Bisfilesparen1, b.Bisfilespared1, b.EquinoxPrn, b.EquinoxLrn, b.EquinoxSec)
-	_, err = db.Exec(sqlstr, b.Bisfiletype, b.Bisdate, b.Bisfilehandshake, b.Bisfileresponse, b.Bisfilename, b.Biszipname, b.Bisfileoutcome, b.Bisnum1, b.Bisnum2, b.Bisfilecontid, b.Bischar2, b.Bischar3, b.Bischar4, b.Bisdate1, b.Bisdate2, b.Bisdate3, b.Bisdate4, b.Bisfiledetail, b.Bisfileidentify, b.Bisfilesparec1, b.Bisfilesparen1, b.Bisfilespared1, b.EquinoxPrn, b.EquinoxLrn, b.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	b._exists = true
-
-	return nil
-}
-
-// Delete deletes the Bisfile from the database.
-func (b *Bisfile) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !b._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if b._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.bisfile WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, b.EquinoxLrn)
-	_, err = db.Exec(sqlstr, b.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	b._deleted = true
-
-	return nil
 }
 
 // BisfileByEquinoxLrn retrieves a row from 'equinox.bisfile' as a Bisfile.
@@ -196,9 +52,7 @@ func BisfileByEquinoxLrn(db XODB, equinoxLrn int64) (*Bisfile, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	b := Bisfile{
-		_exists: true,
-	}
+	b := Bisfile{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&b.Bisfiletype, &b.Bisdate, &b.Bisfilehandshake, &b.Bisfileresponse, &b.Bisfilename, &b.Biszipname, &b.Bisfileoutcome, &b.Bisnum1, &b.Bisnum2, &b.Bisfilecontid, &b.Bischar2, &b.Bischar3, &b.Bischar4, &b.Bisdate1, &b.Bisdate2, &b.Bisdate3, &b.Bisdate4, &b.Bisfiledetail, &b.Bisfileidentify, &b.Bisfilesparec1, &b.Bisfilesparen1, &b.Bisfilespared1, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
 	if err != nil {

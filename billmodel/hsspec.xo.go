@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -25,149 +24,6 @@ type HsSpec struct {
 	EquinoxPrn     sql.NullInt64   `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn     int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the HsSpec exists in the database.
-func (hs *HsSpec) Exists() bool {
-	return hs._exists
-}
-
-// Deleted provides information if the HsSpec has been deleted from the database.
-func (hs *HsSpec) Deleted() bool {
-	return hs._deleted
-}
-
-// Insert inserts the HsSpec to the database.
-func (hs *HsSpec) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if hs._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.hs_spec (` +
-		`hs_spec_tariff, hs_spec_min, hs_spec_mlr, hs_free_handset, hs_spec_rpc, hs_spec_hscode, hs_spec_spared1, hs_spec_sparen1, hs_spec_suspend, hs_spec_datasize, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, hs.HsSpecTariff, hs.HsSpecMin, hs.HsSpecMlr, hs.HsFreeHandset, hs.HsSpecRPC, hs.HsSpecHscode, hs.HsSpecSpared1, hs.HsSpecSparen1, hs.HsSpecSuspend, hs.HsSpecDatasize, hs.EquinoxPrn, hs.EquinoxSec)
-	err = db.QueryRow(sqlstr, hs.HsSpecTariff, hs.HsSpecMin, hs.HsSpecMlr, hs.HsFreeHandset, hs.HsSpecRPC, hs.HsSpecHscode, hs.HsSpecSpared1, hs.HsSpecSparen1, hs.HsSpecSuspend, hs.HsSpecDatasize, hs.EquinoxPrn, hs.EquinoxSec).Scan(&hs.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	hs._exists = true
-
-	return nil
-}
-
-// Update updates the HsSpec in the database.
-func (hs *HsSpec) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !hs._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if hs._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.hs_spec SET (` +
-		`hs_spec_tariff, hs_spec_min, hs_spec_mlr, hs_free_handset, hs_spec_rpc, hs_spec_hscode, hs_spec_spared1, hs_spec_sparen1, hs_spec_suspend, hs_spec_datasize, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12` +
-		`) WHERE equinox_lrn = $13`
-
-	// run query
-	XOLog(sqlstr, hs.HsSpecTariff, hs.HsSpecMin, hs.HsSpecMlr, hs.HsFreeHandset, hs.HsSpecRPC, hs.HsSpecHscode, hs.HsSpecSpared1, hs.HsSpecSparen1, hs.HsSpecSuspend, hs.HsSpecDatasize, hs.EquinoxPrn, hs.EquinoxSec, hs.EquinoxLrn)
-	_, err = db.Exec(sqlstr, hs.HsSpecTariff, hs.HsSpecMin, hs.HsSpecMlr, hs.HsFreeHandset, hs.HsSpecRPC, hs.HsSpecHscode, hs.HsSpecSpared1, hs.HsSpecSparen1, hs.HsSpecSuspend, hs.HsSpecDatasize, hs.EquinoxPrn, hs.EquinoxSec, hs.EquinoxLrn)
-	return err
-}
-
-// Save saves the HsSpec to the database.
-func (hs *HsSpec) Save(db XODB) error {
-	if hs.Exists() {
-		return hs.Update(db)
-	}
-
-	return hs.Insert(db)
-}
-
-// Upsert performs an upsert for HsSpec.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (hs *HsSpec) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if hs._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.hs_spec (` +
-		`hs_spec_tariff, hs_spec_min, hs_spec_mlr, hs_free_handset, hs_spec_rpc, hs_spec_hscode, hs_spec_spared1, hs_spec_sparen1, hs_spec_suspend, hs_spec_datasize, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`hs_spec_tariff, hs_spec_min, hs_spec_mlr, hs_free_handset, hs_spec_rpc, hs_spec_hscode, hs_spec_spared1, hs_spec_sparen1, hs_spec_suspend, hs_spec_datasize, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.hs_spec_tariff, EXCLUDED.hs_spec_min, EXCLUDED.hs_spec_mlr, EXCLUDED.hs_free_handset, EXCLUDED.hs_spec_rpc, EXCLUDED.hs_spec_hscode, EXCLUDED.hs_spec_spared1, EXCLUDED.hs_spec_sparen1, EXCLUDED.hs_spec_suspend, EXCLUDED.hs_spec_datasize, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, hs.HsSpecTariff, hs.HsSpecMin, hs.HsSpecMlr, hs.HsFreeHandset, hs.HsSpecRPC, hs.HsSpecHscode, hs.HsSpecSpared1, hs.HsSpecSparen1, hs.HsSpecSuspend, hs.HsSpecDatasize, hs.EquinoxPrn, hs.EquinoxLrn, hs.EquinoxSec)
-	_, err = db.Exec(sqlstr, hs.HsSpecTariff, hs.HsSpecMin, hs.HsSpecMlr, hs.HsFreeHandset, hs.HsSpecRPC, hs.HsSpecHscode, hs.HsSpecSpared1, hs.HsSpecSparen1, hs.HsSpecSuspend, hs.HsSpecDatasize, hs.EquinoxPrn, hs.EquinoxLrn, hs.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	hs._exists = true
-
-	return nil
-}
-
-// Delete deletes the HsSpec from the database.
-func (hs *HsSpec) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !hs._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if hs._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.hs_spec WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, hs.EquinoxLrn)
-	_, err = db.Exec(sqlstr, hs.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	hs._deleted = true
-
-	return nil
 }
 
 // HsSpecByEquinoxLrn retrieves a row from 'equinox.hs_spec' as a HsSpec.
@@ -184,9 +40,7 @@ func HsSpecByEquinoxLrn(db XODB, equinoxLrn int64) (*HsSpec, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	hs := HsSpec{
-		_exists: true,
-	}
+	hs := HsSpec{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&hs.HsSpecTariff, &hs.HsSpecMin, &hs.HsSpecMlr, &hs.HsFreeHandset, &hs.HsSpecRPC, &hs.HsSpecHscode, &hs.HsSpecSpared1, &hs.HsSpecSparen1, &hs.HsSpecSuspend, &hs.HsSpecDatasize, &hs.EquinoxPrn, &hs.EquinoxLrn, &hs.EquinoxSec)
 	if err != nil {

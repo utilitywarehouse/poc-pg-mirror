@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -32,149 +31,6 @@ type Filesin struct {
 	Filesinspared1  pq.NullTime     `json:"filesinspared1"`  // filesinspared1
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Filesin exists in the database.
-func (f *Filesin) Exists() bool {
-	return f._exists
-}
-
-// Deleted provides information if the Filesin has been deleted from the database.
-func (f *Filesin) Deleted() bool {
-	return f._deleted
-}
-
-// Insert inserts the Filesin to the database.
-func (f *Filesin) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if f._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.filesin (` +
-		`filesid, filesname, filesdatestamp, filestimestamp, filessizestamp, filesdatein, filestimein, filescomplete, filesfinishdate, filesfinishtime, filessummary, filestype, filesgoodcalls, filesbadcalls, filesinby, filesinsparec1, filesinsparen1, filesinspared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, f.Filesid, f.Filesname, f.Filesdatestamp, f.Filestimestamp, f.Filessizestamp, f.Filesdatein, f.Filestimein, f.Filescomplete, f.Filesfinishdate, f.Filesfinishtime, f.Filessummary, f.Filestype, f.Filesgoodcalls, f.Filesbadcalls, f.Filesinby, f.Filesinsparec1, f.Filesinsparen1, f.Filesinspared1, f.EquinoxSec)
-	err = db.QueryRow(sqlstr, f.Filesid, f.Filesname, f.Filesdatestamp, f.Filestimestamp, f.Filessizestamp, f.Filesdatein, f.Filestimein, f.Filescomplete, f.Filesfinishdate, f.Filesfinishtime, f.Filessummary, f.Filestype, f.Filesgoodcalls, f.Filesbadcalls, f.Filesinby, f.Filesinsparec1, f.Filesinsparen1, f.Filesinspared1, f.EquinoxSec).Scan(&f.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	f._exists = true
-
-	return nil
-}
-
-// Update updates the Filesin in the database.
-func (f *Filesin) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !f._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if f._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.filesin SET (` +
-		`filesid, filesname, filesdatestamp, filestimestamp, filessizestamp, filesdatein, filestimein, filescomplete, filesfinishdate, filesfinishtime, filessummary, filestype, filesgoodcalls, filesbadcalls, filesinby, filesinsparec1, filesinsparen1, filesinspared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) WHERE equinox_lrn = $20`
-
-	// run query
-	XOLog(sqlstr, f.Filesid, f.Filesname, f.Filesdatestamp, f.Filestimestamp, f.Filessizestamp, f.Filesdatein, f.Filestimein, f.Filescomplete, f.Filesfinishdate, f.Filesfinishtime, f.Filessummary, f.Filestype, f.Filesgoodcalls, f.Filesbadcalls, f.Filesinby, f.Filesinsparec1, f.Filesinsparen1, f.Filesinspared1, f.EquinoxSec, f.EquinoxLrn)
-	_, err = db.Exec(sqlstr, f.Filesid, f.Filesname, f.Filesdatestamp, f.Filestimestamp, f.Filessizestamp, f.Filesdatein, f.Filestimein, f.Filescomplete, f.Filesfinishdate, f.Filesfinishtime, f.Filessummary, f.Filestype, f.Filesgoodcalls, f.Filesbadcalls, f.Filesinby, f.Filesinsparec1, f.Filesinsparen1, f.Filesinspared1, f.EquinoxSec, f.EquinoxLrn)
-	return err
-}
-
-// Save saves the Filesin to the database.
-func (f *Filesin) Save(db XODB) error {
-	if f.Exists() {
-		return f.Update(db)
-	}
-
-	return f.Insert(db)
-}
-
-// Upsert performs an upsert for Filesin.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (f *Filesin) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if f._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.filesin (` +
-		`filesid, filesname, filesdatestamp, filestimestamp, filessizestamp, filesdatein, filestimein, filescomplete, filesfinishdate, filesfinishtime, filessummary, filestype, filesgoodcalls, filesbadcalls, filesinby, filesinsparec1, filesinsparen1, filesinspared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`filesid, filesname, filesdatestamp, filestimestamp, filessizestamp, filesdatein, filestimein, filescomplete, filesfinishdate, filesfinishtime, filessummary, filestype, filesgoodcalls, filesbadcalls, filesinby, filesinsparec1, filesinsparen1, filesinspared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.filesid, EXCLUDED.filesname, EXCLUDED.filesdatestamp, EXCLUDED.filestimestamp, EXCLUDED.filessizestamp, EXCLUDED.filesdatein, EXCLUDED.filestimein, EXCLUDED.filescomplete, EXCLUDED.filesfinishdate, EXCLUDED.filesfinishtime, EXCLUDED.filessummary, EXCLUDED.filestype, EXCLUDED.filesgoodcalls, EXCLUDED.filesbadcalls, EXCLUDED.filesinby, EXCLUDED.filesinsparec1, EXCLUDED.filesinsparen1, EXCLUDED.filesinspared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, f.Filesid, f.Filesname, f.Filesdatestamp, f.Filestimestamp, f.Filessizestamp, f.Filesdatein, f.Filestimein, f.Filescomplete, f.Filesfinishdate, f.Filesfinishtime, f.Filessummary, f.Filestype, f.Filesgoodcalls, f.Filesbadcalls, f.Filesinby, f.Filesinsparec1, f.Filesinsparen1, f.Filesinspared1, f.EquinoxLrn, f.EquinoxSec)
-	_, err = db.Exec(sqlstr, f.Filesid, f.Filesname, f.Filesdatestamp, f.Filestimestamp, f.Filessizestamp, f.Filesdatein, f.Filestimein, f.Filescomplete, f.Filesfinishdate, f.Filesfinishtime, f.Filessummary, f.Filestype, f.Filesgoodcalls, f.Filesbadcalls, f.Filesinby, f.Filesinsparec1, f.Filesinsparen1, f.Filesinspared1, f.EquinoxLrn, f.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	f._exists = true
-
-	return nil
-}
-
-// Delete deletes the Filesin from the database.
-func (f *Filesin) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !f._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if f._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.filesin WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, f.EquinoxLrn)
-	_, err = db.Exec(sqlstr, f.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	f._deleted = true
-
-	return nil
 }
 
 // FilesinByEquinoxLrn retrieves a row from 'equinox.filesin' as a Filesin.
@@ -191,9 +47,7 @@ func FilesinByEquinoxLrn(db XODB, equinoxLrn int64) (*Filesin, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	f := Filesin{
-		_exists: true,
-	}
+	f := Filesin{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&f.Filesid, &f.Filesname, &f.Filesdatestamp, &f.Filestimestamp, &f.Filessizestamp, &f.Filesdatein, &f.Filestimein, &f.Filescomplete, &f.Filesfinishdate, &f.Filesfinishtime, &f.Filessummary, &f.Filestype, &f.Filesgoodcalls, &f.Filesbadcalls, &f.Filesinby, &f.Filesinsparec1, &f.Filesinsparen1, &f.Filesinspared1, &f.EquinoxLrn, &f.EquinoxSec)
 	if err != nil {

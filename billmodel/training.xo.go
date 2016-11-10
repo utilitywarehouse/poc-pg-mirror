@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -32,149 +31,6 @@ type Training struct {
 	Trnewexecspaces sql.NullInt64  `json:"trnewexecspaces"` // trnewexecspaces
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Training exists in the database.
-func (t *Training) Exists() bool {
-	return t._exists
-}
-
-// Deleted provides information if the Training has been deleted from the database.
-func (t *Training) Deleted() bool {
-	return t._deleted
-}
-
-// Insert inserts the Training to the database.
-func (t *Training) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.training (` +
-		`truniqueid, trvenueid, trtrainerid, trtrainerid2, trdate, trstarttime, trtime, trcapacity, trsparec2, trcoelevel, trstatus, trtrainername, trtrainername2, trsentsms, trspacen1, trsparec1, troldexecspaces, trnewexecspaces, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, t.Truniqueid, t.Trvenueid, t.Trtrainerid, t.Trtrainerid2, t.Trdate, t.Trstarttime, t.Trtime, t.Trcapacity, t.Trsparec2, t.Trcoelevel, t.Trstatus, t.Trtrainername, t.Trtrainername2, t.Trsentsms, t.Trspacen1, t.Trsparec1, t.Troldexecspaces, t.Trnewexecspaces, t.EquinoxSec)
-	err = db.QueryRow(sqlstr, t.Truniqueid, t.Trvenueid, t.Trtrainerid, t.Trtrainerid2, t.Trdate, t.Trstarttime, t.Trtime, t.Trcapacity, t.Trsparec2, t.Trcoelevel, t.Trstatus, t.Trtrainername, t.Trtrainername2, t.Trsentsms, t.Trspacen1, t.Trsparec1, t.Troldexecspaces, t.Trnewexecspaces, t.EquinoxSec).Scan(&t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Update updates the Training in the database.
-func (t *Training) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.training SET (` +
-		`truniqueid, trvenueid, trtrainerid, trtrainerid2, trdate, trstarttime, trtime, trcapacity, trsparec2, trcoelevel, trstatus, trtrainername, trtrainername2, trsentsms, trspacen1, trsparec1, troldexecspaces, trnewexecspaces, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) WHERE equinox_lrn = $20`
-
-	// run query
-	XOLog(sqlstr, t.Truniqueid, t.Trvenueid, t.Trtrainerid, t.Trtrainerid2, t.Trdate, t.Trstarttime, t.Trtime, t.Trcapacity, t.Trsparec2, t.Trcoelevel, t.Trstatus, t.Trtrainername, t.Trtrainername2, t.Trsentsms, t.Trspacen1, t.Trsparec1, t.Troldexecspaces, t.Trnewexecspaces, t.EquinoxSec, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.Truniqueid, t.Trvenueid, t.Trtrainerid, t.Trtrainerid2, t.Trdate, t.Trstarttime, t.Trtime, t.Trcapacity, t.Trsparec2, t.Trcoelevel, t.Trstatus, t.Trtrainername, t.Trtrainername2, t.Trsentsms, t.Trspacen1, t.Trsparec1, t.Troldexecspaces, t.Trnewexecspaces, t.EquinoxSec, t.EquinoxLrn)
-	return err
-}
-
-// Save saves the Training to the database.
-func (t *Training) Save(db XODB) error {
-	if t.Exists() {
-		return t.Update(db)
-	}
-
-	return t.Insert(db)
-}
-
-// Upsert performs an upsert for Training.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (t *Training) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.training (` +
-		`truniqueid, trvenueid, trtrainerid, trtrainerid2, trdate, trstarttime, trtime, trcapacity, trsparec2, trcoelevel, trstatus, trtrainername, trtrainername2, trsentsms, trspacen1, trsparec1, troldexecspaces, trnewexecspaces, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`truniqueid, trvenueid, trtrainerid, trtrainerid2, trdate, trstarttime, trtime, trcapacity, trsparec2, trcoelevel, trstatus, trtrainername, trtrainername2, trsentsms, trspacen1, trsparec1, troldexecspaces, trnewexecspaces, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.truniqueid, EXCLUDED.trvenueid, EXCLUDED.trtrainerid, EXCLUDED.trtrainerid2, EXCLUDED.trdate, EXCLUDED.trstarttime, EXCLUDED.trtime, EXCLUDED.trcapacity, EXCLUDED.trsparec2, EXCLUDED.trcoelevel, EXCLUDED.trstatus, EXCLUDED.trtrainername, EXCLUDED.trtrainername2, EXCLUDED.trsentsms, EXCLUDED.trspacen1, EXCLUDED.trsparec1, EXCLUDED.troldexecspaces, EXCLUDED.trnewexecspaces, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, t.Truniqueid, t.Trvenueid, t.Trtrainerid, t.Trtrainerid2, t.Trdate, t.Trstarttime, t.Trtime, t.Trcapacity, t.Trsparec2, t.Trcoelevel, t.Trstatus, t.Trtrainername, t.Trtrainername2, t.Trsentsms, t.Trspacen1, t.Trsparec1, t.Troldexecspaces, t.Trnewexecspaces, t.EquinoxLrn, t.EquinoxSec)
-	_, err = db.Exec(sqlstr, t.Truniqueid, t.Trvenueid, t.Trtrainerid, t.Trtrainerid2, t.Trdate, t.Trstarttime, t.Trtime, t.Trcapacity, t.Trsparec2, t.Trcoelevel, t.Trstatus, t.Trtrainername, t.Trtrainername2, t.Trsentsms, t.Trspacen1, t.Trsparec1, t.Troldexecspaces, t.Trnewexecspaces, t.EquinoxLrn, t.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Delete deletes the Training from the database.
-func (t *Training) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.training WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	t._deleted = true
-
-	return nil
 }
 
 // TrainingByEquinoxLrn retrieves a row from 'equinox.training' as a Training.
@@ -191,9 +47,7 @@ func TrainingByEquinoxLrn(db XODB, equinoxLrn int64) (*Training, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	t := Training{
-		_exists: true,
-	}
+	t := Training{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&t.Truniqueid, &t.Trvenueid, &t.Trtrainerid, &t.Trtrainerid2, &t.Trdate, &t.Trstarttime, &t.Trtime, &t.Trcapacity, &t.Trsparec2, &t.Trcoelevel, &t.Trstatus, &t.Trtrainername, &t.Trtrainername2, &t.Trsentsms, &t.Trspacen1, &t.Trsparec1, &t.Troldexecspaces, &t.Trnewexecspaces, &t.EquinoxLrn, &t.EquinoxSec)
 	if err != nil {

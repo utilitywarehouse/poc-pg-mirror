@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -55,149 +54,6 @@ type Cnxcard struct {
 	EquinoxPrn       sql.NullInt64  `json:"equinox_prn"`      // equinox_prn
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Cnxcard exists in the database.
-func (c *Cnxcard) Exists() bool {
-	return c._exists
-}
-
-// Deleted provides information if the Cnxcard has been deleted from the database.
-func (c *Cnxcard) Deleted() bool {
-	return c._deleted
-}
-
-// Insert inserts the Cnxcard to the database.
-func (c *Cnxcard) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxcard (` +
-		`cnxcdateentered, cnxcenteredby, cnxcaccno, cnxcnameoncard, cnxcdob, cnxcdateissued, cnxcnameoncard2, cnxcdob2, cnxcloyaltycard, cnxcmainsupermkt, cnxcminbalance, cnxctopupamount, cnxcfixedmonthly, cnxcdatetopmm, cnxcdatefrompmm, cnxcdatetobill, cnxcdateletter, cnxccardtype, cnxcordtype, cnxcweborder, cnxcdebitno, cnxcdebitstart, cnxcdebitexpiry, cnxcdebitissue, cnxcdebitcv2, cnxcdebitcardtyp, cnxcshopperref, cnxcsparec2, cnxcsparec3, cnxcsparen1, cnxcsparen2, cnxcsparen3, cnxcspared1, cnxcspared2, cnxcspared3, cnxcaddserv, cnxcvaliddate, cnxcvalidby, cnxccampaign, cnxcpostcode, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, c.Cnxcdateentered, c.Cnxcenteredby, c.Cnxcaccno, c.Cnxcnameoncard, c.Cnxcdob, c.Cnxcdateissued, c.Cnxcnameoncard2, c.Cnxcdob2, c.Cnxcloyaltycard, c.Cnxcmainsupermkt, c.Cnxcminbalance, c.Cnxctopupamount, c.Cnxcfixedmonthly, c.Cnxcdatetopmm, c.Cnxcdatefrompmm, c.Cnxcdatetobill, c.Cnxcdateletter, c.Cnxccardtype, c.Cnxcordtype, c.Cnxcweborder, c.Cnxcdebitno, c.Cnxcdebitstart, c.Cnxcdebitexpiry, c.Cnxcdebitissue, c.Cnxcdebitcv2, c.Cnxcdebitcardtyp, c.Cnxcshopperref, c.Cnxcsparec2, c.Cnxcsparec3, c.Cnxcsparen1, c.Cnxcsparen2, c.Cnxcsparen3, c.Cnxcspared1, c.Cnxcspared2, c.Cnxcspared3, c.Cnxcaddserv, c.Cnxcvaliddate, c.Cnxcvalidby, c.Cnxccampaign, c.Cnxcpostcode, c.EquinoxPrn, c.EquinoxSec)
-	err = db.QueryRow(sqlstr, c.Cnxcdateentered, c.Cnxcenteredby, c.Cnxcaccno, c.Cnxcnameoncard, c.Cnxcdob, c.Cnxcdateissued, c.Cnxcnameoncard2, c.Cnxcdob2, c.Cnxcloyaltycard, c.Cnxcmainsupermkt, c.Cnxcminbalance, c.Cnxctopupamount, c.Cnxcfixedmonthly, c.Cnxcdatetopmm, c.Cnxcdatefrompmm, c.Cnxcdatetobill, c.Cnxcdateletter, c.Cnxccardtype, c.Cnxcordtype, c.Cnxcweborder, c.Cnxcdebitno, c.Cnxcdebitstart, c.Cnxcdebitexpiry, c.Cnxcdebitissue, c.Cnxcdebitcv2, c.Cnxcdebitcardtyp, c.Cnxcshopperref, c.Cnxcsparec2, c.Cnxcsparec3, c.Cnxcsparen1, c.Cnxcsparen2, c.Cnxcsparen3, c.Cnxcspared1, c.Cnxcspared2, c.Cnxcspared3, c.Cnxcaddserv, c.Cnxcvaliddate, c.Cnxcvalidby, c.Cnxccampaign, c.Cnxcpostcode, c.EquinoxPrn, c.EquinoxSec).Scan(&c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Update updates the Cnxcard in the database.
-func (c *Cnxcard) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.cnxcard SET (` +
-		`cnxcdateentered, cnxcenteredby, cnxcaccno, cnxcnameoncard, cnxcdob, cnxcdateissued, cnxcnameoncard2, cnxcdob2, cnxcloyaltycard, cnxcmainsupermkt, cnxcminbalance, cnxctopupamount, cnxcfixedmonthly, cnxcdatetopmm, cnxcdatefrompmm, cnxcdatetobill, cnxcdateletter, cnxccardtype, cnxcordtype, cnxcweborder, cnxcdebitno, cnxcdebitstart, cnxcdebitexpiry, cnxcdebitissue, cnxcdebitcv2, cnxcdebitcardtyp, cnxcshopperref, cnxcsparec2, cnxcsparec3, cnxcsparen1, cnxcsparen2, cnxcsparen3, cnxcspared1, cnxcspared2, cnxcspared3, cnxcaddserv, cnxcvaliddate, cnxcvalidby, cnxccampaign, cnxcpostcode, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42` +
-		`) WHERE equinox_lrn = $43`
-
-	// run query
-	XOLog(sqlstr, c.Cnxcdateentered, c.Cnxcenteredby, c.Cnxcaccno, c.Cnxcnameoncard, c.Cnxcdob, c.Cnxcdateissued, c.Cnxcnameoncard2, c.Cnxcdob2, c.Cnxcloyaltycard, c.Cnxcmainsupermkt, c.Cnxcminbalance, c.Cnxctopupamount, c.Cnxcfixedmonthly, c.Cnxcdatetopmm, c.Cnxcdatefrompmm, c.Cnxcdatetobill, c.Cnxcdateletter, c.Cnxccardtype, c.Cnxcordtype, c.Cnxcweborder, c.Cnxcdebitno, c.Cnxcdebitstart, c.Cnxcdebitexpiry, c.Cnxcdebitissue, c.Cnxcdebitcv2, c.Cnxcdebitcardtyp, c.Cnxcshopperref, c.Cnxcsparec2, c.Cnxcsparec3, c.Cnxcsparen1, c.Cnxcsparen2, c.Cnxcsparen3, c.Cnxcspared1, c.Cnxcspared2, c.Cnxcspared3, c.Cnxcaddserv, c.Cnxcvaliddate, c.Cnxcvalidby, c.Cnxccampaign, c.Cnxcpostcode, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.Cnxcdateentered, c.Cnxcenteredby, c.Cnxcaccno, c.Cnxcnameoncard, c.Cnxcdob, c.Cnxcdateissued, c.Cnxcnameoncard2, c.Cnxcdob2, c.Cnxcloyaltycard, c.Cnxcmainsupermkt, c.Cnxcminbalance, c.Cnxctopupamount, c.Cnxcfixedmonthly, c.Cnxcdatetopmm, c.Cnxcdatefrompmm, c.Cnxcdatetobill, c.Cnxcdateletter, c.Cnxccardtype, c.Cnxcordtype, c.Cnxcweborder, c.Cnxcdebitno, c.Cnxcdebitstart, c.Cnxcdebitexpiry, c.Cnxcdebitissue, c.Cnxcdebitcv2, c.Cnxcdebitcardtyp, c.Cnxcshopperref, c.Cnxcsparec2, c.Cnxcsparec3, c.Cnxcsparen1, c.Cnxcsparen2, c.Cnxcsparen3, c.Cnxcspared1, c.Cnxcspared2, c.Cnxcspared3, c.Cnxcaddserv, c.Cnxcvaliddate, c.Cnxcvalidby, c.Cnxccampaign, c.Cnxcpostcode, c.EquinoxPrn, c.EquinoxSec, c.EquinoxLrn)
-	return err
-}
-
-// Save saves the Cnxcard to the database.
-func (c *Cnxcard) Save(db XODB) error {
-	if c.Exists() {
-		return c.Update(db)
-	}
-
-	return c.Insert(db)
-}
-
-// Upsert performs an upsert for Cnxcard.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (c *Cnxcard) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if c._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.cnxcard (` +
-		`cnxcdateentered, cnxcenteredby, cnxcaccno, cnxcnameoncard, cnxcdob, cnxcdateissued, cnxcnameoncard2, cnxcdob2, cnxcloyaltycard, cnxcmainsupermkt, cnxcminbalance, cnxctopupamount, cnxcfixedmonthly, cnxcdatetopmm, cnxcdatefrompmm, cnxcdatetobill, cnxcdateletter, cnxccardtype, cnxcordtype, cnxcweborder, cnxcdebitno, cnxcdebitstart, cnxcdebitexpiry, cnxcdebitissue, cnxcdebitcv2, cnxcdebitcardtyp, cnxcshopperref, cnxcsparec2, cnxcsparec3, cnxcsparen1, cnxcsparen2, cnxcsparen3, cnxcspared1, cnxcspared2, cnxcspared3, cnxcaddserv, cnxcvaliddate, cnxcvalidby, cnxccampaign, cnxcpostcode, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`cnxcdateentered, cnxcenteredby, cnxcaccno, cnxcnameoncard, cnxcdob, cnxcdateissued, cnxcnameoncard2, cnxcdob2, cnxcloyaltycard, cnxcmainsupermkt, cnxcminbalance, cnxctopupamount, cnxcfixedmonthly, cnxcdatetopmm, cnxcdatefrompmm, cnxcdatetobill, cnxcdateletter, cnxccardtype, cnxcordtype, cnxcweborder, cnxcdebitno, cnxcdebitstart, cnxcdebitexpiry, cnxcdebitissue, cnxcdebitcv2, cnxcdebitcardtyp, cnxcshopperref, cnxcsparec2, cnxcsparec3, cnxcsparen1, cnxcsparen2, cnxcsparen3, cnxcspared1, cnxcspared2, cnxcspared3, cnxcaddserv, cnxcvaliddate, cnxcvalidby, cnxccampaign, cnxcpostcode, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.cnxcdateentered, EXCLUDED.cnxcenteredby, EXCLUDED.cnxcaccno, EXCLUDED.cnxcnameoncard, EXCLUDED.cnxcdob, EXCLUDED.cnxcdateissued, EXCLUDED.cnxcnameoncard2, EXCLUDED.cnxcdob2, EXCLUDED.cnxcloyaltycard, EXCLUDED.cnxcmainsupermkt, EXCLUDED.cnxcminbalance, EXCLUDED.cnxctopupamount, EXCLUDED.cnxcfixedmonthly, EXCLUDED.cnxcdatetopmm, EXCLUDED.cnxcdatefrompmm, EXCLUDED.cnxcdatetobill, EXCLUDED.cnxcdateletter, EXCLUDED.cnxccardtype, EXCLUDED.cnxcordtype, EXCLUDED.cnxcweborder, EXCLUDED.cnxcdebitno, EXCLUDED.cnxcdebitstart, EXCLUDED.cnxcdebitexpiry, EXCLUDED.cnxcdebitissue, EXCLUDED.cnxcdebitcv2, EXCLUDED.cnxcdebitcardtyp, EXCLUDED.cnxcshopperref, EXCLUDED.cnxcsparec2, EXCLUDED.cnxcsparec3, EXCLUDED.cnxcsparen1, EXCLUDED.cnxcsparen2, EXCLUDED.cnxcsparen3, EXCLUDED.cnxcspared1, EXCLUDED.cnxcspared2, EXCLUDED.cnxcspared3, EXCLUDED.cnxcaddserv, EXCLUDED.cnxcvaliddate, EXCLUDED.cnxcvalidby, EXCLUDED.cnxccampaign, EXCLUDED.cnxcpostcode, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, c.Cnxcdateentered, c.Cnxcenteredby, c.Cnxcaccno, c.Cnxcnameoncard, c.Cnxcdob, c.Cnxcdateissued, c.Cnxcnameoncard2, c.Cnxcdob2, c.Cnxcloyaltycard, c.Cnxcmainsupermkt, c.Cnxcminbalance, c.Cnxctopupamount, c.Cnxcfixedmonthly, c.Cnxcdatetopmm, c.Cnxcdatefrompmm, c.Cnxcdatetobill, c.Cnxcdateletter, c.Cnxccardtype, c.Cnxcordtype, c.Cnxcweborder, c.Cnxcdebitno, c.Cnxcdebitstart, c.Cnxcdebitexpiry, c.Cnxcdebitissue, c.Cnxcdebitcv2, c.Cnxcdebitcardtyp, c.Cnxcshopperref, c.Cnxcsparec2, c.Cnxcsparec3, c.Cnxcsparen1, c.Cnxcsparen2, c.Cnxcsparen3, c.Cnxcspared1, c.Cnxcspared2, c.Cnxcspared3, c.Cnxcaddserv, c.Cnxcvaliddate, c.Cnxcvalidby, c.Cnxccampaign, c.Cnxcpostcode, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	_, err = db.Exec(sqlstr, c.Cnxcdateentered, c.Cnxcenteredby, c.Cnxcaccno, c.Cnxcnameoncard, c.Cnxcdob, c.Cnxcdateissued, c.Cnxcnameoncard2, c.Cnxcdob2, c.Cnxcloyaltycard, c.Cnxcmainsupermkt, c.Cnxcminbalance, c.Cnxctopupamount, c.Cnxcfixedmonthly, c.Cnxcdatetopmm, c.Cnxcdatefrompmm, c.Cnxcdatetobill, c.Cnxcdateletter, c.Cnxccardtype, c.Cnxcordtype, c.Cnxcweborder, c.Cnxcdebitno, c.Cnxcdebitstart, c.Cnxcdebitexpiry, c.Cnxcdebitissue, c.Cnxcdebitcv2, c.Cnxcdebitcardtyp, c.Cnxcshopperref, c.Cnxcsparec2, c.Cnxcsparec3, c.Cnxcsparen1, c.Cnxcsparen2, c.Cnxcsparen3, c.Cnxcspared1, c.Cnxcspared2, c.Cnxcspared3, c.Cnxcaddserv, c.Cnxcvaliddate, c.Cnxcvalidby, c.Cnxccampaign, c.Cnxcpostcode, c.EquinoxPrn, c.EquinoxLrn, c.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	c._exists = true
-
-	return nil
-}
-
-// Delete deletes the Cnxcard from the database.
-func (c *Cnxcard) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !c._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if c._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.cnxcard WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, c.EquinoxLrn)
-	_, err = db.Exec(sqlstr, c.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	c._deleted = true
-
-	return nil
 }
 
 // CnxcardByEquinoxLrn retrieves a row from 'equinox.cnxcard' as a Cnxcard.
@@ -214,9 +70,7 @@ func CnxcardByEquinoxLrn(db XODB, equinoxLrn int64) (*Cnxcard, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	c := Cnxcard{
-		_exists: true,
-	}
+	c := Cnxcard{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&c.Cnxcdateentered, &c.Cnxcenteredby, &c.Cnxcaccno, &c.Cnxcnameoncard, &c.Cnxcdob, &c.Cnxcdateissued, &c.Cnxcnameoncard2, &c.Cnxcdob2, &c.Cnxcloyaltycard, &c.Cnxcmainsupermkt, &c.Cnxcminbalance, &c.Cnxctopupamount, &c.Cnxcfixedmonthly, &c.Cnxcdatetopmm, &c.Cnxcdatefrompmm, &c.Cnxcdatetobill, &c.Cnxcdateletter, &c.Cnxccardtype, &c.Cnxcordtype, &c.Cnxcweborder, &c.Cnxcdebitno, &c.Cnxcdebitstart, &c.Cnxcdebitexpiry, &c.Cnxcdebitissue, &c.Cnxcdebitcv2, &c.Cnxcdebitcardtyp, &c.Cnxcshopperref, &c.Cnxcsparec2, &c.Cnxcsparec3, &c.Cnxcsparen1, &c.Cnxcsparen2, &c.Cnxcsparen3, &c.Cnxcspared1, &c.Cnxcspared2, &c.Cnxcspared3, &c.Cnxcaddserv, &c.Cnxcvaliddate, &c.Cnxcvalidby, &c.Cnxccampaign, &c.Cnxcpostcode, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
 	if err != nil {

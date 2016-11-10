@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -27,149 +26,6 @@ type Affiliat struct {
 	Affsparen3       sql.NullFloat64 `json:"affsparen3"`       // affsparen3
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Affiliat exists in the database.
-func (a *Affiliat) Exists() bool {
-	return a._exists
-}
-
-// Deleted provides information if the Affiliat has been deleted from the database.
-func (a *Affiliat) Deleted() bool {
-	return a._deleted
-}
-
-// Insert inserts the Affiliat to the database.
-func (a *Affiliat) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.affiliat (` +
-		`affcustaccountno, affsavingytd, affsavingmtd, affchangedate, affsparec1, affsparec2, affsparec3, affspared1, affspared2, affspared3, affsparen1, affsparen2, affsparen3, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, a.Affcustaccountno, a.Affsavingytd, a.Affsavingmtd, a.Affchangedate, a.Affsparec1, a.Affsparec2, a.Affsparec3, a.Affspared1, a.Affspared2, a.Affspared3, a.Affsparen1, a.Affsparen2, a.Affsparen3, a.EquinoxSec)
-	err = db.QueryRow(sqlstr, a.Affcustaccountno, a.Affsavingytd, a.Affsavingmtd, a.Affchangedate, a.Affsparec1, a.Affsparec2, a.Affsparec3, a.Affspared1, a.Affspared2, a.Affspared3, a.Affsparen1, a.Affsparen2, a.Affsparen3, a.EquinoxSec).Scan(&a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Update updates the Affiliat in the database.
-func (a *Affiliat) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.affiliat SET (` +
-		`affcustaccountno, affsavingytd, affsavingmtd, affchangedate, affsparec1, affsparec2, affsparec3, affspared1, affspared2, affspared3, affsparen1, affsparen2, affsparen3, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14` +
-		`) WHERE equinox_lrn = $15`
-
-	// run query
-	XOLog(sqlstr, a.Affcustaccountno, a.Affsavingytd, a.Affsavingmtd, a.Affchangedate, a.Affsparec1, a.Affsparec2, a.Affsparec3, a.Affspared1, a.Affspared2, a.Affspared3, a.Affsparen1, a.Affsparen2, a.Affsparen3, a.EquinoxSec, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.Affcustaccountno, a.Affsavingytd, a.Affsavingmtd, a.Affchangedate, a.Affsparec1, a.Affsparec2, a.Affsparec3, a.Affspared1, a.Affspared2, a.Affspared3, a.Affsparen1, a.Affsparen2, a.Affsparen3, a.EquinoxSec, a.EquinoxLrn)
-	return err
-}
-
-// Save saves the Affiliat to the database.
-func (a *Affiliat) Save(db XODB) error {
-	if a.Exists() {
-		return a.Update(db)
-	}
-
-	return a.Insert(db)
-}
-
-// Upsert performs an upsert for Affiliat.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (a *Affiliat) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if a._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.affiliat (` +
-		`affcustaccountno, affsavingytd, affsavingmtd, affchangedate, affsparec1, affsparec2, affsparec3, affspared1, affspared2, affspared3, affsparen1, affsparen2, affsparen3, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`affcustaccountno, affsavingytd, affsavingmtd, affchangedate, affsparec1, affsparec2, affsparec3, affspared1, affspared2, affspared3, affsparen1, affsparen2, affsparen3, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.affcustaccountno, EXCLUDED.affsavingytd, EXCLUDED.affsavingmtd, EXCLUDED.affchangedate, EXCLUDED.affsparec1, EXCLUDED.affsparec2, EXCLUDED.affsparec3, EXCLUDED.affspared1, EXCLUDED.affspared2, EXCLUDED.affspared3, EXCLUDED.affsparen1, EXCLUDED.affsparen2, EXCLUDED.affsparen3, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, a.Affcustaccountno, a.Affsavingytd, a.Affsavingmtd, a.Affchangedate, a.Affsparec1, a.Affsparec2, a.Affsparec3, a.Affspared1, a.Affspared2, a.Affspared3, a.Affsparen1, a.Affsparen2, a.Affsparen3, a.EquinoxLrn, a.EquinoxSec)
-	_, err = db.Exec(sqlstr, a.Affcustaccountno, a.Affsavingytd, a.Affsavingmtd, a.Affchangedate, a.Affsparec1, a.Affsparec2, a.Affsparec3, a.Affspared1, a.Affspared2, a.Affspared3, a.Affsparen1, a.Affsparen2, a.Affsparen3, a.EquinoxLrn, a.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	a._exists = true
-
-	return nil
-}
-
-// Delete deletes the Affiliat from the database.
-func (a *Affiliat) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !a._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if a._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.affiliat WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, a.EquinoxLrn)
-	_, err = db.Exec(sqlstr, a.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	a._deleted = true
-
-	return nil
 }
 
 // AffiliatByEquinoxLrn retrieves a row from 'equinox.affiliat' as a Affiliat.
@@ -186,9 +42,7 @@ func AffiliatByEquinoxLrn(db XODB, equinoxLrn int64) (*Affiliat, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	a := Affiliat{
-		_exists: true,
-	}
+	a := Affiliat{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&a.Affcustaccountno, &a.Affsavingytd, &a.Affsavingmtd, &a.Affchangedate, &a.Affsparec1, &a.Affsparec2, &a.Affsparec3, &a.Affspared1, &a.Affspared2, &a.Affspared3, &a.Affsparen1, &a.Affsparen2, &a.Affsparen3, &a.EquinoxLrn, &a.EquinoxSec)
 	if err != nil {

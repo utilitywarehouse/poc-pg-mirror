@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -30,149 +29,6 @@ type Valccode struct {
 	Valcid          sql.NullString `json:"valcid"`          // valcid
 	EquinoxLrn      int64          `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Valccode exists in the database.
-func (v *Valccode) Exists() bool {
-	return v._exists
-}
-
-// Deleted provides information if the Valccode has been deleted from the database.
-func (v *Valccode) Deleted() bool {
-	return v._deleted
-}
-
-// Insert inserts the Valccode to the database.
-func (v *Valccode) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.valccode (` +
-		`valcfieldname, valcrange, valcvalue, valcdatatype, valcoperation, valcmandatory, valcfillblank, valcmacrouse, valcmacrobf, valcmacroaf, valcmacroerror, valcdatefrom, valcdateto, valcdateentered, valcenteredby, valcid, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, v.Valcfieldname, v.Valcrange, v.Valcvalue, v.Valcdatatype, v.Valcoperation, v.Valcmandatory, v.Valcfillblank, v.Valcmacrouse, v.Valcmacrobf, v.Valcmacroaf, v.Valcmacroerror, v.Valcdatefrom, v.Valcdateto, v.Valcdateentered, v.Valcenteredby, v.Valcid, v.EquinoxSec)
-	err = db.QueryRow(sqlstr, v.Valcfieldname, v.Valcrange, v.Valcvalue, v.Valcdatatype, v.Valcoperation, v.Valcmandatory, v.Valcfillblank, v.Valcmacrouse, v.Valcmacrobf, v.Valcmacroaf, v.Valcmacroerror, v.Valcdatefrom, v.Valcdateto, v.Valcdateentered, v.Valcenteredby, v.Valcid, v.EquinoxSec).Scan(&v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Update updates the Valccode in the database.
-func (v *Valccode) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.valccode SET (` +
-		`valcfieldname, valcrange, valcvalue, valcdatatype, valcoperation, valcmandatory, valcfillblank, valcmacrouse, valcmacrobf, valcmacroaf, valcmacroerror, valcdatefrom, valcdateto, valcdateentered, valcenteredby, valcid, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) WHERE equinox_lrn = $18`
-
-	// run query
-	XOLog(sqlstr, v.Valcfieldname, v.Valcrange, v.Valcvalue, v.Valcdatatype, v.Valcoperation, v.Valcmandatory, v.Valcfillblank, v.Valcmacrouse, v.Valcmacrobf, v.Valcmacroaf, v.Valcmacroerror, v.Valcdatefrom, v.Valcdateto, v.Valcdateentered, v.Valcenteredby, v.Valcid, v.EquinoxSec, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.Valcfieldname, v.Valcrange, v.Valcvalue, v.Valcdatatype, v.Valcoperation, v.Valcmandatory, v.Valcfillblank, v.Valcmacrouse, v.Valcmacrobf, v.Valcmacroaf, v.Valcmacroerror, v.Valcdatefrom, v.Valcdateto, v.Valcdateentered, v.Valcenteredby, v.Valcid, v.EquinoxSec, v.EquinoxLrn)
-	return err
-}
-
-// Save saves the Valccode to the database.
-func (v *Valccode) Save(db XODB) error {
-	if v.Exists() {
-		return v.Update(db)
-	}
-
-	return v.Insert(db)
-}
-
-// Upsert performs an upsert for Valccode.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (v *Valccode) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if v._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.valccode (` +
-		`valcfieldname, valcrange, valcvalue, valcdatatype, valcoperation, valcmandatory, valcfillblank, valcmacrouse, valcmacrobf, valcmacroaf, valcmacroerror, valcdatefrom, valcdateto, valcdateentered, valcenteredby, valcid, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`valcfieldname, valcrange, valcvalue, valcdatatype, valcoperation, valcmandatory, valcfillblank, valcmacrouse, valcmacrobf, valcmacroaf, valcmacroerror, valcdatefrom, valcdateto, valcdateentered, valcenteredby, valcid, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.valcfieldname, EXCLUDED.valcrange, EXCLUDED.valcvalue, EXCLUDED.valcdatatype, EXCLUDED.valcoperation, EXCLUDED.valcmandatory, EXCLUDED.valcfillblank, EXCLUDED.valcmacrouse, EXCLUDED.valcmacrobf, EXCLUDED.valcmacroaf, EXCLUDED.valcmacroerror, EXCLUDED.valcdatefrom, EXCLUDED.valcdateto, EXCLUDED.valcdateentered, EXCLUDED.valcenteredby, EXCLUDED.valcid, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, v.Valcfieldname, v.Valcrange, v.Valcvalue, v.Valcdatatype, v.Valcoperation, v.Valcmandatory, v.Valcfillblank, v.Valcmacrouse, v.Valcmacrobf, v.Valcmacroaf, v.Valcmacroerror, v.Valcdatefrom, v.Valcdateto, v.Valcdateentered, v.Valcenteredby, v.Valcid, v.EquinoxLrn, v.EquinoxSec)
-	_, err = db.Exec(sqlstr, v.Valcfieldname, v.Valcrange, v.Valcvalue, v.Valcdatatype, v.Valcoperation, v.Valcmandatory, v.Valcfillblank, v.Valcmacrouse, v.Valcmacrobf, v.Valcmacroaf, v.Valcmacroerror, v.Valcdatefrom, v.Valcdateto, v.Valcdateentered, v.Valcenteredby, v.Valcid, v.EquinoxLrn, v.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	v._exists = true
-
-	return nil
-}
-
-// Delete deletes the Valccode from the database.
-func (v *Valccode) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !v._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if v._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.valccode WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, v.EquinoxLrn)
-	_, err = db.Exec(sqlstr, v.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	v._deleted = true
-
-	return nil
 }
 
 // ValccodeByEquinoxLrn retrieves a row from 'equinox.valccode' as a Valccode.
@@ -189,9 +45,7 @@ func ValccodeByEquinoxLrn(db XODB, equinoxLrn int64) (*Valccode, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	v := Valccode{
-		_exists: true,
-	}
+	v := Valccode{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&v.Valcfieldname, &v.Valcrange, &v.Valcvalue, &v.Valcdatatype, &v.Valcoperation, &v.Valcmandatory, &v.Valcfillblank, &v.Valcmacrouse, &v.Valcmacrobf, &v.Valcmacroaf, &v.Valcmacroerror, &v.Valcdatefrom, &v.Valcdateto, &v.Valcdateentered, &v.Valcenteredby, &v.Valcid, &v.EquinoxLrn, &v.EquinoxSec)
 	if err != nil {

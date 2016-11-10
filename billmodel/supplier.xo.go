@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -29,149 +28,6 @@ type Supplier struct {
 	Suppsparen3   sql.NullFloat64 `json:"suppsparen3"`   // suppsparen3
 	EquinoxLrn    int64           `json:"equinox_lrn"`   // equinox_lrn
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Supplier exists in the database.
-func (s *Supplier) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Supplier has been deleted from the database.
-func (s *Supplier) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Supplier to the database.
-func (s *Supplier) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.supplier (` +
-		`suppid, suppdescrip, supptimeopt, supppicklist, suppaccountno, supppath, suppspared1, suppspared2, suppspared3, suppsparec1, suppsparec2, suppsparec3, suppsparen1, suppsparen2, suppsparen3, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Suppid, s.Suppdescrip, s.Supptimeopt, s.Supppicklist, s.Suppaccountno, s.Supppath, s.Suppspared1, s.Suppspared2, s.Suppspared3, s.Suppsparec1, s.Suppsparec2, s.Suppsparec3, s.Suppsparen1, s.Suppsparen2, s.Suppsparen3, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Suppid, s.Suppdescrip, s.Supptimeopt, s.Supppicklist, s.Suppaccountno, s.Supppath, s.Suppspared1, s.Suppspared2, s.Suppspared3, s.Suppsparec1, s.Suppsparec2, s.Suppsparec3, s.Suppsparen1, s.Suppsparen2, s.Suppsparen3, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Supplier in the database.
-func (s *Supplier) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.supplier SET (` +
-		`suppid, suppdescrip, supptimeopt, supppicklist, suppaccountno, supppath, suppspared1, suppspared2, suppspared3, suppsparec1, suppsparec2, suppsparec3, suppsparen1, suppsparen2, suppsparen3, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16` +
-		`) WHERE equinox_lrn = $17`
-
-	// run query
-	XOLog(sqlstr, s.Suppid, s.Suppdescrip, s.Supptimeopt, s.Supppicklist, s.Suppaccountno, s.Supppath, s.Suppspared1, s.Suppspared2, s.Suppspared3, s.Suppsparec1, s.Suppsparec2, s.Suppsparec3, s.Suppsparen1, s.Suppsparen2, s.Suppsparen3, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Suppid, s.Suppdescrip, s.Supptimeopt, s.Supppicklist, s.Suppaccountno, s.Supppath, s.Suppspared1, s.Suppspared2, s.Suppspared3, s.Suppsparec1, s.Suppsparec2, s.Suppsparec3, s.Suppsparen1, s.Suppsparen2, s.Suppsparen3, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Supplier to the database.
-func (s *Supplier) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Supplier.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Supplier) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.supplier (` +
-		`suppid, suppdescrip, supptimeopt, supppicklist, suppaccountno, supppath, suppspared1, suppspared2, suppspared3, suppsparec1, suppsparec2, suppsparec3, suppsparen1, suppsparen2, suppsparen3, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`suppid, suppdescrip, supptimeopt, supppicklist, suppaccountno, supppath, suppspared1, suppspared2, suppspared3, suppsparec1, suppsparec2, suppsparec3, suppsparen1, suppsparen2, suppsparen3, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.suppid, EXCLUDED.suppdescrip, EXCLUDED.supptimeopt, EXCLUDED.supppicklist, EXCLUDED.suppaccountno, EXCLUDED.supppath, EXCLUDED.suppspared1, EXCLUDED.suppspared2, EXCLUDED.suppspared3, EXCLUDED.suppsparec1, EXCLUDED.suppsparec2, EXCLUDED.suppsparec3, EXCLUDED.suppsparen1, EXCLUDED.suppsparen2, EXCLUDED.suppsparen3, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Suppid, s.Suppdescrip, s.Supptimeopt, s.Supppicklist, s.Suppaccountno, s.Supppath, s.Suppspared1, s.Suppspared2, s.Suppspared3, s.Suppsparec1, s.Suppsparec2, s.Suppsparec3, s.Suppsparen1, s.Suppsparen2, s.Suppsparen3, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Suppid, s.Suppdescrip, s.Supptimeopt, s.Supppicklist, s.Suppaccountno, s.Supppath, s.Suppspared1, s.Suppspared2, s.Suppspared3, s.Suppsparec1, s.Suppsparec2, s.Suppsparec3, s.Suppsparen1, s.Suppsparen2, s.Suppsparen3, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Supplier from the database.
-func (s *Supplier) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.supplier WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SupplierByEquinoxLrn retrieves a row from 'equinox.supplier' as a Supplier.
@@ -188,9 +44,7 @@ func SupplierByEquinoxLrn(db XODB, equinoxLrn int64) (*Supplier, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Supplier{
-		_exists: true,
-	}
+	s := Supplier{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Suppid, &s.Suppdescrip, &s.Supptimeopt, &s.Supppicklist, &s.Suppaccountno, &s.Supppath, &s.Suppspared1, &s.Suppspared2, &s.Suppspared3, &s.Suppsparec1, &s.Suppsparec2, &s.Suppsparec3, &s.Suppsparen1, &s.Suppsparen2, &s.Suppsparen3, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

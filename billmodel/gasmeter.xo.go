@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -59,149 +58,6 @@ type Gasmeter struct {
 	Gmtraccountno    sql.NullString  `json:"gmtraccountno"`    // gmtraccountno
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gasmeter exists in the database.
-func (g *Gasmeter) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gasmeter has been deleted from the database.
-func (g *Gasmeter) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gasmeter to the database.
-func (g *Gasmeter) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gasmeter (` +
-		`gmtrmprn, gmtrserialno, gmtrinstalldate, gmtreffectdate, gmtrdatesent, gmtrdateupdate, gmtrdupdatedby, gmtryearmake, gmtrmakecode, gmtrmodelcode, gmtrmetertype, gmtrcapacity, gmtrlocationcode, gmtrunits, gmtrreadfactor, gmtrdials, gmtrrolecode, gmtrmetermech, gmtrcorrfactor, gmtrstatus, gmtrpostcode, gmtrbuildingno, gmtrbuildingname, gmtrdependstreet, gmtrstreet, gmtrlocality, gmtrposttown, gmtrcounty, gmtrfilename, gmtrmeasureunits, gmtrmultipfactor, gmtrcurrentref, gmtrsmsoid, gmtrsmsoefd, gmtrserviceflag, gmtrserviceefd, gmtrsmetsinstall, gmtruprn, gmtrnwocode, gmtrnwoefd, gmtrpaymethod, gmtrmarketscode, gmtrmapid, gmtrregion, gmtraccountno, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gmtrmprn, g.Gmtrserialno, g.Gmtrinstalldate, g.Gmtreffectdate, g.Gmtrdatesent, g.Gmtrdateupdate, g.Gmtrdupdatedby, g.Gmtryearmake, g.Gmtrmakecode, g.Gmtrmodelcode, g.Gmtrmetertype, g.Gmtrcapacity, g.Gmtrlocationcode, g.Gmtrunits, g.Gmtrreadfactor, g.Gmtrdials, g.Gmtrrolecode, g.Gmtrmetermech, g.Gmtrcorrfactor, g.Gmtrstatus, g.Gmtrpostcode, g.Gmtrbuildingno, g.Gmtrbuildingname, g.Gmtrdependstreet, g.Gmtrstreet, g.Gmtrlocality, g.Gmtrposttown, g.Gmtrcounty, g.Gmtrfilename, g.Gmtrmeasureunits, g.Gmtrmultipfactor, g.Gmtrcurrentref, g.Gmtrsmsoid, g.Gmtrsmsoefd, g.Gmtrserviceflag, g.Gmtrserviceefd, g.Gmtrsmetsinstall, g.Gmtruprn, g.Gmtrnwocode, g.Gmtrnwoefd, g.Gmtrpaymethod, g.Gmtrmarketscode, g.Gmtrmapid, g.Gmtrregion, g.Gmtraccountno, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gmtrmprn, g.Gmtrserialno, g.Gmtrinstalldate, g.Gmtreffectdate, g.Gmtrdatesent, g.Gmtrdateupdate, g.Gmtrdupdatedby, g.Gmtryearmake, g.Gmtrmakecode, g.Gmtrmodelcode, g.Gmtrmetertype, g.Gmtrcapacity, g.Gmtrlocationcode, g.Gmtrunits, g.Gmtrreadfactor, g.Gmtrdials, g.Gmtrrolecode, g.Gmtrmetermech, g.Gmtrcorrfactor, g.Gmtrstatus, g.Gmtrpostcode, g.Gmtrbuildingno, g.Gmtrbuildingname, g.Gmtrdependstreet, g.Gmtrstreet, g.Gmtrlocality, g.Gmtrposttown, g.Gmtrcounty, g.Gmtrfilename, g.Gmtrmeasureunits, g.Gmtrmultipfactor, g.Gmtrcurrentref, g.Gmtrsmsoid, g.Gmtrsmsoefd, g.Gmtrserviceflag, g.Gmtrserviceefd, g.Gmtrsmetsinstall, g.Gmtruprn, g.Gmtrnwocode, g.Gmtrnwoefd, g.Gmtrpaymethod, g.Gmtrmarketscode, g.Gmtrmapid, g.Gmtrregion, g.Gmtraccountno, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gasmeter in the database.
-func (g *Gasmeter) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gasmeter SET (` +
-		`gmtrmprn, gmtrserialno, gmtrinstalldate, gmtreffectdate, gmtrdatesent, gmtrdateupdate, gmtrdupdatedby, gmtryearmake, gmtrmakecode, gmtrmodelcode, gmtrmetertype, gmtrcapacity, gmtrlocationcode, gmtrunits, gmtrreadfactor, gmtrdials, gmtrrolecode, gmtrmetermech, gmtrcorrfactor, gmtrstatus, gmtrpostcode, gmtrbuildingno, gmtrbuildingname, gmtrdependstreet, gmtrstreet, gmtrlocality, gmtrposttown, gmtrcounty, gmtrfilename, gmtrmeasureunits, gmtrmultipfactor, gmtrcurrentref, gmtrsmsoid, gmtrsmsoefd, gmtrserviceflag, gmtrserviceefd, gmtrsmetsinstall, gmtruprn, gmtrnwocode, gmtrnwoefd, gmtrpaymethod, gmtrmarketscode, gmtrmapid, gmtrregion, gmtraccountno, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46` +
-		`) WHERE equinox_lrn = $47`
-
-	// run query
-	XOLog(sqlstr, g.Gmtrmprn, g.Gmtrserialno, g.Gmtrinstalldate, g.Gmtreffectdate, g.Gmtrdatesent, g.Gmtrdateupdate, g.Gmtrdupdatedby, g.Gmtryearmake, g.Gmtrmakecode, g.Gmtrmodelcode, g.Gmtrmetertype, g.Gmtrcapacity, g.Gmtrlocationcode, g.Gmtrunits, g.Gmtrreadfactor, g.Gmtrdials, g.Gmtrrolecode, g.Gmtrmetermech, g.Gmtrcorrfactor, g.Gmtrstatus, g.Gmtrpostcode, g.Gmtrbuildingno, g.Gmtrbuildingname, g.Gmtrdependstreet, g.Gmtrstreet, g.Gmtrlocality, g.Gmtrposttown, g.Gmtrcounty, g.Gmtrfilename, g.Gmtrmeasureunits, g.Gmtrmultipfactor, g.Gmtrcurrentref, g.Gmtrsmsoid, g.Gmtrsmsoefd, g.Gmtrserviceflag, g.Gmtrserviceefd, g.Gmtrsmetsinstall, g.Gmtruprn, g.Gmtrnwocode, g.Gmtrnwoefd, g.Gmtrpaymethod, g.Gmtrmarketscode, g.Gmtrmapid, g.Gmtrregion, g.Gmtraccountno, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gmtrmprn, g.Gmtrserialno, g.Gmtrinstalldate, g.Gmtreffectdate, g.Gmtrdatesent, g.Gmtrdateupdate, g.Gmtrdupdatedby, g.Gmtryearmake, g.Gmtrmakecode, g.Gmtrmodelcode, g.Gmtrmetertype, g.Gmtrcapacity, g.Gmtrlocationcode, g.Gmtrunits, g.Gmtrreadfactor, g.Gmtrdials, g.Gmtrrolecode, g.Gmtrmetermech, g.Gmtrcorrfactor, g.Gmtrstatus, g.Gmtrpostcode, g.Gmtrbuildingno, g.Gmtrbuildingname, g.Gmtrdependstreet, g.Gmtrstreet, g.Gmtrlocality, g.Gmtrposttown, g.Gmtrcounty, g.Gmtrfilename, g.Gmtrmeasureunits, g.Gmtrmultipfactor, g.Gmtrcurrentref, g.Gmtrsmsoid, g.Gmtrsmsoefd, g.Gmtrserviceflag, g.Gmtrserviceefd, g.Gmtrsmetsinstall, g.Gmtruprn, g.Gmtrnwocode, g.Gmtrnwoefd, g.Gmtrpaymethod, g.Gmtrmarketscode, g.Gmtrmapid, g.Gmtrregion, g.Gmtraccountno, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gasmeter to the database.
-func (g *Gasmeter) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gasmeter.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gasmeter) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gasmeter (` +
-		`gmtrmprn, gmtrserialno, gmtrinstalldate, gmtreffectdate, gmtrdatesent, gmtrdateupdate, gmtrdupdatedby, gmtryearmake, gmtrmakecode, gmtrmodelcode, gmtrmetertype, gmtrcapacity, gmtrlocationcode, gmtrunits, gmtrreadfactor, gmtrdials, gmtrrolecode, gmtrmetermech, gmtrcorrfactor, gmtrstatus, gmtrpostcode, gmtrbuildingno, gmtrbuildingname, gmtrdependstreet, gmtrstreet, gmtrlocality, gmtrposttown, gmtrcounty, gmtrfilename, gmtrmeasureunits, gmtrmultipfactor, gmtrcurrentref, gmtrsmsoid, gmtrsmsoefd, gmtrserviceflag, gmtrserviceefd, gmtrsmetsinstall, gmtruprn, gmtrnwocode, gmtrnwoefd, gmtrpaymethod, gmtrmarketscode, gmtrmapid, gmtrregion, gmtraccountno, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gmtrmprn, gmtrserialno, gmtrinstalldate, gmtreffectdate, gmtrdatesent, gmtrdateupdate, gmtrdupdatedby, gmtryearmake, gmtrmakecode, gmtrmodelcode, gmtrmetertype, gmtrcapacity, gmtrlocationcode, gmtrunits, gmtrreadfactor, gmtrdials, gmtrrolecode, gmtrmetermech, gmtrcorrfactor, gmtrstatus, gmtrpostcode, gmtrbuildingno, gmtrbuildingname, gmtrdependstreet, gmtrstreet, gmtrlocality, gmtrposttown, gmtrcounty, gmtrfilename, gmtrmeasureunits, gmtrmultipfactor, gmtrcurrentref, gmtrsmsoid, gmtrsmsoefd, gmtrserviceflag, gmtrserviceefd, gmtrsmetsinstall, gmtruprn, gmtrnwocode, gmtrnwoefd, gmtrpaymethod, gmtrmarketscode, gmtrmapid, gmtrregion, gmtraccountno, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gmtrmprn, EXCLUDED.gmtrserialno, EXCLUDED.gmtrinstalldate, EXCLUDED.gmtreffectdate, EXCLUDED.gmtrdatesent, EXCLUDED.gmtrdateupdate, EXCLUDED.gmtrdupdatedby, EXCLUDED.gmtryearmake, EXCLUDED.gmtrmakecode, EXCLUDED.gmtrmodelcode, EXCLUDED.gmtrmetertype, EXCLUDED.gmtrcapacity, EXCLUDED.gmtrlocationcode, EXCLUDED.gmtrunits, EXCLUDED.gmtrreadfactor, EXCLUDED.gmtrdials, EXCLUDED.gmtrrolecode, EXCLUDED.gmtrmetermech, EXCLUDED.gmtrcorrfactor, EXCLUDED.gmtrstatus, EXCLUDED.gmtrpostcode, EXCLUDED.gmtrbuildingno, EXCLUDED.gmtrbuildingname, EXCLUDED.gmtrdependstreet, EXCLUDED.gmtrstreet, EXCLUDED.gmtrlocality, EXCLUDED.gmtrposttown, EXCLUDED.gmtrcounty, EXCLUDED.gmtrfilename, EXCLUDED.gmtrmeasureunits, EXCLUDED.gmtrmultipfactor, EXCLUDED.gmtrcurrentref, EXCLUDED.gmtrsmsoid, EXCLUDED.gmtrsmsoefd, EXCLUDED.gmtrserviceflag, EXCLUDED.gmtrserviceefd, EXCLUDED.gmtrsmetsinstall, EXCLUDED.gmtruprn, EXCLUDED.gmtrnwocode, EXCLUDED.gmtrnwoefd, EXCLUDED.gmtrpaymethod, EXCLUDED.gmtrmarketscode, EXCLUDED.gmtrmapid, EXCLUDED.gmtrregion, EXCLUDED.gmtraccountno, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gmtrmprn, g.Gmtrserialno, g.Gmtrinstalldate, g.Gmtreffectdate, g.Gmtrdatesent, g.Gmtrdateupdate, g.Gmtrdupdatedby, g.Gmtryearmake, g.Gmtrmakecode, g.Gmtrmodelcode, g.Gmtrmetertype, g.Gmtrcapacity, g.Gmtrlocationcode, g.Gmtrunits, g.Gmtrreadfactor, g.Gmtrdials, g.Gmtrrolecode, g.Gmtrmetermech, g.Gmtrcorrfactor, g.Gmtrstatus, g.Gmtrpostcode, g.Gmtrbuildingno, g.Gmtrbuildingname, g.Gmtrdependstreet, g.Gmtrstreet, g.Gmtrlocality, g.Gmtrposttown, g.Gmtrcounty, g.Gmtrfilename, g.Gmtrmeasureunits, g.Gmtrmultipfactor, g.Gmtrcurrentref, g.Gmtrsmsoid, g.Gmtrsmsoefd, g.Gmtrserviceflag, g.Gmtrserviceefd, g.Gmtrsmetsinstall, g.Gmtruprn, g.Gmtrnwocode, g.Gmtrnwoefd, g.Gmtrpaymethod, g.Gmtrmarketscode, g.Gmtrmapid, g.Gmtrregion, g.Gmtraccountno, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gmtrmprn, g.Gmtrserialno, g.Gmtrinstalldate, g.Gmtreffectdate, g.Gmtrdatesent, g.Gmtrdateupdate, g.Gmtrdupdatedby, g.Gmtryearmake, g.Gmtrmakecode, g.Gmtrmodelcode, g.Gmtrmetertype, g.Gmtrcapacity, g.Gmtrlocationcode, g.Gmtrunits, g.Gmtrreadfactor, g.Gmtrdials, g.Gmtrrolecode, g.Gmtrmetermech, g.Gmtrcorrfactor, g.Gmtrstatus, g.Gmtrpostcode, g.Gmtrbuildingno, g.Gmtrbuildingname, g.Gmtrdependstreet, g.Gmtrstreet, g.Gmtrlocality, g.Gmtrposttown, g.Gmtrcounty, g.Gmtrfilename, g.Gmtrmeasureunits, g.Gmtrmultipfactor, g.Gmtrcurrentref, g.Gmtrsmsoid, g.Gmtrsmsoefd, g.Gmtrserviceflag, g.Gmtrserviceefd, g.Gmtrsmetsinstall, g.Gmtruprn, g.Gmtrnwocode, g.Gmtrnwoefd, g.Gmtrpaymethod, g.Gmtrmarketscode, g.Gmtrmapid, g.Gmtrregion, g.Gmtraccountno, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gasmeter from the database.
-func (g *Gasmeter) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gasmeter WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GasmeterByEquinoxLrn retrieves a row from 'equinox.gasmeter' as a Gasmeter.
@@ -218,9 +74,7 @@ func GasmeterByEquinoxLrn(db XODB, equinoxLrn int64) (*Gasmeter, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gasmeter{
-		_exists: true,
-	}
+	g := Gasmeter{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gmtrmprn, &g.Gmtrserialno, &g.Gmtrinstalldate, &g.Gmtreffectdate, &g.Gmtrdatesent, &g.Gmtrdateupdate, &g.Gmtrdupdatedby, &g.Gmtryearmake, &g.Gmtrmakecode, &g.Gmtrmodelcode, &g.Gmtrmetertype, &g.Gmtrcapacity, &g.Gmtrlocationcode, &g.Gmtrunits, &g.Gmtrreadfactor, &g.Gmtrdials, &g.Gmtrrolecode, &g.Gmtrmetermech, &g.Gmtrcorrfactor, &g.Gmtrstatus, &g.Gmtrpostcode, &g.Gmtrbuildingno, &g.Gmtrbuildingname, &g.Gmtrdependstreet, &g.Gmtrstreet, &g.Gmtrlocality, &g.Gmtrposttown, &g.Gmtrcounty, &g.Gmtrfilename, &g.Gmtrmeasureunits, &g.Gmtrmultipfactor, &g.Gmtrcurrentref, &g.Gmtrsmsoid, &g.Gmtrsmsoefd, &g.Gmtrserviceflag, &g.Gmtrserviceefd, &g.Gmtrsmetsinstall, &g.Gmtruprn, &g.Gmtrnwocode, &g.Gmtrnwoefd, &g.Gmtrpaymethod, &g.Gmtrmarketscode, &g.Gmtrmapid, &g.Gmtrregion, &g.Gmtraccountno, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -18,149 +17,6 @@ type Portcomm struct {
 	EquinoxPrn   sql.NullInt64  `json:"equinox_prn"`  // equinox_prn
 	EquinoxLrn   int64          `json:"equinox_lrn"`  // equinox_lrn
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Portcomm exists in the database.
-func (p *Portcomm) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Portcomm has been deleted from the database.
-func (p *Portcomm) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Portcomm to the database.
-func (p *Portcomm) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.portcomm (` +
-		`portcomment, portcommdate, portcommby, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Portcomment, p.Portcommdate, p.Portcommby, p.EquinoxPrn, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Portcomment, p.Portcommdate, p.Portcommby, p.EquinoxPrn, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Portcomm in the database.
-func (p *Portcomm) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.portcomm SET (` +
-		`portcomment, portcommdate, portcommby, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5` +
-		`) WHERE equinox_lrn = $6`
-
-	// run query
-	XOLog(sqlstr, p.Portcomment, p.Portcommdate, p.Portcommby, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Portcomment, p.Portcommdate, p.Portcommby, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Portcomm to the database.
-func (p *Portcomm) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Portcomm.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Portcomm) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.portcomm (` +
-		`portcomment, portcommdate, portcommby, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`portcomment, portcommdate, portcommby, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.portcomment, EXCLUDED.portcommdate, EXCLUDED.portcommby, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Portcomment, p.Portcommdate, p.Portcommby, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Portcomment, p.Portcommdate, p.Portcommby, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Portcomm from the database.
-func (p *Portcomm) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.portcomm WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PortcommByEquinoxLrn retrieves a row from 'equinox.portcomm' as a Portcomm.
@@ -177,9 +33,7 @@ func PortcommByEquinoxLrn(db XODB, equinoxLrn int64) (*Portcomm, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Portcomm{
-		_exists: true,
-	}
+	p := Portcomm{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Portcomment, &p.Portcommdate, &p.Portcommby, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

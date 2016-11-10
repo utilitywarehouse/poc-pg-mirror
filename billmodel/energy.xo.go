@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -31,149 +30,6 @@ type Energy struct {
 	Enrgaddress4   sql.NullString `json:"enrgaddress4"`   // enrgaddress4
 	EquinoxLrn     int64          `json:"equinox_lrn"`    // equinox_lrn
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Energy exists in the database.
-func (e *Energy) Exists() bool {
-	return e._exists
-}
-
-// Deleted provides information if the Energy has been deleted from the database.
-func (e *Energy) Deleted() bool {
-	return e._deleted
-}
-
-// Insert inserts the Energy to the database.
-func (e *Energy) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.energy (` +
-		`enrgaccountno, enrgpostcode, enrgereference, enrgestartdate, enrgeenddate, enrgeregion, enrggreference, enrggstartdate, enrggenddate, enrggregion, enrglastmodd, enrglastmodt, enrglastmodby, enrgaddress1, enrgaddress2, enrgaddress3, enrgaddress4, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, e.Enrgaccountno, e.Enrgpostcode, e.Enrgereference, e.Enrgestartdate, e.Enrgeenddate, e.Enrgeregion, e.Enrggreference, e.Enrggstartdate, e.Enrggenddate, e.Enrggregion, e.Enrglastmodd, e.Enrglastmodt, e.Enrglastmodby, e.Enrgaddress1, e.Enrgaddress2, e.Enrgaddress3, e.Enrgaddress4, e.EquinoxSec)
-	err = db.QueryRow(sqlstr, e.Enrgaccountno, e.Enrgpostcode, e.Enrgereference, e.Enrgestartdate, e.Enrgeenddate, e.Enrgeregion, e.Enrggreference, e.Enrggstartdate, e.Enrggenddate, e.Enrggregion, e.Enrglastmodd, e.Enrglastmodt, e.Enrglastmodby, e.Enrgaddress1, e.Enrgaddress2, e.Enrgaddress3, e.Enrgaddress4, e.EquinoxSec).Scan(&e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Update updates the Energy in the database.
-func (e *Energy) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.energy SET (` +
-		`enrgaccountno, enrgpostcode, enrgereference, enrgestartdate, enrgeenddate, enrgeregion, enrggreference, enrggstartdate, enrggenddate, enrggregion, enrglastmodd, enrglastmodt, enrglastmodby, enrgaddress1, enrgaddress2, enrgaddress3, enrgaddress4, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
-		`) WHERE equinox_lrn = $19`
-
-	// run query
-	XOLog(sqlstr, e.Enrgaccountno, e.Enrgpostcode, e.Enrgereference, e.Enrgestartdate, e.Enrgeenddate, e.Enrgeregion, e.Enrggreference, e.Enrggstartdate, e.Enrggenddate, e.Enrggregion, e.Enrglastmodd, e.Enrglastmodt, e.Enrglastmodby, e.Enrgaddress1, e.Enrgaddress2, e.Enrgaddress3, e.Enrgaddress4, e.EquinoxSec, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.Enrgaccountno, e.Enrgpostcode, e.Enrgereference, e.Enrgestartdate, e.Enrgeenddate, e.Enrgeregion, e.Enrggreference, e.Enrggstartdate, e.Enrggenddate, e.Enrggregion, e.Enrglastmodd, e.Enrglastmodt, e.Enrglastmodby, e.Enrgaddress1, e.Enrgaddress2, e.Enrgaddress3, e.Enrgaddress4, e.EquinoxSec, e.EquinoxLrn)
-	return err
-}
-
-// Save saves the Energy to the database.
-func (e *Energy) Save(db XODB) error {
-	if e.Exists() {
-		return e.Update(db)
-	}
-
-	return e.Insert(db)
-}
-
-// Upsert performs an upsert for Energy.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (e *Energy) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if e._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.energy (` +
-		`enrgaccountno, enrgpostcode, enrgereference, enrgestartdate, enrgeenddate, enrgeregion, enrggreference, enrggstartdate, enrggenddate, enrggregion, enrglastmodd, enrglastmodt, enrglastmodby, enrgaddress1, enrgaddress2, enrgaddress3, enrgaddress4, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`enrgaccountno, enrgpostcode, enrgereference, enrgestartdate, enrgeenddate, enrgeregion, enrggreference, enrggstartdate, enrggenddate, enrggregion, enrglastmodd, enrglastmodt, enrglastmodby, enrgaddress1, enrgaddress2, enrgaddress3, enrgaddress4, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.enrgaccountno, EXCLUDED.enrgpostcode, EXCLUDED.enrgereference, EXCLUDED.enrgestartdate, EXCLUDED.enrgeenddate, EXCLUDED.enrgeregion, EXCLUDED.enrggreference, EXCLUDED.enrggstartdate, EXCLUDED.enrggenddate, EXCLUDED.enrggregion, EXCLUDED.enrglastmodd, EXCLUDED.enrglastmodt, EXCLUDED.enrglastmodby, EXCLUDED.enrgaddress1, EXCLUDED.enrgaddress2, EXCLUDED.enrgaddress3, EXCLUDED.enrgaddress4, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, e.Enrgaccountno, e.Enrgpostcode, e.Enrgereference, e.Enrgestartdate, e.Enrgeenddate, e.Enrgeregion, e.Enrggreference, e.Enrggstartdate, e.Enrggenddate, e.Enrggregion, e.Enrglastmodd, e.Enrglastmodt, e.Enrglastmodby, e.Enrgaddress1, e.Enrgaddress2, e.Enrgaddress3, e.Enrgaddress4, e.EquinoxLrn, e.EquinoxSec)
-	_, err = db.Exec(sqlstr, e.Enrgaccountno, e.Enrgpostcode, e.Enrgereference, e.Enrgestartdate, e.Enrgeenddate, e.Enrgeregion, e.Enrggreference, e.Enrggstartdate, e.Enrggenddate, e.Enrggregion, e.Enrglastmodd, e.Enrglastmodt, e.Enrglastmodby, e.Enrgaddress1, e.Enrgaddress2, e.Enrgaddress3, e.Enrgaddress4, e.EquinoxLrn, e.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	e._exists = true
-
-	return nil
-}
-
-// Delete deletes the Energy from the database.
-func (e *Energy) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !e._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if e._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.energy WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, e.EquinoxLrn)
-	_, err = db.Exec(sqlstr, e.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	e._deleted = true
-
-	return nil
 }
 
 // EnergyByEquinoxLrn retrieves a row from 'equinox.energy' as a Energy.
@@ -190,9 +46,7 @@ func EnergyByEquinoxLrn(db XODB, equinoxLrn int64) (*Energy, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	e := Energy{
-		_exists: true,
-	}
+	e := Energy{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&e.Enrgaccountno, &e.Enrgpostcode, &e.Enrgereference, &e.Enrgestartdate, &e.Enrgeenddate, &e.Enrgeregion, &e.Enrggreference, &e.Enrggstartdate, &e.Enrggenddate, &e.Enrggregion, &e.Enrglastmodd, &e.Enrglastmodt, &e.Enrglastmodby, &e.Enrgaddress1, &e.Enrgaddress2, &e.Enrgaddress3, &e.Enrgaddress4, &e.EquinoxLrn, &e.EquinoxSec)
 	if err != nil {

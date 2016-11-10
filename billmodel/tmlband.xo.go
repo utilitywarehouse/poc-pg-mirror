@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -36,149 +35,6 @@ type Tmlband struct {
 	TmlbandsSpared1 pq.NullTime     `json:"tmlbands_spared1"` // tmlbands_spared1
 	EquinoxLrn      int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Tmlband exists in the database.
-func (t *Tmlband) Exists() bool {
-	return t._exists
-}
-
-// Deleted provides information if the Tmlband has been deleted from the database.
-func (t *Tmlband) Deleted() bool {
-	return t._deleted
-}
-
-// Insert inserts the Tmlband to the database.
-func (t *Tmlband) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tmlbands (` +
-		`tmlbands_code, tmlbands_desc, tmlbands_term, tmlbands_disc, tmlbands_analog, tmlbands_isdn2, tmlbands_isdn30, tmlbands_suspend, tmlbands_notes, tmlbands_grp1, tmlbands_grp2, tmlbands_grp3, tmlbands_grp4, tmlbands_groups, tmlbands_comid, tmlbands_sparec1, tmlbands_sparec2, tmlbands_sparec3, tmlbands_sparen1, tmlbands_sparen2, tmlbands_sparen3, tmlbands_spared1, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, t.TmlbandsCode, t.TmlbandsDesc, t.TmlbandsTerm, t.TmlbandsDisc, t.TmlbandsAnalog, t.TmlbandsIsdn2, t.TmlbandsIsdn30, t.TmlbandsSuspend, t.TmlbandsNotes, t.TmlbandsGrp1, t.TmlbandsGrp2, t.TmlbandsGrp3, t.TmlbandsGrp4, t.TmlbandsGroups, t.TmlbandsComid, t.TmlbandsSparec1, t.TmlbandsSparec2, t.TmlbandsSparec3, t.TmlbandsSparen1, t.TmlbandsSparen2, t.TmlbandsSparen3, t.TmlbandsSpared1, t.EquinoxSec)
-	err = db.QueryRow(sqlstr, t.TmlbandsCode, t.TmlbandsDesc, t.TmlbandsTerm, t.TmlbandsDisc, t.TmlbandsAnalog, t.TmlbandsIsdn2, t.TmlbandsIsdn30, t.TmlbandsSuspend, t.TmlbandsNotes, t.TmlbandsGrp1, t.TmlbandsGrp2, t.TmlbandsGrp3, t.TmlbandsGrp4, t.TmlbandsGroups, t.TmlbandsComid, t.TmlbandsSparec1, t.TmlbandsSparec2, t.TmlbandsSparec3, t.TmlbandsSparen1, t.TmlbandsSparen2, t.TmlbandsSparen3, t.TmlbandsSpared1, t.EquinoxSec).Scan(&t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Update updates the Tmlband in the database.
-func (t *Tmlband) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.tmlbands SET (` +
-		`tmlbands_code, tmlbands_desc, tmlbands_term, tmlbands_disc, tmlbands_analog, tmlbands_isdn2, tmlbands_isdn30, tmlbands_suspend, tmlbands_notes, tmlbands_grp1, tmlbands_grp2, tmlbands_grp3, tmlbands_grp4, tmlbands_groups, tmlbands_comid, tmlbands_sparec1, tmlbands_sparec2, tmlbands_sparec3, tmlbands_sparen1, tmlbands_sparen2, tmlbands_sparen3, tmlbands_spared1, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) WHERE equinox_lrn = $24`
-
-	// run query
-	XOLog(sqlstr, t.TmlbandsCode, t.TmlbandsDesc, t.TmlbandsTerm, t.TmlbandsDisc, t.TmlbandsAnalog, t.TmlbandsIsdn2, t.TmlbandsIsdn30, t.TmlbandsSuspend, t.TmlbandsNotes, t.TmlbandsGrp1, t.TmlbandsGrp2, t.TmlbandsGrp3, t.TmlbandsGrp4, t.TmlbandsGroups, t.TmlbandsComid, t.TmlbandsSparec1, t.TmlbandsSparec2, t.TmlbandsSparec3, t.TmlbandsSparen1, t.TmlbandsSparen2, t.TmlbandsSparen3, t.TmlbandsSpared1, t.EquinoxSec, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.TmlbandsCode, t.TmlbandsDesc, t.TmlbandsTerm, t.TmlbandsDisc, t.TmlbandsAnalog, t.TmlbandsIsdn2, t.TmlbandsIsdn30, t.TmlbandsSuspend, t.TmlbandsNotes, t.TmlbandsGrp1, t.TmlbandsGrp2, t.TmlbandsGrp3, t.TmlbandsGrp4, t.TmlbandsGroups, t.TmlbandsComid, t.TmlbandsSparec1, t.TmlbandsSparec2, t.TmlbandsSparec3, t.TmlbandsSparen1, t.TmlbandsSparen2, t.TmlbandsSparen3, t.TmlbandsSpared1, t.EquinoxSec, t.EquinoxLrn)
-	return err
-}
-
-// Save saves the Tmlband to the database.
-func (t *Tmlband) Save(db XODB) error {
-	if t.Exists() {
-		return t.Update(db)
-	}
-
-	return t.Insert(db)
-}
-
-// Upsert performs an upsert for Tmlband.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (t *Tmlband) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if t._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.tmlbands (` +
-		`tmlbands_code, tmlbands_desc, tmlbands_term, tmlbands_disc, tmlbands_analog, tmlbands_isdn2, tmlbands_isdn30, tmlbands_suspend, tmlbands_notes, tmlbands_grp1, tmlbands_grp2, tmlbands_grp3, tmlbands_grp4, tmlbands_groups, tmlbands_comid, tmlbands_sparec1, tmlbands_sparec2, tmlbands_sparec3, tmlbands_sparen1, tmlbands_sparen2, tmlbands_sparen3, tmlbands_spared1, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`tmlbands_code, tmlbands_desc, tmlbands_term, tmlbands_disc, tmlbands_analog, tmlbands_isdn2, tmlbands_isdn30, tmlbands_suspend, tmlbands_notes, tmlbands_grp1, tmlbands_grp2, tmlbands_grp3, tmlbands_grp4, tmlbands_groups, tmlbands_comid, tmlbands_sparec1, tmlbands_sparec2, tmlbands_sparec3, tmlbands_sparen1, tmlbands_sparen2, tmlbands_sparen3, tmlbands_spared1, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.tmlbands_code, EXCLUDED.tmlbands_desc, EXCLUDED.tmlbands_term, EXCLUDED.tmlbands_disc, EXCLUDED.tmlbands_analog, EXCLUDED.tmlbands_isdn2, EXCLUDED.tmlbands_isdn30, EXCLUDED.tmlbands_suspend, EXCLUDED.tmlbands_notes, EXCLUDED.tmlbands_grp1, EXCLUDED.tmlbands_grp2, EXCLUDED.tmlbands_grp3, EXCLUDED.tmlbands_grp4, EXCLUDED.tmlbands_groups, EXCLUDED.tmlbands_comid, EXCLUDED.tmlbands_sparec1, EXCLUDED.tmlbands_sparec2, EXCLUDED.tmlbands_sparec3, EXCLUDED.tmlbands_sparen1, EXCLUDED.tmlbands_sparen2, EXCLUDED.tmlbands_sparen3, EXCLUDED.tmlbands_spared1, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, t.TmlbandsCode, t.TmlbandsDesc, t.TmlbandsTerm, t.TmlbandsDisc, t.TmlbandsAnalog, t.TmlbandsIsdn2, t.TmlbandsIsdn30, t.TmlbandsSuspend, t.TmlbandsNotes, t.TmlbandsGrp1, t.TmlbandsGrp2, t.TmlbandsGrp3, t.TmlbandsGrp4, t.TmlbandsGroups, t.TmlbandsComid, t.TmlbandsSparec1, t.TmlbandsSparec2, t.TmlbandsSparec3, t.TmlbandsSparen1, t.TmlbandsSparen2, t.TmlbandsSparen3, t.TmlbandsSpared1, t.EquinoxLrn, t.EquinoxSec)
-	_, err = db.Exec(sqlstr, t.TmlbandsCode, t.TmlbandsDesc, t.TmlbandsTerm, t.TmlbandsDisc, t.TmlbandsAnalog, t.TmlbandsIsdn2, t.TmlbandsIsdn30, t.TmlbandsSuspend, t.TmlbandsNotes, t.TmlbandsGrp1, t.TmlbandsGrp2, t.TmlbandsGrp3, t.TmlbandsGrp4, t.TmlbandsGroups, t.TmlbandsComid, t.TmlbandsSparec1, t.TmlbandsSparec2, t.TmlbandsSparec3, t.TmlbandsSparen1, t.TmlbandsSparen2, t.TmlbandsSparen3, t.TmlbandsSpared1, t.EquinoxLrn, t.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	t._exists = true
-
-	return nil
-}
-
-// Delete deletes the Tmlband from the database.
-func (t *Tmlband) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !t._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if t._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.tmlbands WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, t.EquinoxLrn)
-	_, err = db.Exec(sqlstr, t.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	t._deleted = true
-
-	return nil
 }
 
 // TmlbandByEquinoxLrn retrieves a row from 'equinox.tmlbands' as a Tmlband.
@@ -195,9 +51,7 @@ func TmlbandByEquinoxLrn(db XODB, equinoxLrn int64) (*Tmlband, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	t := Tmlband{
-		_exists: true,
-	}
+	t := Tmlband{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&t.TmlbandsCode, &t.TmlbandsDesc, &t.TmlbandsTerm, &t.TmlbandsDisc, &t.TmlbandsAnalog, &t.TmlbandsIsdn2, &t.TmlbandsIsdn30, &t.TmlbandsSuspend, &t.TmlbandsNotes, &t.TmlbandsGrp1, &t.TmlbandsGrp2, &t.TmlbandsGrp3, &t.TmlbandsGrp4, &t.TmlbandsGroups, &t.TmlbandsComid, &t.TmlbandsSparec1, &t.TmlbandsSparec2, &t.TmlbandsSparec3, &t.TmlbandsSparen1, &t.TmlbandsSparen2, &t.TmlbandsSparen3, &t.TmlbandsSpared1, &t.EquinoxLrn, &t.EquinoxSec)
 	if err != nil {

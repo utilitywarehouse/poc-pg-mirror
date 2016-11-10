@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -65,149 +64,6 @@ type Gascon struct {
 	Gcsparel2        sql.NullInt64   `json:"gcsparel2"`        // gcsparel2
 	EquinoxLrn       int64           `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Gascon exists in the database.
-func (g *Gascon) Exists() bool {
-	return g._exists
-}
-
-// Deleted provides information if the Gascon has been deleted from the database.
-func (g *Gascon) Deleted() bool {
-	return g._deleted
-}
-
-// Insert inserts the Gascon to the database.
-func (g *Gascon) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gascon (` +
-		`gcdateentered, gcreference, gcconfirmation, gcmpr, gcdatetoaquila, gcdatefromaquila, gcstatus, gcmeterserialno, gcaq, gcnomref, gcnomnumber, gcnomsent, gcnomresponse, gcrejcode, gcrejrec, gcobjrec, gcaccepted, gcomr, gcomrsent, gcomrresponse, gcomrrespcode, gcconnectiondate, gcponr, gcmultimpr, gcconcotindicato, gccurrentmam, gcgaoowner, gcmamsent, gcmamrec, gccancellation, gccantotransco, gccanfromtransco, gctypeimpormet, gccorrectionfact, gconmeterdials, gcorigmam, gcrejectioncode, gccompetitive, gcappealsref, gcsparenum2, gconsparec1, gconsparec2, gconspared1, gconspared2, gcmonthly, gcnewaggregation, gcmultilmpan, gconsparec3, gconspared3, gcnewaggreason, gcsparel2, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, g.Gcdateentered, g.Gcreference, g.Gcconfirmation, g.Gcmpr, g.Gcdatetoaquila, g.Gcdatefromaquila, g.Gcstatus, g.Gcmeterserialno, g.Gcaq, g.Gcnomref, g.Gcnomnumber, g.Gcnomsent, g.Gcnomresponse, g.Gcrejcode, g.Gcrejrec, g.Gcobjrec, g.Gcaccepted, g.Gcomr, g.Gcomrsent, g.Gcomrresponse, g.Gcomrrespcode, g.Gcconnectiondate, g.Gcponr, g.Gcmultimpr, g.Gcconcotindicato, g.Gccurrentmam, g.Gcgaoowner, g.Gcmamsent, g.Gcmamrec, g.Gccancellation, g.Gccantotransco, g.Gccanfromtransco, g.Gctypeimpormet, g.Gccorrectionfact, g.Gconmeterdials, g.Gcorigmam, g.Gcrejectioncode, g.Gccompetitive, g.Gcappealsref, g.Gcsparenum2, g.Gconsparec1, g.Gconsparec2, g.Gconspared1, g.Gconspared2, g.Gcmonthly, g.Gcnewaggregation, g.Gcmultilmpan, g.Gconsparec3, g.Gconspared3, g.Gcnewaggreason, g.Gcsparel2, g.EquinoxSec)
-	err = db.QueryRow(sqlstr, g.Gcdateentered, g.Gcreference, g.Gcconfirmation, g.Gcmpr, g.Gcdatetoaquila, g.Gcdatefromaquila, g.Gcstatus, g.Gcmeterserialno, g.Gcaq, g.Gcnomref, g.Gcnomnumber, g.Gcnomsent, g.Gcnomresponse, g.Gcrejcode, g.Gcrejrec, g.Gcobjrec, g.Gcaccepted, g.Gcomr, g.Gcomrsent, g.Gcomrresponse, g.Gcomrrespcode, g.Gcconnectiondate, g.Gcponr, g.Gcmultimpr, g.Gcconcotindicato, g.Gccurrentmam, g.Gcgaoowner, g.Gcmamsent, g.Gcmamrec, g.Gccancellation, g.Gccantotransco, g.Gccanfromtransco, g.Gctypeimpormet, g.Gccorrectionfact, g.Gconmeterdials, g.Gcorigmam, g.Gcrejectioncode, g.Gccompetitive, g.Gcappealsref, g.Gcsparenum2, g.Gconsparec1, g.Gconsparec2, g.Gconspared1, g.Gconspared2, g.Gcmonthly, g.Gcnewaggregation, g.Gcmultilmpan, g.Gconsparec3, g.Gconspared3, g.Gcnewaggreason, g.Gcsparel2, g.EquinoxSec).Scan(&g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Update updates the Gascon in the database.
-func (g *Gascon) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.gascon SET (` +
-		`gcdateentered, gcreference, gcconfirmation, gcmpr, gcdatetoaquila, gcdatefromaquila, gcstatus, gcmeterserialno, gcaq, gcnomref, gcnomnumber, gcnomsent, gcnomresponse, gcrejcode, gcrejrec, gcobjrec, gcaccepted, gcomr, gcomrsent, gcomrresponse, gcomrrespcode, gcconnectiondate, gcponr, gcmultimpr, gcconcotindicato, gccurrentmam, gcgaoowner, gcmamsent, gcmamrec, gccancellation, gccantotransco, gccanfromtransco, gctypeimpormet, gccorrectionfact, gconmeterdials, gcorigmam, gcrejectioncode, gccompetitive, gcappealsref, gcsparenum2, gconsparec1, gconsparec2, gconspared1, gconspared2, gcmonthly, gcnewaggregation, gcmultilmpan, gconsparec3, gconspared3, gcnewaggreason, gcsparel2, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52` +
-		`) WHERE equinox_lrn = $53`
-
-	// run query
-	XOLog(sqlstr, g.Gcdateentered, g.Gcreference, g.Gcconfirmation, g.Gcmpr, g.Gcdatetoaquila, g.Gcdatefromaquila, g.Gcstatus, g.Gcmeterserialno, g.Gcaq, g.Gcnomref, g.Gcnomnumber, g.Gcnomsent, g.Gcnomresponse, g.Gcrejcode, g.Gcrejrec, g.Gcobjrec, g.Gcaccepted, g.Gcomr, g.Gcomrsent, g.Gcomrresponse, g.Gcomrrespcode, g.Gcconnectiondate, g.Gcponr, g.Gcmultimpr, g.Gcconcotindicato, g.Gccurrentmam, g.Gcgaoowner, g.Gcmamsent, g.Gcmamrec, g.Gccancellation, g.Gccantotransco, g.Gccanfromtransco, g.Gctypeimpormet, g.Gccorrectionfact, g.Gconmeterdials, g.Gcorigmam, g.Gcrejectioncode, g.Gccompetitive, g.Gcappealsref, g.Gcsparenum2, g.Gconsparec1, g.Gconsparec2, g.Gconspared1, g.Gconspared2, g.Gcmonthly, g.Gcnewaggregation, g.Gcmultilmpan, g.Gconsparec3, g.Gconspared3, g.Gcnewaggreason, g.Gcsparel2, g.EquinoxSec, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.Gcdateentered, g.Gcreference, g.Gcconfirmation, g.Gcmpr, g.Gcdatetoaquila, g.Gcdatefromaquila, g.Gcstatus, g.Gcmeterserialno, g.Gcaq, g.Gcnomref, g.Gcnomnumber, g.Gcnomsent, g.Gcnomresponse, g.Gcrejcode, g.Gcrejrec, g.Gcobjrec, g.Gcaccepted, g.Gcomr, g.Gcomrsent, g.Gcomrresponse, g.Gcomrrespcode, g.Gcconnectiondate, g.Gcponr, g.Gcmultimpr, g.Gcconcotindicato, g.Gccurrentmam, g.Gcgaoowner, g.Gcmamsent, g.Gcmamrec, g.Gccancellation, g.Gccantotransco, g.Gccanfromtransco, g.Gctypeimpormet, g.Gccorrectionfact, g.Gconmeterdials, g.Gcorigmam, g.Gcrejectioncode, g.Gccompetitive, g.Gcappealsref, g.Gcsparenum2, g.Gconsparec1, g.Gconsparec2, g.Gconspared1, g.Gconspared2, g.Gcmonthly, g.Gcnewaggregation, g.Gcmultilmpan, g.Gconsparec3, g.Gconspared3, g.Gcnewaggreason, g.Gcsparel2, g.EquinoxSec, g.EquinoxLrn)
-	return err
-}
-
-// Save saves the Gascon to the database.
-func (g *Gascon) Save(db XODB) error {
-	if g.Exists() {
-		return g.Update(db)
-	}
-
-	return g.Insert(db)
-}
-
-// Upsert performs an upsert for Gascon.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (g *Gascon) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if g._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.gascon (` +
-		`gcdateentered, gcreference, gcconfirmation, gcmpr, gcdatetoaquila, gcdatefromaquila, gcstatus, gcmeterserialno, gcaq, gcnomref, gcnomnumber, gcnomsent, gcnomresponse, gcrejcode, gcrejrec, gcobjrec, gcaccepted, gcomr, gcomrsent, gcomrresponse, gcomrrespcode, gcconnectiondate, gcponr, gcmultimpr, gcconcotindicato, gccurrentmam, gcgaoowner, gcmamsent, gcmamrec, gccancellation, gccantotransco, gccanfromtransco, gctypeimpormet, gccorrectionfact, gconmeterdials, gcorigmam, gcrejectioncode, gccompetitive, gcappealsref, gcsparenum2, gconsparec1, gconsparec2, gconspared1, gconspared2, gcmonthly, gcnewaggregation, gcmultilmpan, gconsparec3, gconspared3, gcnewaggreason, gcsparel2, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`gcdateentered, gcreference, gcconfirmation, gcmpr, gcdatetoaquila, gcdatefromaquila, gcstatus, gcmeterserialno, gcaq, gcnomref, gcnomnumber, gcnomsent, gcnomresponse, gcrejcode, gcrejrec, gcobjrec, gcaccepted, gcomr, gcomrsent, gcomrresponse, gcomrrespcode, gcconnectiondate, gcponr, gcmultimpr, gcconcotindicato, gccurrentmam, gcgaoowner, gcmamsent, gcmamrec, gccancellation, gccantotransco, gccanfromtransco, gctypeimpormet, gccorrectionfact, gconmeterdials, gcorigmam, gcrejectioncode, gccompetitive, gcappealsref, gcsparenum2, gconsparec1, gconsparec2, gconspared1, gconspared2, gcmonthly, gcnewaggregation, gcmultilmpan, gconsparec3, gconspared3, gcnewaggreason, gcsparel2, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.gcdateentered, EXCLUDED.gcreference, EXCLUDED.gcconfirmation, EXCLUDED.gcmpr, EXCLUDED.gcdatetoaquila, EXCLUDED.gcdatefromaquila, EXCLUDED.gcstatus, EXCLUDED.gcmeterserialno, EXCLUDED.gcaq, EXCLUDED.gcnomref, EXCLUDED.gcnomnumber, EXCLUDED.gcnomsent, EXCLUDED.gcnomresponse, EXCLUDED.gcrejcode, EXCLUDED.gcrejrec, EXCLUDED.gcobjrec, EXCLUDED.gcaccepted, EXCLUDED.gcomr, EXCLUDED.gcomrsent, EXCLUDED.gcomrresponse, EXCLUDED.gcomrrespcode, EXCLUDED.gcconnectiondate, EXCLUDED.gcponr, EXCLUDED.gcmultimpr, EXCLUDED.gcconcotindicato, EXCLUDED.gccurrentmam, EXCLUDED.gcgaoowner, EXCLUDED.gcmamsent, EXCLUDED.gcmamrec, EXCLUDED.gccancellation, EXCLUDED.gccantotransco, EXCLUDED.gccanfromtransco, EXCLUDED.gctypeimpormet, EXCLUDED.gccorrectionfact, EXCLUDED.gconmeterdials, EXCLUDED.gcorigmam, EXCLUDED.gcrejectioncode, EXCLUDED.gccompetitive, EXCLUDED.gcappealsref, EXCLUDED.gcsparenum2, EXCLUDED.gconsparec1, EXCLUDED.gconsparec2, EXCLUDED.gconspared1, EXCLUDED.gconspared2, EXCLUDED.gcmonthly, EXCLUDED.gcnewaggregation, EXCLUDED.gcmultilmpan, EXCLUDED.gconsparec3, EXCLUDED.gconspared3, EXCLUDED.gcnewaggreason, EXCLUDED.gcsparel2, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, g.Gcdateentered, g.Gcreference, g.Gcconfirmation, g.Gcmpr, g.Gcdatetoaquila, g.Gcdatefromaquila, g.Gcstatus, g.Gcmeterserialno, g.Gcaq, g.Gcnomref, g.Gcnomnumber, g.Gcnomsent, g.Gcnomresponse, g.Gcrejcode, g.Gcrejrec, g.Gcobjrec, g.Gcaccepted, g.Gcomr, g.Gcomrsent, g.Gcomrresponse, g.Gcomrrespcode, g.Gcconnectiondate, g.Gcponr, g.Gcmultimpr, g.Gcconcotindicato, g.Gccurrentmam, g.Gcgaoowner, g.Gcmamsent, g.Gcmamrec, g.Gccancellation, g.Gccantotransco, g.Gccanfromtransco, g.Gctypeimpormet, g.Gccorrectionfact, g.Gconmeterdials, g.Gcorigmam, g.Gcrejectioncode, g.Gccompetitive, g.Gcappealsref, g.Gcsparenum2, g.Gconsparec1, g.Gconsparec2, g.Gconspared1, g.Gconspared2, g.Gcmonthly, g.Gcnewaggregation, g.Gcmultilmpan, g.Gconsparec3, g.Gconspared3, g.Gcnewaggreason, g.Gcsparel2, g.EquinoxLrn, g.EquinoxSec)
-	_, err = db.Exec(sqlstr, g.Gcdateentered, g.Gcreference, g.Gcconfirmation, g.Gcmpr, g.Gcdatetoaquila, g.Gcdatefromaquila, g.Gcstatus, g.Gcmeterserialno, g.Gcaq, g.Gcnomref, g.Gcnomnumber, g.Gcnomsent, g.Gcnomresponse, g.Gcrejcode, g.Gcrejrec, g.Gcobjrec, g.Gcaccepted, g.Gcomr, g.Gcomrsent, g.Gcomrresponse, g.Gcomrrespcode, g.Gcconnectiondate, g.Gcponr, g.Gcmultimpr, g.Gcconcotindicato, g.Gccurrentmam, g.Gcgaoowner, g.Gcmamsent, g.Gcmamrec, g.Gccancellation, g.Gccantotransco, g.Gccanfromtransco, g.Gctypeimpormet, g.Gccorrectionfact, g.Gconmeterdials, g.Gcorigmam, g.Gcrejectioncode, g.Gccompetitive, g.Gcappealsref, g.Gcsparenum2, g.Gconsparec1, g.Gconsparec2, g.Gconspared1, g.Gconspared2, g.Gcmonthly, g.Gcnewaggregation, g.Gcmultilmpan, g.Gconsparec3, g.Gconspared3, g.Gcnewaggreason, g.Gcsparel2, g.EquinoxLrn, g.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	g._exists = true
-
-	return nil
-}
-
-// Delete deletes the Gascon from the database.
-func (g *Gascon) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !g._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if g._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.gascon WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, g.EquinoxLrn)
-	_, err = db.Exec(sqlstr, g.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	g._deleted = true
-
-	return nil
 }
 
 // GasconByEquinoxLrn retrieves a row from 'equinox.gascon' as a Gascon.
@@ -224,9 +80,7 @@ func GasconByEquinoxLrn(db XODB, equinoxLrn int64) (*Gascon, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	g := Gascon{
-		_exists: true,
-	}
+	g := Gascon{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&g.Gcdateentered, &g.Gcreference, &g.Gcconfirmation, &g.Gcmpr, &g.Gcdatetoaquila, &g.Gcdatefromaquila, &g.Gcstatus, &g.Gcmeterserialno, &g.Gcaq, &g.Gcnomref, &g.Gcnomnumber, &g.Gcnomsent, &g.Gcnomresponse, &g.Gcrejcode, &g.Gcrejrec, &g.Gcobjrec, &g.Gcaccepted, &g.Gcomr, &g.Gcomrsent, &g.Gcomrresponse, &g.Gcomrrespcode, &g.Gcconnectiondate, &g.Gcponr, &g.Gcmultimpr, &g.Gcconcotindicato, &g.Gccurrentmam, &g.Gcgaoowner, &g.Gcmamsent, &g.Gcmamrec, &g.Gccancellation, &g.Gccantotransco, &g.Gccanfromtransco, &g.Gctypeimpormet, &g.Gccorrectionfact, &g.Gconmeterdials, &g.Gcorigmam, &g.Gcrejectioncode, &g.Gccompetitive, &g.Gcappealsref, &g.Gcsparenum2, &g.Gconsparec1, &g.Gconsparec2, &g.Gconspared1, &g.Gconspared2, &g.Gcmonthly, &g.Gcnewaggregation, &g.Gcmultilmpan, &g.Gconsparec3, &g.Gconspared3, &g.Gcnewaggreason, &g.Gcsparel2, &g.EquinoxLrn, &g.EquinoxSec)
 	if err != nil {

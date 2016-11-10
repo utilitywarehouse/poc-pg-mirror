@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -36,149 +35,6 @@ type Ppmtran struct {
 	EquinoxPrn      sql.NullInt64   `json:"equinox_prn"`     // equinox_prn
 	EquinoxLrn      int64           `json:"equinox_lrn"`     // equinox_lrn
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Ppmtran exists in the database.
-func (p *Ppmtran) Exists() bool {
-	return p._exists
-}
-
-// Deleted provides information if the Ppmtran has been deleted from the database.
-func (p *Ppmtran) Deleted() bool {
-	return p._deleted
-}
-
-// Insert inserts the Ppmtran to the database.
-func (p *Ppmtran) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ppmtrans (` +
-		`ppmtdate, ppmttime, ppmtamount, ppmtusenet, ppmtusevat, ppmtnrgdebtpay, ppmtnnrgdebypay, ppmtoutlet, ppmtreading, ppmtrtariff, ppmtrtariffdate, ppmtnrgdebt, ppmtnnrgdebt, ppmtcalog, ppmtnrgdlog, ppmtnnrgdlog, ppmtrecrate, ppmttransactid, ppmtgreference, ppmtsparen1, ppmtspared1, equinox_prn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, p.Ppmtdate, p.Ppmttime, p.Ppmtamount, p.Ppmtusenet, p.Ppmtusevat, p.Ppmtnrgdebtpay, p.Ppmtnnrgdebypay, p.Ppmtoutlet, p.Ppmtreading, p.Ppmtrtariff, p.Ppmtrtariffdate, p.Ppmtnrgdebt, p.Ppmtnnrgdebt, p.Ppmtcalog, p.Ppmtnrgdlog, p.Ppmtnnrgdlog, p.Ppmtrecrate, p.Ppmttransactid, p.Ppmtgreference, p.Ppmtsparen1, p.Ppmtspared1, p.EquinoxPrn, p.EquinoxSec)
-	err = db.QueryRow(sqlstr, p.Ppmtdate, p.Ppmttime, p.Ppmtamount, p.Ppmtusenet, p.Ppmtusevat, p.Ppmtnrgdebtpay, p.Ppmtnnrgdebypay, p.Ppmtoutlet, p.Ppmtreading, p.Ppmtrtariff, p.Ppmtrtariffdate, p.Ppmtnrgdebt, p.Ppmtnnrgdebt, p.Ppmtcalog, p.Ppmtnrgdlog, p.Ppmtnnrgdlog, p.Ppmtrecrate, p.Ppmttransactid, p.Ppmtgreference, p.Ppmtsparen1, p.Ppmtspared1, p.EquinoxPrn, p.EquinoxSec).Scan(&p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Update updates the Ppmtran in the database.
-func (p *Ppmtran) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.ppmtrans SET (` +
-		`ppmtdate, ppmttime, ppmtamount, ppmtusenet, ppmtusevat, ppmtnrgdebtpay, ppmtnnrgdebypay, ppmtoutlet, ppmtreading, ppmtrtariff, ppmtrtariffdate, ppmtnrgdebt, ppmtnnrgdebt, ppmtcalog, ppmtnrgdlog, ppmtnnrgdlog, ppmtrecrate, ppmttransactid, ppmtgreference, ppmtsparen1, ppmtspared1, equinox_prn, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23` +
-		`) WHERE equinox_lrn = $24`
-
-	// run query
-	XOLog(sqlstr, p.Ppmtdate, p.Ppmttime, p.Ppmtamount, p.Ppmtusenet, p.Ppmtusevat, p.Ppmtnrgdebtpay, p.Ppmtnnrgdebypay, p.Ppmtoutlet, p.Ppmtreading, p.Ppmtrtariff, p.Ppmtrtariffdate, p.Ppmtnrgdebt, p.Ppmtnnrgdebt, p.Ppmtcalog, p.Ppmtnrgdlog, p.Ppmtnnrgdlog, p.Ppmtrecrate, p.Ppmttransactid, p.Ppmtgreference, p.Ppmtsparen1, p.Ppmtspared1, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.Ppmtdate, p.Ppmttime, p.Ppmtamount, p.Ppmtusenet, p.Ppmtusevat, p.Ppmtnrgdebtpay, p.Ppmtnnrgdebypay, p.Ppmtoutlet, p.Ppmtreading, p.Ppmtrtariff, p.Ppmtrtariffdate, p.Ppmtnrgdebt, p.Ppmtnnrgdebt, p.Ppmtcalog, p.Ppmtnrgdlog, p.Ppmtnnrgdlog, p.Ppmtrecrate, p.Ppmttransactid, p.Ppmtgreference, p.Ppmtsparen1, p.Ppmtspared1, p.EquinoxPrn, p.EquinoxSec, p.EquinoxLrn)
-	return err
-}
-
-// Save saves the Ppmtran to the database.
-func (p *Ppmtran) Save(db XODB) error {
-	if p.Exists() {
-		return p.Update(db)
-	}
-
-	return p.Insert(db)
-}
-
-// Upsert performs an upsert for Ppmtran.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (p *Ppmtran) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if p._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.ppmtrans (` +
-		`ppmtdate, ppmttime, ppmtamount, ppmtusenet, ppmtusevat, ppmtnrgdebtpay, ppmtnnrgdebypay, ppmtoutlet, ppmtreading, ppmtrtariff, ppmtrtariffdate, ppmtnrgdebt, ppmtnnrgdebt, ppmtcalog, ppmtnrgdlog, ppmtnnrgdlog, ppmtrecrate, ppmttransactid, ppmtgreference, ppmtsparen1, ppmtspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`ppmtdate, ppmttime, ppmtamount, ppmtusenet, ppmtusevat, ppmtnrgdebtpay, ppmtnnrgdebypay, ppmtoutlet, ppmtreading, ppmtrtariff, ppmtrtariffdate, ppmtnrgdebt, ppmtnnrgdebt, ppmtcalog, ppmtnrgdlog, ppmtnnrgdlog, ppmtrecrate, ppmttransactid, ppmtgreference, ppmtsparen1, ppmtspared1, equinox_prn, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.ppmtdate, EXCLUDED.ppmttime, EXCLUDED.ppmtamount, EXCLUDED.ppmtusenet, EXCLUDED.ppmtusevat, EXCLUDED.ppmtnrgdebtpay, EXCLUDED.ppmtnnrgdebypay, EXCLUDED.ppmtoutlet, EXCLUDED.ppmtreading, EXCLUDED.ppmtrtariff, EXCLUDED.ppmtrtariffdate, EXCLUDED.ppmtnrgdebt, EXCLUDED.ppmtnnrgdebt, EXCLUDED.ppmtcalog, EXCLUDED.ppmtnrgdlog, EXCLUDED.ppmtnnrgdlog, EXCLUDED.ppmtrecrate, EXCLUDED.ppmttransactid, EXCLUDED.ppmtgreference, EXCLUDED.ppmtsparen1, EXCLUDED.ppmtspared1, EXCLUDED.equinox_prn, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, p.Ppmtdate, p.Ppmttime, p.Ppmtamount, p.Ppmtusenet, p.Ppmtusevat, p.Ppmtnrgdebtpay, p.Ppmtnnrgdebypay, p.Ppmtoutlet, p.Ppmtreading, p.Ppmtrtariff, p.Ppmtrtariffdate, p.Ppmtnrgdebt, p.Ppmtnnrgdebt, p.Ppmtcalog, p.Ppmtnrgdlog, p.Ppmtnnrgdlog, p.Ppmtrecrate, p.Ppmttransactid, p.Ppmtgreference, p.Ppmtsparen1, p.Ppmtspared1, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	_, err = db.Exec(sqlstr, p.Ppmtdate, p.Ppmttime, p.Ppmtamount, p.Ppmtusenet, p.Ppmtusevat, p.Ppmtnrgdebtpay, p.Ppmtnnrgdebypay, p.Ppmtoutlet, p.Ppmtreading, p.Ppmtrtariff, p.Ppmtrtariffdate, p.Ppmtnrgdebt, p.Ppmtnnrgdebt, p.Ppmtcalog, p.Ppmtnrgdlog, p.Ppmtnnrgdlog, p.Ppmtrecrate, p.Ppmttransactid, p.Ppmtgreference, p.Ppmtsparen1, p.Ppmtspared1, p.EquinoxPrn, p.EquinoxLrn, p.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	p._exists = true
-
-	return nil
-}
-
-// Delete deletes the Ppmtran from the database.
-func (p *Ppmtran) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !p._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if p._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.ppmtrans WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, p.EquinoxLrn)
-	_, err = db.Exec(sqlstr, p.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	p._deleted = true
-
-	return nil
 }
 
 // PpmtranByEquinoxLrn retrieves a row from 'equinox.ppmtrans' as a Ppmtran.
@@ -195,9 +51,7 @@ func PpmtranByEquinoxLrn(db XODB, equinoxLrn int64) (*Ppmtran, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	p := Ppmtran{
-		_exists: true,
-	}
+	p := Ppmtran{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&p.Ppmtdate, &p.Ppmttime, &p.Ppmtamount, &p.Ppmtusenet, &p.Ppmtusevat, &p.Ppmtnrgdebtpay, &p.Ppmtnnrgdebypay, &p.Ppmtoutlet, &p.Ppmtreading, &p.Ppmtrtariff, &p.Ppmtrtariffdate, &p.Ppmtnrgdebt, &p.Ppmtnnrgdebt, &p.Ppmtcalog, &p.Ppmtnrgdlog, &p.Ppmtnnrgdlog, &p.Ppmtrecrate, &p.Ppmttransactid, &p.Ppmtgreference, &p.Ppmtsparen1, &p.Ppmtspared1, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
 	if err != nil {

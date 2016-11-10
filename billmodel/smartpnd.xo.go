@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -32,149 +31,6 @@ type Smartpnd struct {
 	Spndsenttomop    pq.NullTime    `json:"spndsenttomop"`    // spndsenttomop
 	EquinoxLrn       int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Smartpnd exists in the database.
-func (s *Smartpnd) Exists() bool {
-	return s._exists
-}
-
-// Deleted provides information if the Smartpnd has been deleted from the database.
-func (s *Smartpnd) Deleted() bool {
-	return s._deleted
-}
-
-// Insert inserts the Smartpnd to the database.
-func (s *Smartpnd) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartpnd (` +
-		`spndaccno, spnddatecreated, spnderef, spnderefconndate, spndgref, spndgrefconndate, spndcusttype, spndreason, spndprocessed, spndexception, spndfuelstatus, spndmetermode, spndfile, spndmop, spndjobtrackdt, spndmopcontact, spndsparen1, spndsenttomop, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, s.Spndaccno, s.Spnddatecreated, s.Spnderef, s.Spnderefconndate, s.Spndgref, s.Spndgrefconndate, s.Spndcusttype, s.Spndreason, s.Spndprocessed, s.Spndexception, s.Spndfuelstatus, s.Spndmetermode, s.Spndfile, s.Spndmop, s.Spndjobtrackdt, s.Spndmopcontact, s.Spndsparen1, s.Spndsenttomop, s.EquinoxSec)
-	err = db.QueryRow(sqlstr, s.Spndaccno, s.Spnddatecreated, s.Spnderef, s.Spnderefconndate, s.Spndgref, s.Spndgrefconndate, s.Spndcusttype, s.Spndreason, s.Spndprocessed, s.Spndexception, s.Spndfuelstatus, s.Spndmetermode, s.Spndfile, s.Spndmop, s.Spndjobtrackdt, s.Spndmopcontact, s.Spndsparen1, s.Spndsenttomop, s.EquinoxSec).Scan(&s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Update updates the Smartpnd in the database.
-func (s *Smartpnd) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.smartpnd SET (` +
-		`spndaccno, spnddatecreated, spnderef, spnderefconndate, spndgref, spndgrefconndate, spndcusttype, spndreason, spndprocessed, spndexception, spndfuelstatus, spndmetermode, spndfile, spndmop, spndjobtrackdt, spndmopcontact, spndsparen1, spndsenttomop, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19` +
-		`) WHERE equinox_lrn = $20`
-
-	// run query
-	XOLog(sqlstr, s.Spndaccno, s.Spnddatecreated, s.Spnderef, s.Spnderefconndate, s.Spndgref, s.Spndgrefconndate, s.Spndcusttype, s.Spndreason, s.Spndprocessed, s.Spndexception, s.Spndfuelstatus, s.Spndmetermode, s.Spndfile, s.Spndmop, s.Spndjobtrackdt, s.Spndmopcontact, s.Spndsparen1, s.Spndsenttomop, s.EquinoxSec, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.Spndaccno, s.Spnddatecreated, s.Spnderef, s.Spnderefconndate, s.Spndgref, s.Spndgrefconndate, s.Spndcusttype, s.Spndreason, s.Spndprocessed, s.Spndexception, s.Spndfuelstatus, s.Spndmetermode, s.Spndfile, s.Spndmop, s.Spndjobtrackdt, s.Spndmopcontact, s.Spndsparen1, s.Spndsenttomop, s.EquinoxSec, s.EquinoxLrn)
-	return err
-}
-
-// Save saves the Smartpnd to the database.
-func (s *Smartpnd) Save(db XODB) error {
-	if s.Exists() {
-		return s.Update(db)
-	}
-
-	return s.Insert(db)
-}
-
-// Upsert performs an upsert for Smartpnd.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (s *Smartpnd) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if s._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.smartpnd (` +
-		`spndaccno, spnddatecreated, spnderef, spnderefconndate, spndgref, spndgrefconndate, spndcusttype, spndreason, spndprocessed, spndexception, spndfuelstatus, spndmetermode, spndfile, spndmop, spndjobtrackdt, spndmopcontact, spndsparen1, spndsenttomop, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`spndaccno, spnddatecreated, spnderef, spnderefconndate, spndgref, spndgrefconndate, spndcusttype, spndreason, spndprocessed, spndexception, spndfuelstatus, spndmetermode, spndfile, spndmop, spndjobtrackdt, spndmopcontact, spndsparen1, spndsenttomop, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.spndaccno, EXCLUDED.spnddatecreated, EXCLUDED.spnderef, EXCLUDED.spnderefconndate, EXCLUDED.spndgref, EXCLUDED.spndgrefconndate, EXCLUDED.spndcusttype, EXCLUDED.spndreason, EXCLUDED.spndprocessed, EXCLUDED.spndexception, EXCLUDED.spndfuelstatus, EXCLUDED.spndmetermode, EXCLUDED.spndfile, EXCLUDED.spndmop, EXCLUDED.spndjobtrackdt, EXCLUDED.spndmopcontact, EXCLUDED.spndsparen1, EXCLUDED.spndsenttomop, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, s.Spndaccno, s.Spnddatecreated, s.Spnderef, s.Spnderefconndate, s.Spndgref, s.Spndgrefconndate, s.Spndcusttype, s.Spndreason, s.Spndprocessed, s.Spndexception, s.Spndfuelstatus, s.Spndmetermode, s.Spndfile, s.Spndmop, s.Spndjobtrackdt, s.Spndmopcontact, s.Spndsparen1, s.Spndsenttomop, s.EquinoxLrn, s.EquinoxSec)
-	_, err = db.Exec(sqlstr, s.Spndaccno, s.Spnddatecreated, s.Spnderef, s.Spnderefconndate, s.Spndgref, s.Spndgrefconndate, s.Spndcusttype, s.Spndreason, s.Spndprocessed, s.Spndexception, s.Spndfuelstatus, s.Spndmetermode, s.Spndfile, s.Spndmop, s.Spndjobtrackdt, s.Spndmopcontact, s.Spndsparen1, s.Spndsenttomop, s.EquinoxLrn, s.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	s._exists = true
-
-	return nil
-}
-
-// Delete deletes the Smartpnd from the database.
-func (s *Smartpnd) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !s._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if s._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.smartpnd WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, s.EquinoxLrn)
-	_, err = db.Exec(sqlstr, s.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	s._deleted = true
-
-	return nil
 }
 
 // SmartpndByEquinoxLrn retrieves a row from 'equinox.smartpnd' as a Smartpnd.
@@ -191,9 +47,7 @@ func SmartpndByEquinoxLrn(db XODB, equinoxLrn int64) (*Smartpnd, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	s := Smartpnd{
-		_exists: true,
-	}
+	s := Smartpnd{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&s.Spndaccno, &s.Spnddatecreated, &s.Spnderef, &s.Spnderefconndate, &s.Spndgref, &s.Spndgrefconndate, &s.Spndcusttype, &s.Spndreason, &s.Spndprocessed, &s.Spndexception, &s.Spndfuelstatus, &s.Spndmetermode, &s.Spndfile, &s.Spndmop, &s.Spndjobtrackdt, &s.Spndmopcontact, &s.Spndsparen1, &s.Spndsenttomop, &s.EquinoxLrn, &s.EquinoxSec)
 	if err != nil {

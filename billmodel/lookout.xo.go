@@ -5,7 +5,6 @@ package billmodel
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/lib/pq"
 )
@@ -20,149 +19,6 @@ type Lookout struct {
 	LookoutAppNo    sql.NullString `json:"lookout_app_no"`   // lookout_app_no
 	EquinoxLrn      int64          `json:"equinox_lrn"`      // equinox_lrn
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
-
-	// xo fields
-	_exists, _deleted bool
-}
-
-// Exists determines if the Lookout exists in the database.
-func (l *Lookout) Exists() bool {
-	return l._exists
-}
-
-// Deleted provides information if the Lookout has been deleted from the database.
-func (l *Lookout) Deleted() bool {
-	return l._deleted
-}
-
-// Insert inserts the Lookout to the database.
-func (l *Lookout) Insert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.lookout (` +
-		`lookout_postcode, lookout_name, lookout_date, lookout_notes, lookout_req_by, lookout_app_no, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) RETURNING equinox_lrn`
-
-	// run query
-	XOLog(sqlstr, l.LookoutPostcode, l.LookoutName, l.LookoutDate, l.LookoutNotes, l.LookoutReqBy, l.LookoutAppNo, l.EquinoxSec)
-	err = db.QueryRow(sqlstr, l.LookoutPostcode, l.LookoutName, l.LookoutDate, l.LookoutNotes, l.LookoutReqBy, l.LookoutAppNo, l.EquinoxSec).Scan(&l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Update updates the Lookout in the database.
-func (l *Lookout) Update(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return errors.New("update failed: does not exist")
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return errors.New("update failed: marked for deletion")
-	}
-
-	// sql query
-	const sqlstr = `UPDATE equinox.lookout SET (` +
-		`lookout_postcode, lookout_name, lookout_date, lookout_notes, lookout_req_by, lookout_app_no, equinox_sec` +
-		`) = ( ` +
-		`$1, $2, $3, $4, $5, $6, $7` +
-		`) WHERE equinox_lrn = $8`
-
-	// run query
-	XOLog(sqlstr, l.LookoutPostcode, l.LookoutName, l.LookoutDate, l.LookoutNotes, l.LookoutReqBy, l.LookoutAppNo, l.EquinoxSec, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.LookoutPostcode, l.LookoutName, l.LookoutDate, l.LookoutNotes, l.LookoutReqBy, l.LookoutAppNo, l.EquinoxSec, l.EquinoxLrn)
-	return err
-}
-
-// Save saves the Lookout to the database.
-func (l *Lookout) Save(db XODB) error {
-	if l.Exists() {
-		return l.Update(db)
-	}
-
-	return l.Insert(db)
-}
-
-// Upsert performs an upsert for Lookout.
-//
-// NOTE: PostgreSQL 9.5+ only
-func (l *Lookout) Upsert(db XODB) error {
-	var err error
-
-	// if already exist, bail
-	if l._exists {
-		return errors.New("insert failed: already exists")
-	}
-
-	// sql query
-	const sqlstr = `INSERT INTO equinox.lookout (` +
-		`lookout_postcode, lookout_name, lookout_date, lookout_notes, lookout_req_by, lookout_app_no, equinox_lrn, equinox_sec` +
-		`) VALUES (` +
-		`$1, $2, $3, $4, $5, $6, $7, $8` +
-		`) ON CONFLICT (equinox_lrn) DO UPDATE SET (` +
-		`lookout_postcode, lookout_name, lookout_date, lookout_notes, lookout_req_by, lookout_app_no, equinox_lrn, equinox_sec` +
-		`) = (` +
-		`EXCLUDED.lookout_postcode, EXCLUDED.lookout_name, EXCLUDED.lookout_date, EXCLUDED.lookout_notes, EXCLUDED.lookout_req_by, EXCLUDED.lookout_app_no, EXCLUDED.equinox_lrn, EXCLUDED.equinox_sec` +
-		`)`
-
-	// run query
-	XOLog(sqlstr, l.LookoutPostcode, l.LookoutName, l.LookoutDate, l.LookoutNotes, l.LookoutReqBy, l.LookoutAppNo, l.EquinoxLrn, l.EquinoxSec)
-	_, err = db.Exec(sqlstr, l.LookoutPostcode, l.LookoutName, l.LookoutDate, l.LookoutNotes, l.LookoutReqBy, l.LookoutAppNo, l.EquinoxLrn, l.EquinoxSec)
-	if err != nil {
-		return err
-	}
-
-	// set existence
-	l._exists = true
-
-	return nil
-}
-
-// Delete deletes the Lookout from the database.
-func (l *Lookout) Delete(db XODB) error {
-	var err error
-
-	// if doesn't exist, bail
-	if !l._exists {
-		return nil
-	}
-
-	// if deleted, bail
-	if l._deleted {
-		return nil
-	}
-
-	// sql query
-	const sqlstr = `DELETE FROM equinox.lookout WHERE equinox_lrn = $1`
-
-	// run query
-	XOLog(sqlstr, l.EquinoxLrn)
-	_, err = db.Exec(sqlstr, l.EquinoxLrn)
-	if err != nil {
-		return err
-	}
-
-	// set deleted
-	l._deleted = true
-
-	return nil
 }
 
 // LookoutByEquinoxLrn retrieves a row from 'equinox.lookout' as a Lookout.
@@ -179,9 +35,7 @@ func LookoutByEquinoxLrn(db XODB, equinoxLrn int64) (*Lookout, error) {
 
 	// run query
 	XOLog(sqlstr, equinoxLrn)
-	l := Lookout{
-		_exists: true,
-	}
+	l := Lookout{}
 
 	err = db.QueryRow(sqlstr, equinoxLrn).Scan(&l.LookoutPostcode, &l.LookoutName, &l.LookoutDate, &l.LookoutNotes, &l.LookoutReqBy, &l.LookoutAppNo, &l.EquinoxLrn, &l.EquinoxSec)
 	if err != nil {
