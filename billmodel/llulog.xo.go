@@ -30,6 +30,37 @@ type Llulog struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllLlulog(db XODB, callback func(x Llulog) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`llucsource, lluccli, lluccheckdate, llucchecktime, llucstatus, llucexchange, llucsparec1, llucsparec2, llucsparec3, llucspared1, llucspared2, llucspared3, llucsparen1, llucsparen2, llucsparen3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.llulog `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		l := Llulog{}
+
+		// scan
+		err = q.Scan(&l.Llucsource, &l.Lluccli, &l.Lluccheckdate, &l.Llucchecktime, &l.Llucstatus, &l.Llucexchange, &l.Llucsparec1, &l.Llucsparec2, &l.Llucsparec3, &l.Llucspared1, &l.Llucspared2, &l.Llucspared3, &l.Llucsparen1, &l.Llucsparen2, &l.Llucsparen3, &l.EquinoxLrn, &l.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(l) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LlulogByEquinoxLrn retrieves a row from 'equinox.llulog' as a Llulog.
 //
 // Generated from index 'llulog_pkey'.

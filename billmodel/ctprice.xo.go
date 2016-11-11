@@ -26,6 +26,37 @@ type Ctprice struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCtprice(db XODB, callback func(x Ctprice) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ctprireguser, ctpriwapgas, ctpriwapgd, ctpriwape7, ctpritvggas, ctpritvggd, ctpritvge7, ctpritvgdual, ctpritvgduale7, ctprihrtgas, ctprihrtgd, ctprihrte7, ctprihrtdual, ctprihrtduale7, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ctprices `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Ctprice{}
+
+		// scan
+		err = q.Scan(&c.Ctprireguser, &c.Ctpriwapgas, &c.Ctpriwapgd, &c.Ctpriwape7, &c.Ctpritvggas, &c.Ctpritvggd, &c.Ctpritvge7, &c.Ctpritvgdual, &c.Ctpritvgduale7, &c.Ctprihrtgas, &c.Ctprihrtgd, &c.Ctprihrte7, &c.Ctprihrtdual, &c.Ctprihrtduale7, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CtpriceByEquinoxLrn retrieves a row from 'equinox.ctprices' as a Ctprice.
 //
 // Generated from index 'ctprices_pkey'.

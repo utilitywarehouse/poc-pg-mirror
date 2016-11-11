@@ -12,6 +12,37 @@ type PromoBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPromoBlb(db XODB, callback func(x PromoBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.promo_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := PromoBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PromoBlbByBlbLrn retrieves a row from 'equinox.promo_blb' as a PromoBlb.
 //
 // Generated from index 'promo_blb_pkey'.

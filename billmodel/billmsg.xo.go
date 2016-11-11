@@ -20,6 +20,37 @@ type Billmsg struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllBillmsg(db XODB, callback func(x Billmsg) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bmsgcustaccount, bmsgmessageid, bmsgsentdate, bmsgresponsedate, bmgsresponseby, equinox_lrn, equinox_sec ` +
+		`FROM equinox.billmsgs `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Billmsg{}
+
+		// scan
+		err = q.Scan(&b.Bmsgcustaccount, &b.Bmsgmessageid, &b.Bmsgsentdate, &b.Bmsgresponsedate, &b.Bmgsresponseby, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BillmsgByEquinoxLrn retrieves a row from 'equinox.billmsgs' as a Billmsg.
 //
 // Generated from index 'billmsgs_pkey'.

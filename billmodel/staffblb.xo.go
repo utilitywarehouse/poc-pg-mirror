@@ -12,6 +12,37 @@ type StaffBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllStaffBlb(db XODB, callback func(x StaffBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.staff_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		sb := StaffBlb{}
+
+		// scan
+		err = q.Scan(&sb.BlbLrn, &sb.BlbData, &sb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(sb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // StaffBlbByBlbLrn retrieves a row from 'equinox.staff_blb' as a StaffBlb.
 //
 // Generated from index 'staff_blb_pkey'.

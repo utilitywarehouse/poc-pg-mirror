@@ -13,6 +13,37 @@ type Ps72rec struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllPs72rec(db XODB, callback func(x Ps72rec) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ps72rejreason, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ps72recs `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Ps72rec{}
+
+		// scan
+		err = q.Scan(&p.Ps72rejreason, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // Ps72recByEquinoxLrn retrieves a row from 'equinox.ps72recs' as a Ps72rec.
 //
 // Generated from index 'ps72recs_pkey'.

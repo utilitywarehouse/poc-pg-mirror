@@ -21,6 +21,37 @@ type Wlrcode struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllWlrcode(db XODB, callback func(x Wlrcode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`wlrrejectcode, wlrrejectreason, wlrsparec1, wlrsparec2, wlrsparen1, wlrspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.wlrcodes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		w := Wlrcode{}
+
+		// scan
+		err = q.Scan(&w.Wlrrejectcode, &w.Wlrrejectreason, &w.Wlrsparec1, &w.Wlrsparec2, &w.Wlrsparen1, &w.Wlrspared1, &w.EquinoxLrn, &w.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(w) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // WlrcodeByEquinoxLrn retrieves a row from 'equinox.wlrcodes' as a Wlrcode.
 //
 // Generated from index 'wlrcodes_pkey'.

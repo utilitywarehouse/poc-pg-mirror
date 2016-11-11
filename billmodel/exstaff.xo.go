@@ -22,6 +22,37 @@ type Exstaff struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllExstaff(db XODB, callback func(x Exstaff) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exstafid, exstaffname, exstaffreplace, exstaffsparec1, exstaffsparen1, exstaffspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exstaff `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exstaff{}
+
+		// scan
+		err = q.Scan(&e.Exstafid, &e.Exstaffname, &e.Exstaffreplace, &e.Exstaffsparec1, &e.Exstaffsparen1, &e.Exstaffspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExstaffByEquinoxLrn retrieves a row from 'equinox.exstaff' as a Exstaff.
 //
 // Generated from index 'exstaff_pkey'.

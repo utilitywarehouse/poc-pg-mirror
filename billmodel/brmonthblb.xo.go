@@ -12,6 +12,37 @@ type BrmonthBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllBrmonthBlb(db XODB, callback func(x BrmonthBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.brmonth_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		bb := BrmonthBlb{}
+
+		// scan
+		err = q.Scan(&bb.BlbLrn, &bb.BlbData, &bb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(bb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BrmonthBlbByBlbLrn retrieves a row from 'equinox.brmonth_blb' as a BrmonthBlb.
 //
 // Generated from index 'brmonth_blb_pkey'.

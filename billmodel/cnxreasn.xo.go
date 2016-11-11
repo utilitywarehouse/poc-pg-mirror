@@ -14,6 +14,37 @@ type Cnxreasn struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCnxreasn(db XODB, callback func(x Cnxreasn) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxreason_id, cnxreason_descr, cnxreason_susp, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxreasn `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxreasn{}
+
+		// scan
+		err = q.Scan(&c.CnxreasonID, &c.CnxreasonDescr, &c.CnxreasonSusp, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxreasnByEquinoxLrn retrieves a row from 'equinox.cnxreasn' as a Cnxreasn.
 //
 // Generated from index 'cnxreasn_pkey'.

@@ -12,6 +12,37 @@ type CrsarBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCrsarBlb(db XODB, callback func(x CrsarBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.crsar_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := CrsarBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrsarBlbByBlbLrn retrieves a row from 'equinox.crsar_blb' as a CrsarBlb.
 //
 // Generated from index 'crsar_blb_pkey'.

@@ -23,6 +23,37 @@ type Mam struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllMam(db XODB, callback func(x Mam) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mamid, mamname, mamneedfiles, mamixlink, mamemail, mameaddress, mamthirdparty, mamthirdpartyid, mamfileno, mamnumber, mamcontractref, mamnode, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mam `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mam{}
+
+		// scan
+		err = q.Scan(&m.Mamid, &m.Mamname, &m.Mamneedfiles, &m.Mamixlink, &m.Mamemail, &m.Mameaddress, &m.Mamthirdparty, &m.Mamthirdpartyid, &m.Mamfileno, &m.Mamnumber, &m.Mamcontractref, &m.Mamnode, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MamByEquinoxLrn retrieves a row from 'equinox.mam' as a Mam.
 //
 // Generated from index 'mam_pkey'.

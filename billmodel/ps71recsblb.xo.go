@@ -12,6 +12,37 @@ type Ps71recsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPs71recsBlb(db XODB, callback func(x Ps71recsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.ps71recs_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := Ps71recsBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // Ps71recsBlbByBlbLrn retrieves a row from 'equinox.ps71recs_blb' as a Ps71recsBlb.
 //
 // Generated from index 'ps71recs_blb_pkey'.

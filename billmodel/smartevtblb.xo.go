@@ -12,6 +12,37 @@ type SmartevtBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllSmartevtBlb(db XODB, callback func(x SmartevtBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.smartevt_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		sb := SmartevtBlb{}
+
+		// scan
+		err = q.Scan(&sb.BlbLrn, &sb.BlbData, &sb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(sb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartevtBlbByBlbLrn retrieves a row from 'equinox.smartevt_blb' as a SmartevtBlb.
 //
 // Generated from index 'smartevt_blb_pkey'.

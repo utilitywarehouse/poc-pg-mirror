@@ -13,6 +13,37 @@ type Extbbcus struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExtbbcus(db XODB, callback func(x Extbbcus) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`extbbcustaccount, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.extbbcus `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Extbbcus{}
+
+		// scan
+		err = q.Scan(&e.Extbbcustaccount, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExtbbcusByEquinoxLrn retrieves a row from 'equinox.extbbcus' as a Extbbcus.
 //
 // Generated from index 'extbbcus_pkey'.

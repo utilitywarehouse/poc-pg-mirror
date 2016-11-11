@@ -85,6 +85,37 @@ type Extpay struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExtpay(db XODB, callback func(x Extpay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`extpayperiod, extgoplus, extpayperscvc, extother, extpayperscgb, extpaycgbback, extpaydealer, extpaytotbb, extpayweb, extpaytotalcvc, extpaytotal, extpaycarry, extlevel1, extlevel2, extlevel3, extlevel4, extlevel5, extlevel6, extlevel7, extlevel8, extudb, extsdb, exterror, extclawback, extadjustment, extnum1, extnum2, extdate1, extloan, exttraining, extentered, extpot, extrpc, extspecialmobile, extpayfast, extpaypromobonus, extpayuplift, extpaysponsortbb, extpayuplinetbb, extlgcb, extenergy, exterrorsource, extmarginal, extrenewal, extpaycarrepay, extpaycarbonus, extpaypromo1, extpaypromo2, extpaypromo3, extpaypromo4, extratetel, extrateenergy, extstatus, extcustlastmonth, exttitle, extquickincome, extsendby, extsentdate, extbatchno, extbatchindex, extgenie1start, extgenie1end, extgenie1level, extgenie2start, extgenie2end, extgenie2level, extpaysparec1, extpaysparen1, extpayspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.extpay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Extpay{}
+
+		// scan
+		err = q.Scan(&e.Extpayperiod, &e.Extgoplus, &e.Extpayperscvc, &e.Extother, &e.Extpayperscgb, &e.Extpaycgbback, &e.Extpaydealer, &e.Extpaytotbb, &e.Extpayweb, &e.Extpaytotalcvc, &e.Extpaytotal, &e.Extpaycarry, &e.Extlevel1, &e.Extlevel2, &e.Extlevel3, &e.Extlevel4, &e.Extlevel5, &e.Extlevel6, &e.Extlevel7, &e.Extlevel8, &e.Extudb, &e.Extsdb, &e.Exterror, &e.Extclawback, &e.Extadjustment, &e.Extnum1, &e.Extnum2, &e.Extdate1, &e.Extloan, &e.Exttraining, &e.Extentered, &e.Extpot, &e.Extrpc, &e.Extspecialmobile, &e.Extpayfast, &e.Extpaypromobonus, &e.Extpayuplift, &e.Extpaysponsortbb, &e.Extpayuplinetbb, &e.Extlgcb, &e.Extenergy, &e.Exterrorsource, &e.Extmarginal, &e.Extrenewal, &e.Extpaycarrepay, &e.Extpaycarbonus, &e.Extpaypromo1, &e.Extpaypromo2, &e.Extpaypromo3, &e.Extpaypromo4, &e.Extratetel, &e.Extrateenergy, &e.Extstatus, &e.Extcustlastmonth, &e.Exttitle, &e.Extquickincome, &e.Extsendby, &e.Extsentdate, &e.Extbatchno, &e.Extbatchindex, &e.Extgenie1start, &e.Extgenie1end, &e.Extgenie1level, &e.Extgenie2start, &e.Extgenie2end, &e.Extgenie2level, &e.Extpaysparec1, &e.Extpaysparen1, &e.Extpayspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExtpayByEquinoxLrn retrieves a row from 'equinox.extpay' as a Extpay.
 //
 // Generated from index 'extpay_pkey'.

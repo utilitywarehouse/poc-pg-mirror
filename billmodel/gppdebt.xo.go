@@ -29,6 +29,37 @@ type Gppdebt struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGppdebt(db XODB, callback func(x Gppdebt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gppddebt, gppdweeklymax, gppdweeklymin, gppdpercent, gppdnongasdebt, gppddate, gppdemergcredlim, gppdemergcreddeb, gppdlog1, gppdlog2, gppdlog3, gppdlog4, gppdmsnmatch, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gppdebt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gppdebt{}
+
+		// scan
+		err = q.Scan(&g.Gppddebt, &g.Gppdweeklymax, &g.Gppdweeklymin, &g.Gppdpercent, &g.Gppdnongasdebt, &g.Gppddate, &g.Gppdemergcredlim, &g.Gppdemergcreddeb, &g.Gppdlog1, &g.Gppdlog2, &g.Gppdlog3, &g.Gppdlog4, &g.Gppdmsnmatch, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GppdebtByEquinoxLrn retrieves a row from 'equinox.gppdebt' as a Gppdebt.
 //
 // Generated from index 'gppdebt_pkey'.

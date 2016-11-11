@@ -24,6 +24,37 @@ type Fincnfig struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllFincnfig(db XODB, callback func(x Fincnfig) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`fnccref, fncccommentcode, fnccpaymenttype, fnccpaymenttitle, fnccbatchcode, fnccadjustment, fncccompymnttype, fnccdescription, fnccsuspend, fncccomadj, fncccomamount, fnccpending, fnccdisplaysign, equinox_lrn, equinox_sec ` +
+		`FROM equinox.fincnfig `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		f := Fincnfig{}
+
+		// scan
+		err = q.Scan(&f.Fnccref, &f.Fncccommentcode, &f.Fnccpaymenttype, &f.Fnccpaymenttitle, &f.Fnccbatchcode, &f.Fnccadjustment, &f.Fncccompymnttype, &f.Fnccdescription, &f.Fnccsuspend, &f.Fncccomadj, &f.Fncccomamount, &f.Fnccpending, &f.Fnccdisplaysign, &f.EquinoxLrn, &f.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(f) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FincnfigByEquinoxLrn retrieves a row from 'equinox.fincnfig' as a Fincnfig.
 //
 // Generated from index 'fincnfig_pkey'.

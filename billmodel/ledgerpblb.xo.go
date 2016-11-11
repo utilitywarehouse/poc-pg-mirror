@@ -12,6 +12,37 @@ type LedgerpBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllLedgerpBlb(db XODB, callback func(x LedgerpBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.ledgerp_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		lb := LedgerpBlb{}
+
+		// scan
+		err = q.Scan(&lb.BlbLrn, &lb.BlbData, &lb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(lb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LedgerpBlbByBlbLrn retrieves a row from 'equinox.ledgerp_blb' as a LedgerpBlb.
 //
 // Generated from index 'ledgerp_blb_pkey'.

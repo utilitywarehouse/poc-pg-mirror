@@ -12,6 +12,37 @@ type BenefitsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllBenefitsBlb(db XODB, callback func(x BenefitsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.benefits_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		bb := BenefitsBlb{}
+
+		// scan
+		err = q.Scan(&bb.BlbLrn, &bb.BlbData, &bb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(bb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BenefitsBlbByBlbLrn retrieves a row from 'equinox.benefits_blb' as a BenefitsBlb.
 //
 // Generated from index 'benefits_blb_pkey'.

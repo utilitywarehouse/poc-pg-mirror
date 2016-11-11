@@ -12,6 +12,37 @@ type CtcompBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCtcompBlb(db XODB, callback func(x CtcompBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.ctcomp_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := CtcompBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CtcompBlbByBlbLrn retrieves a row from 'equinox.ctcomp_blb' as a CtcompBlb.
 //
 // Generated from index 'ctcomp_blb_pkey'.

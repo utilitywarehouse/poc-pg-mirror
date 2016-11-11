@@ -12,6 +12,37 @@ type MobprepaBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllMobprepaBlb(db XODB, callback func(x MobprepaBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.mobprepa_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		mb := MobprepaBlb{}
+
+		// scan
+		err = q.Scan(&mb.BlbLrn, &mb.BlbData, &mb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(mb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MobprepaBlbByBlbLrn retrieves a row from 'equinox.mobprepa_blb' as a MobprepaBlb.
 //
 // Generated from index 'mobprepa_blb_pkey'.

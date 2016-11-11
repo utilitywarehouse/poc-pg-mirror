@@ -24,6 +24,37 @@ type Bcdetail struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllBcdetail(db XODB, callback func(x Bcdetail) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bcdcodeid, bcdcode, bcdtariff, bcdsubtariff, bcdrouting, bcdminspend, bcdoptioncode, bcdcount, bcdgross, bcdnett, bcdsparen1, bcdsparec1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.bcdetail `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Bcdetail{}
+
+		// scan
+		err = q.Scan(&b.Bcdcodeid, &b.Bcdcode, &b.Bcdtariff, &b.Bcdsubtariff, &b.Bcdrouting, &b.Bcdminspend, &b.Bcdoptioncode, &b.Bcdcount, &b.Bcdgross, &b.Bcdnett, &b.Bcdsparen1, &b.Bcdsparec1, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BcdetailByEquinoxLrn retrieves a row from 'equinox.bcdetail' as a Bcdetail.
 //
 // Generated from index 'bcdetail_pkey'.

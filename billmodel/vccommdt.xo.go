@@ -48,6 +48,37 @@ type Vccommdt struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllVccommdt(db XODB, callback func(x Vccommdt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`detcperiodfrom, detcperiodto, detccrnumber, detccustaccno, detccliunique, detcclino, detcclicpsdate, detccliwlrdate, detcclilivedate, detccommlivedate, detcservicetype, detccontractterm, detcservlvl, detcquantity, detcnet, detcvat, detctotal, detcratetable, detddpayments, detctobeclawed, detccrystal, detcconsec, detccomplete, detdateclawed, detclawedbackbal, detuniqueid, detcliservorig, detcrmoptid, detcstatus, detccbpending, detcpaid, detcdead, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.vccommdt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		v := Vccommdt{}
+
+		// scan
+		err = q.Scan(&v.Detcperiodfrom, &v.Detcperiodto, &v.Detccrnumber, &v.Detccustaccno, &v.Detccliunique, &v.Detcclino, &v.Detcclicpsdate, &v.Detccliwlrdate, &v.Detcclilivedate, &v.Detccommlivedate, &v.Detcservicetype, &v.Detccontractterm, &v.Detcservlvl, &v.Detcquantity, &v.Detcnet, &v.Detcvat, &v.Detctotal, &v.Detcratetable, &v.Detddpayments, &v.Detctobeclawed, &v.Detccrystal, &v.Detcconsec, &v.Detccomplete, &v.Detdateclawed, &v.Detclawedbackbal, &v.Detuniqueid, &v.Detcliservorig, &v.Detcrmoptid, &v.Detcstatus, &v.Detccbpending, &v.Detcpaid, &v.Detcdead, &v.EquinoxPrn, &v.EquinoxLrn, &v.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(v) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VccommdtByEquinoxLrn retrieves a row from 'equinox.vccommdt' as a Vccommdt.
 //
 // Generated from index 'vccommdt_pkey'.

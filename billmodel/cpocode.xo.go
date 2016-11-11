@@ -26,6 +26,37 @@ type Cpocode struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCpocode(db XODB, callback func(x Cpocode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cpoid, cpodescription, cpovalue1, cpovalue2, cpovalue3, cpovalue4, cpovalue5, cpovalue6, cpovalue7, cpovalue8, cpovalue9, cpovalue10, cpovalue11, cpovalue12, cpovalue13, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cpocodes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cpocode{}
+
+		// scan
+		err = q.Scan(&c.Cpoid, &c.Cpodescription, &c.Cpovalue1, &c.Cpovalue2, &c.Cpovalue3, &c.Cpovalue4, &c.Cpovalue5, &c.Cpovalue6, &c.Cpovalue7, &c.Cpovalue8, &c.Cpovalue9, &c.Cpovalue10, &c.Cpovalue11, &c.Cpovalue12, &c.Cpovalue13, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CpocodeByEquinoxLrn retrieves a row from 'equinox.cpocodes' as a Cpocode.
 //
 // Generated from index 'cpocodes_pkey'.

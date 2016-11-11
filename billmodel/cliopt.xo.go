@@ -34,6 +34,37 @@ type Cliopt struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCliopt(db XODB, callback func(x Cliopt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`clirmoptid, clirmsetup, clirmmonthly, clirmdaily, clirmmnthordaily, clirmsparen1, clirmstartdate, clirmenddate, clirmpaiduntil, clirmpaiduntilbr, clirmmonthsadv, clirmoneofbillno, clirmspecialdeal, clirmcontmethod, clirmdiscband, clirmdiscpercent, clirmwlrorder, clirmquantity, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cliopts `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cliopt{}
+
+		// scan
+		err = q.Scan(&c.Clirmoptid, &c.Clirmsetup, &c.Clirmmonthly, &c.Clirmdaily, &c.Clirmmnthordaily, &c.Clirmsparen1, &c.Clirmstartdate, &c.Clirmenddate, &c.Clirmpaiduntil, &c.Clirmpaiduntilbr, &c.Clirmmonthsadv, &c.Clirmoneofbillno, &c.Clirmspecialdeal, &c.Clirmcontmethod, &c.Clirmdiscband, &c.Clirmdiscpercent, &c.Clirmwlrorder, &c.Clirmquantity, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ClioptByEquinoxLrn retrieves a row from 'equinox.cliopts' as a Cliopt.
 //
 // Generated from index 'cliopts_pkey'.

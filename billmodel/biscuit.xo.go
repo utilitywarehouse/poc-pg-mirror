@@ -24,6 +24,37 @@ type Biscuit struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllBiscuit(db XODB, callback func(x Biscuit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`biscuittype, biscuitdate, biscuitnextdate, biscuitstatus, biscuitbinary, biscuitoutcome, biscuittocomm, biscuitreference, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.biscuit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Biscuit{}
+
+		// scan
+		err = q.Scan(&b.Biscuittype, &b.Biscuitdate, &b.Biscuitnextdate, &b.Biscuitstatus, &b.Biscuitbinary, &b.Biscuitoutcome, &b.Biscuittocomm, &b.Biscuitreference, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BiscuitByEquinoxLrn retrieves a row from 'equinox.biscuit' as a Biscuit.
 //
 // Generated from index 'biscuit_pkey'.

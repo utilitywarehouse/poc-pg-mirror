@@ -12,6 +12,37 @@ type ProsperoBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllProsperoBlb(db XODB, callback func(x ProsperoBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.prospero_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := ProsperoBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ProsperoBlbByBlbLrn retrieves a row from 'equinox.prospero_blb' as a ProsperoBlb.
 //
 // Generated from index 'prospero_blb_pkey'.

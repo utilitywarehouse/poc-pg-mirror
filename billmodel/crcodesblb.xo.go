@@ -12,6 +12,37 @@ type CrcodesBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCrcodesBlb(db XODB, callback func(x CrcodesBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.crcodes_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := CrcodesBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrcodesBlbByBlbLrn retrieves a row from 'equinox.crcodes_blb' as a CrcodesBlb.
 //
 // Generated from index 'crcodes_blb_pkey'.

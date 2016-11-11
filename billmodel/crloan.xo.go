@@ -29,6 +29,37 @@ type Crloan struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllCrloan(db XODB, callback func(x Crloan) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crloanid, crlexid, crlcomcodeid, crltype, crlamount, crlamount2, crlfrom, crlto, crlcommitted, crlsparenum1, crlsparenum2, crlsparec1, crlsparec2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.crloans `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Crloan{}
+
+		// scan
+		err = q.Scan(&c.Crloanid, &c.Crlexid, &c.Crlcomcodeid, &c.Crltype, &c.Crlamount, &c.Crlamount2, &c.Crlfrom, &c.Crlto, &c.Crlcommitted, &c.Crlsparenum1, &c.Crlsparenum2, &c.Crlsparec1, &c.Crlsparec2, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrloanByEquinoxLrn retrieves a row from 'equinox.crloans' as a Crloan.
 //
 // Generated from index 'crloans_pkey'.

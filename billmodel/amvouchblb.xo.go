@@ -12,6 +12,37 @@ type AmvouchBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllAmvouchBlb(db XODB, callback func(x AmvouchBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.amvouch_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ab := AmvouchBlb{}
+
+		// scan
+		err = q.Scan(&ab.BlbLrn, &ab.BlbData, &ab.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ab) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AmvouchBlbByBlbLrn retrieves a row from 'equinox.amvouch_blb' as a AmvouchBlb.
 //
 // Generated from index 'amvouch_blb_pkey'.

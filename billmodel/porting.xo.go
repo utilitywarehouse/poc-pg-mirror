@@ -71,6 +71,37 @@ type Porting struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPorting(db XODB, callback func(x Porting) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`porttitle, portinits, portsurname, portname, portadd1, portadd2, portadd3, portadd4, portadd5, portpostcode, portexecid, portbusname, portaccountno, portreference, portday1, portexpect, portday, portusrdate, portusreject1, portusreject2, portusreject3, portusreject4, portusreject5, portusreject6, portusreject7, portusreject8, portstatus, portdsp, portdno, portdsprequest, portdspacknow, portdspdecision, portdsprejecttoc, portwithdraw, portwithdrawall, portdspwithdraw, portmanual, porttelephone, paperrec, portnoreturn, portready, portcomplete, portconnectacc, portdouble, porttransferee, portwelcome, portcoverage, portstart, portpac, portpacexpire, porttagged, portlocked, port00263, porttype, portedit, porttml, equinox_lrn, equinox_sec ` +
+		`FROM equinox.porting `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Porting{}
+
+		// scan
+		err = q.Scan(&p.Porttitle, &p.Portinits, &p.Portsurname, &p.Portname, &p.Portadd1, &p.Portadd2, &p.Portadd3, &p.Portadd4, &p.Portadd5, &p.Portpostcode, &p.Portexecid, &p.Portbusname, &p.Portaccountno, &p.Portreference, &p.Portday1, &p.Portexpect, &p.Portday, &p.Portusrdate, &p.Portusreject1, &p.Portusreject2, &p.Portusreject3, &p.Portusreject4, &p.Portusreject5, &p.Portusreject6, &p.Portusreject7, &p.Portusreject8, &p.Portstatus, &p.Portdsp, &p.Portdno, &p.Portdsprequest, &p.Portdspacknow, &p.Portdspdecision, &p.Portdsprejecttoc, &p.Portwithdraw, &p.Portwithdrawall, &p.Portdspwithdraw, &p.Portmanual, &p.Porttelephone, &p.Paperrec, &p.Portnoreturn, &p.Portready, &p.Portcomplete, &p.Portconnectacc, &p.Portdouble, &p.Porttransferee, &p.Portwelcome, &p.Portcoverage, &p.Portstart, &p.Portpac, &p.Portpacexpire, &p.Porttagged, &p.Portlocked, &p.Port00263, &p.Porttype, &p.Portedit, &p.Porttml, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PortingByEquinoxLrn retrieves a row from 'equinox.porting' as a Porting.
 //
 // Generated from index 'porting_pkey'.

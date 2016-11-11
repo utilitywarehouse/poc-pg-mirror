@@ -13,6 +13,37 @@ type Psr struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllPsr(db XODB, callback func(x Psr) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`psr_code, psr_description, equinox_lrn, equinox_sec ` +
+		`FROM equinox.psr `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Psr{}
+
+		// scan
+		err = q.Scan(&p.PsrCode, &p.PsrDescription, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PsrByEquinoxLrn retrieves a row from 'equinox.psr' as a Psr.
 //
 // Generated from index 'psr_pkey'.

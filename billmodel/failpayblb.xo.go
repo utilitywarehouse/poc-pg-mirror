@@ -12,6 +12,37 @@ type FailpayBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllFailpayBlb(db XODB, callback func(x FailpayBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.failpay_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		fb := FailpayBlb{}
+
+		// scan
+		err = q.Scan(&fb.BlbLrn, &fb.BlbData, &fb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(fb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FailpayBlbByBlbLrn retrieves a row from 'equinox.failpay_blb' as a FailpayBlb.
 //
 // Generated from index 'failpay_blb_pkey'.

@@ -32,6 +32,37 @@ type Energy struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllEnergy(db XODB, callback func(x Energy) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`enrgaccountno, enrgpostcode, enrgereference, enrgestartdate, enrgeenddate, enrgeregion, enrggreference, enrggstartdate, enrggenddate, enrggregion, enrglastmodd, enrglastmodt, enrglastmodby, enrgaddress1, enrgaddress2, enrgaddress3, enrgaddress4, equinox_lrn, equinox_sec ` +
+		`FROM equinox.energy `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Energy{}
+
+		// scan
+		err = q.Scan(&e.Enrgaccountno, &e.Enrgpostcode, &e.Enrgereference, &e.Enrgestartdate, &e.Enrgeenddate, &e.Enrgeregion, &e.Enrggreference, &e.Enrggstartdate, &e.Enrggenddate, &e.Enrggregion, &e.Enrglastmodd, &e.Enrglastmodt, &e.Enrglastmodby, &e.Enrgaddress1, &e.Enrgaddress2, &e.Enrgaddress3, &e.Enrgaddress4, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EnergyByEquinoxLrn retrieves a row from 'equinox.energy' as a Energy.
 //
 // Generated from index 'energy_pkey'.

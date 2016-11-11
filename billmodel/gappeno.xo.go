@@ -18,6 +18,37 @@ type Gappeno struct {
 	EquinoxSec  sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllGappeno(db XODB, callback func(x Gappeno) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gappeucdate, gappeuccat, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gappeno `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gappeno{}
+
+		// scan
+		err = q.Scan(&g.Gappeucdate, &g.Gappeuccat, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GappenoByEquinoxLrn retrieves a row from 'equinox.gappeno' as a Gappeno.
 //
 // Generated from index 'gappeno_pkey'.

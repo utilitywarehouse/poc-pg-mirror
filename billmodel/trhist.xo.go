@@ -24,6 +24,37 @@ type TrHist struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllTrHist(db XODB, callback func(x TrHist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`trhist_date, trhist_time, trhist_user, trhist_notes, trhist_code, trhist_spared1, trhist_sparec1, trhist_sparen1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tr_hist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		th := TrHist{}
+
+		// scan
+		err = q.Scan(&th.TrhistDate, &th.TrhistTime, &th.TrhistUser, &th.TrhistNotes, &th.TrhistCode, &th.TrhistSpared1, &th.TrhistSparec1, &th.TrhistSparen1, &th.EquinoxPrn, &th.EquinoxLrn, &th.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(th) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TrHistByEquinoxLrn retrieves a row from 'equinox.tr_hist' as a TrHist.
 //
 // Generated from index 'tr_hist_pkey'.

@@ -12,6 +12,37 @@ type IgtrangeBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllIgtrangeBlb(db XODB, callback func(x IgtrangeBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.igtrange_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ib := IgtrangeBlb{}
+
+		// scan
+		err = q.Scan(&ib.BlbLrn, &ib.BlbData, &ib.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ib) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // IgtrangeBlbByBlbLrn retrieves a row from 'equinox.igtrange_blb' as a IgtrangeBlb.
 //
 // Generated from index 'igtrange_blb_pkey'.

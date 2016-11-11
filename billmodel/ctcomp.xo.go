@@ -73,6 +73,37 @@ type Ctcomp struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCtcomp(db XODB, callback func(x Ctcomp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ctcompname, ctstandingelec, ctstandinggas, ctstandinge7, ctstandingdfg, ctunit1, ctunit2, ctunit1e7, ctunit2e7, ctunitraten, ctunit1gas, ctunit2gas, ctunit1dfg, ctunit2dfg, ctunitthreshgas, ctunitthreshelec, ctunitthreshe7, ctunitthreshdfg, ctddfixedelec, ctddfixedgas, ctddfixede7, ctddfixeddfg, ctddpercelec, ctddpercgas, ctddperce7, ctddpercdfg, ctddthreshelec, ctddthreshgas, ctddthreshe7, ctddthreshdfg, ctdffixed, ctdfperc, ctgasperc, ctdualperc, ctgasbilll, ctgasbills, ctgasbillh, ctelecbilll, ctelecbills, ctelecbillh, cte7billl, cte7bills, cte7billh, ctdualbilll, ctdualbills, ctdualbillh, ctdualbille7l, ctdualbille7s, ctdualbille7h, cteleperc, ctn1, ctn2, ctn3, ctd1, ctd2, ctc1, ctc2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ctcomp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Ctcomp{}
+
+		// scan
+		err = q.Scan(&c.Ctcompname, &c.Ctstandingelec, &c.Ctstandinggas, &c.Ctstandinge7, &c.Ctstandingdfg, &c.Ctunit1, &c.Ctunit2, &c.Ctunit1e7, &c.Ctunit2e7, &c.Ctunitraten, &c.Ctunit1gas, &c.Ctunit2gas, &c.Ctunit1dfg, &c.Ctunit2dfg, &c.Ctunitthreshgas, &c.Ctunitthreshelec, &c.Ctunitthreshe7, &c.Ctunitthreshdfg, &c.Ctddfixedelec, &c.Ctddfixedgas, &c.Ctddfixede7, &c.Ctddfixeddfg, &c.Ctddpercelec, &c.Ctddpercgas, &c.Ctddperce7, &c.Ctddpercdfg, &c.Ctddthreshelec, &c.Ctddthreshgas, &c.Ctddthreshe7, &c.Ctddthreshdfg, &c.Ctdffixed, &c.Ctdfperc, &c.Ctgasperc, &c.Ctdualperc, &c.Ctgasbilll, &c.Ctgasbills, &c.Ctgasbillh, &c.Ctelecbilll, &c.Ctelecbills, &c.Ctelecbillh, &c.Cte7billl, &c.Cte7bills, &c.Cte7billh, &c.Ctdualbilll, &c.Ctdualbills, &c.Ctdualbillh, &c.Ctdualbille7l, &c.Ctdualbille7s, &c.Ctdualbille7h, &c.Cteleperc, &c.Ctn1, &c.Ctn2, &c.Ctn3, &c.Ctd1, &c.Ctd2, &c.Ctc1, &c.Ctc2, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CtcompByEquinoxLrn retrieves a row from 'equinox.ctcomp' as a Ctcomp.
 //
 // Generated from index 'ctcomp_pkey'.

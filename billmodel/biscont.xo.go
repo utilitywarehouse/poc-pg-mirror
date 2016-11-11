@@ -19,6 +19,37 @@ type Biscont struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllBiscont(db XODB, callback func(x Biscont) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`biscontcompany, biscontid, biscontdeptid, biscontname, biscontphone, biscontfax, biscontemail, biscontprocess, equinox_lrn, equinox_sec ` +
+		`FROM equinox.biscont `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Biscont{}
+
+		// scan
+		err = q.Scan(&b.Biscontcompany, &b.Biscontid, &b.Biscontdeptid, &b.Biscontname, &b.Biscontphone, &b.Biscontfax, &b.Biscontemail, &b.Biscontprocess, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BiscontByEquinoxLrn retrieves a row from 'equinox.biscont' as a Biscont.
 //
 // Generated from index 'biscont_pkey'.

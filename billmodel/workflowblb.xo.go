@@ -12,6 +12,37 @@ type WorkflowBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllWorkflowBlb(db XODB, callback func(x WorkflowBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.workflow_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		wb := WorkflowBlb{}
+
+		// scan
+		err = q.Scan(&wb.BlbLrn, &wb.BlbData, &wb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(wb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // WorkflowBlbByBlbLrn retrieves a row from 'equinox.workflow_blb' as a WorkflowBlb.
 //
 // Generated from index 'workflow_blb_pkey'.

@@ -12,6 +12,37 @@ type GappfileBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllGappfileBlb(db XODB, callback func(x GappfileBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.gappfile_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		gb := GappfileBlb{}
+
+		// scan
+		err = q.Scan(&gb.BlbLrn, &gb.BlbData, &gb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(gb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GappfileBlbByBlbLrn retrieves a row from 'equinox.gappfile_blb' as a GappfileBlb.
 //
 // Generated from index 'gappfile_blb_pkey'.

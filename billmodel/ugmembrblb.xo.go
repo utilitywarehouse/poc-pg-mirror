@@ -12,6 +12,37 @@ type UgmembrBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllUgmembrBlb(db XODB, callback func(x UgmembrBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.ugmembr_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ub := UgmembrBlb{}
+
+		// scan
+		err = q.Scan(&ub.BlbLrn, &ub.BlbData, &ub.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ub) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UgmembrBlbByBlbLrn retrieves a row from 'equinox.ugmembr_blb' as a UgmembrBlb.
 //
 // Generated from index 'ugmembr_blb_pkey'.

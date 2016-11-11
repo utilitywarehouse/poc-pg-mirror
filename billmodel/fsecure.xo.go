@@ -26,6 +26,37 @@ type Fsecure struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllFsecure(db XODB, callback func(x Fsecure) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`fskey, fsissuedate, fslivedate, fsbarreddate, fsenddate, fslicences, fsclinumber, fsmemo, fssparec1, fsspared1, fssparen1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.fsecure `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		f := Fsecure{}
+
+		// scan
+		err = q.Scan(&f.Fskey, &f.Fsissuedate, &f.Fslivedate, &f.Fsbarreddate, &f.Fsenddate, &f.Fslicences, &f.Fsclinumber, &f.Fsmemo, &f.Fssparec1, &f.Fsspared1, &f.Fssparen1, &f.EquinoxLrn, &f.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(f) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FsecureByEquinoxLrn retrieves a row from 'equinox.fsecure' as a Fsecure.
 //
 // Generated from index 'fsecure_pkey'.

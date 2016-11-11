@@ -12,6 +12,37 @@ type GmorjobBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllGmorjobBlb(db XODB, callback func(x GmorjobBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.gmorjob_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		gb := GmorjobBlb{}
+
+		// scan
+		err = q.Scan(&gb.BlbLrn, &gb.BlbData, &gb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(gb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GmorjobBlbByBlbLrn retrieves a row from 'equinox.gmorjob_blb' as a GmorjobBlb.
 //
 // Generated from index 'gmorjob_blb_pkey'.

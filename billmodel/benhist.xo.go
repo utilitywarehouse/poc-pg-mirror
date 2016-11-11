@@ -22,6 +22,37 @@ type Benhist struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllBenhist(db XODB, callback func(x Benhist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`benhist_date, benhist_action, benhist_notes, benhist_sparec1, benhist_sparen1, benhist_spared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.benhist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Benhist{}
+
+		// scan
+		err = q.Scan(&b.BenhistDate, &b.BenhistAction, &b.BenhistNotes, &b.BenhistSparec1, &b.BenhistSparen1, &b.BenhistSpared1, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BenhistByEquinoxLrn retrieves a row from 'equinox.benhist' as a Benhist.
 //
 // Generated from index 'benhist_pkey'.

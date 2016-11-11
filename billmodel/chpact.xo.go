@@ -32,6 +32,37 @@ type Chpact struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllChpact(db XODB, callback func(x Chpact) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`chpactid, chpactstatus, chpactcreateddt, chpactcreatedtm, chpacttype, chpactescto, chpactnotes, chpactreminder, chpactremsched, chpactremtype, chpactremdt, chpactremtm, chpactremmsg, chpactcreatedby, chpactcompletedt, chpactcompletetm, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.chpact `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Chpact{}
+
+		// scan
+		err = q.Scan(&c.Chpactid, &c.Chpactstatus, &c.Chpactcreateddt, &c.Chpactcreatedtm, &c.Chpacttype, &c.Chpactescto, &c.Chpactnotes, &c.Chpactreminder, &c.Chpactremsched, &c.Chpactremtype, &c.Chpactremdt, &c.Chpactremtm, &c.Chpactremmsg, &c.Chpactcreatedby, &c.Chpactcompletedt, &c.Chpactcompletetm, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ChpactByEquinoxLrn retrieves a row from 'equinox.chpact' as a Chpact.
 //
 // Generated from index 'chpact_pkey'.

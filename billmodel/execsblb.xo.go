@@ -12,6 +12,37 @@ type ExecsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllExecsBlb(db XODB, callback func(x ExecsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.execs_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		eb := ExecsBlb{}
+
+		// scan
+		err = q.Scan(&eb.BlbLrn, &eb.BlbData, &eb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(eb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExecsBlbByBlbLrn retrieves a row from 'equinox.execs_blb' as a ExecsBlb.
 //
 // Generated from index 'execs_blb_pkey'.

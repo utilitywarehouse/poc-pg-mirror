@@ -12,6 +12,37 @@ type LookoutBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllLookoutBlb(db XODB, callback func(x LookoutBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.lookout_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		lb := LookoutBlb{}
+
+		// scan
+		err = q.Scan(&lb.BlbLrn, &lb.BlbData, &lb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(lb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LookoutBlbByBlbLrn retrieves a row from 'equinox.lookout_blb' as a LookoutBlb.
 //
 // Generated from index 'lookout_blb_pkey'.

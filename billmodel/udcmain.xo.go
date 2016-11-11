@@ -73,6 +73,37 @@ type Udcmain struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllUdcmain(db XODB, callback func(x Udcmain) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`udccustaccountno, udcaccountstatus, udcaccmanager, udcbatchnumber, udcimportbalance, udcnewchase, udcdatetoudc, udcagency, udcpdvsent, udcpdvreturned, udccourtdategas, udccourtdateelec, udcisodategas, udcisodateelec, udcrebookisogas, udcrebookisoelec, udcisocancelgas, udcisocancelelec, udcisoreasongas, udcisoreasonelec, udcppmetermsngas, udcppmetermsnele, udcmetertypegas, udcmetertypeelec, udcprrgas, udcprrelec, udcfinaldebtgas, udcfinaldebtelec, udcppagreefeegas, udppagreefeeelec, udcisolationfgas, udcisolationfele, udcppstartdate, udcppduration, udcppenddate, udcagreedpayment, udcpaymentfreq, udcpaymentmethod, udcpaymonth, udcexpectedpdate, udcamountpaid, udcexecfailgas, udcexecfailelec, udcactionreviewd, udcimportseq, udcmodifieddate, udcmodifiedtime, udcmodifiedby, udcprogstatus, udccustomersalu, udcaccounttype, udcpdvdate, udcpropertytype, udccourtfee, udcinterest, udcmartsonfee, udclast4digits, udcdatesent, equinox_lrn, equinox_sec ` +
+		`FROM equinox.udcmain `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Udcmain{}
+
+		// scan
+		err = q.Scan(&u.Udccustaccountno, &u.Udcaccountstatus, &u.Udcaccmanager, &u.Udcbatchnumber, &u.Udcimportbalance, &u.Udcnewchase, &u.Udcdatetoudc, &u.Udcagency, &u.Udcpdvsent, &u.Udcpdvreturned, &u.Udccourtdategas, &u.Udccourtdateelec, &u.Udcisodategas, &u.Udcisodateelec, &u.Udcrebookisogas, &u.Udcrebookisoelec, &u.Udcisocancelgas, &u.Udcisocancelelec, &u.Udcisoreasongas, &u.Udcisoreasonelec, &u.Udcppmetermsngas, &u.Udcppmetermsnele, &u.Udcmetertypegas, &u.Udcmetertypeelec, &u.Udcprrgas, &u.Udcprrelec, &u.Udcfinaldebtgas, &u.Udcfinaldebtelec, &u.Udcppagreefeegas, &u.Udppagreefeeelec, &u.Udcisolationfgas, &u.Udcisolationfele, &u.Udcppstartdate, &u.Udcppduration, &u.Udcppenddate, &u.Udcagreedpayment, &u.Udcpaymentfreq, &u.Udcpaymentmethod, &u.Udcpaymonth, &u.Udcexpectedpdate, &u.Udcamountpaid, &u.Udcexecfailgas, &u.Udcexecfailelec, &u.Udcactionreviewd, &u.Udcimportseq, &u.Udcmodifieddate, &u.Udcmodifiedtime, &u.Udcmodifiedby, &u.Udcprogstatus, &u.Udccustomersalu, &u.Udcaccounttype, &u.Udcpdvdate, &u.Udcpropertytype, &u.Udccourtfee, &u.Udcinterest, &u.Udcmartsonfee, &u.Udclast4digits, &u.Udcdatesent, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UdcmainByEquinoxLrn retrieves a row from 'equinox.udcmain' as a Udcmain.
 //
 // Generated from index 'udcmain_pkey'.

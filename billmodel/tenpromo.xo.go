@@ -14,6 +14,37 @@ type Tenpromo struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllTenpromo(db XODB, callback func(x Tenpromo) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tencustaccountno, tenexidold, tenexidnew, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tenpromo `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tenpromo{}
+
+		// scan
+		err = q.Scan(&t.Tencustaccountno, &t.Tenexidold, &t.Tenexidnew, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TenpromoByEquinoxLrn retrieves a row from 'equinox.tenpromo' as a Tenpromo.
 //
 // Generated from index 'tenpromo_pkey'.

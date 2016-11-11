@@ -29,6 +29,37 @@ type Tabstock struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllTabstock(db XODB, callback func(x Tabstock) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tbmakeandmodel, tbserialnumber, tbmacaddress, tbcontractterm, tbdateintostock, tbdatesentout, tbwarrantystart, tbtrainerid, tbeventid, tbdeliverymethod, tbtabletgrade, tbmachash, tbpartnerid, tbtabletgradeper, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tabstock `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tabstock{}
+
+		// scan
+		err = q.Scan(&t.Tbmakeandmodel, &t.Tbserialnumber, &t.Tbmacaddress, &t.Tbcontractterm, &t.Tbdateintostock, &t.Tbdatesentout, &t.Tbwarrantystart, &t.Tbtrainerid, &t.Tbeventid, &t.Tbdeliverymethod, &t.Tbtabletgrade, &t.Tbmachash, &t.Tbpartnerid, &t.Tbtabletgradeper, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TabstockByEquinoxLrn retrieves a row from 'equinox.tabstock' as a Tabstock.
 //
 // Generated from index 'tabstock_pkey'.

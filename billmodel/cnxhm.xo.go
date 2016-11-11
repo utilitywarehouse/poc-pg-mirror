@@ -202,6 +202,37 @@ type Cnxhm struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxhm(db XODB, callback func(x Cnxhm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxhmc2dob2, cnxhmenteredonc1, cnxhmstarted, cnxhmcompleted, cnxhmaccountno, cnxhmcustname, cnxhmbillgroup, cnxhmcusttitle, cnxhmcustiniti, cnxhmcustfirstn, cnxhmcustsurnam, cnxhmcustadd1, cnxhmcustadd2, cnxhmcustadd3, cnxhmcustadd4, cnxhmcustcounty, cnxhmcustpcode, cnxhmcustphone, cnxhmcustmobile, cnxhmdateofbirth, cnxhmcustemail, cnxhmemailbills, cnxhmmoveindate, cnxhmmoveoutdate, cnxhmownertenant, cnxhmtenancyend, cnxhmnewtitle, cnxhmnewfirstnam, cnxhmnewsurname, cnxhmnewadd1, cnxhmnewadd2, cnxhmnewadd3, cnxhmnewadd4, cnxhmnewcounty, cnxhmnewpostcode, cnxhmcurrtitle, cnxhmcurrfirstn, cnxhmcurrsurname, cnxhminvtitle, cnxhminvinitials, cnxhminvfirstn, cnxhminvsurname, cnxhminvadd1, cnxhminvadd2, cnxhminvadd3, cnxhminvadd4, cnxhminvcounty, cnxhminvpostcode, cnxhminvphone, cnxhminvmobile, cnxhminvemail, cnxhmc2title2, cnxhmc2firstnam2, cnxhmc2surname2, cnxhmc2mobile2, cnxhmtempadd1, cnxhmtempadd2, cnxhmtempadd3, cnxhmtempadd4, cnxhmtempcounty, cnxhmtemppcode, cnxhmtempaddress, cnxhmnewphone, cnxhmbnksort, cnxhmbnkaccno, cnxhmbnkaccname, cnxhmbnkname, cnxhmnewbankdet, cnxhmbnksortnew, cnxhmbnkacnonew, cnxhmbnkacnamnew, cnxhmbnknamenew, cnxhmcctype, cnxhmccstartdate, cnxhmccenddate, cnxhmccname, cnxhmccnumber, cnxhmccseccode, cnxhmccissue, cnxhmcalltakerc1, cnxhmcallsinadv, cnxhmlluenabled, cnxhmcablenumber, cnxhmsameexch, cnxhmnextaction, cnxhmnextacttype, cnxhmgascomp, cnxhmc2vuln, cnxhmbcplus, cnxhmc2vulnage, cnxhmbcnumwith, cnxhmbcexdir, cnxhmbctps, cnxhmc2acname, cnxhmc2landl2, cnxhmc2vulnchage, cnxhmbcequipdel, cnxhmc2vulndisab, cnxhmbccomp, cnxhmfeatureline, cnxhmcable, cnxhmsmartbox, cnxhmspretainno, cnxhmmobsaver, cnxhmintsaver, cnxhmspnumwith, cnxhmspexdir, cnxhmsptps, cnxhmspcomp, cnxhmc2email2, cnxhmc2vulncarer, cnxhmc2vulncap, cnxhmc2vulnis, cnxhmc2vulnfinan, cnxhmgpequipdel, cnxhmc2vulnchild, cnxhmmy8comp, cnxhmmobtariff, cnxhmhandset, cnxhmrpc, cnxhminstbillval, cnxhmvoicemail, cnxhmport, cnxhmpac, cnxhmmobequipdel, cnxhmmobcomp, cnxhmstatus, cnxhmnewaddexist, cnxhmuniquesys, cnxhmnewocacno, cnxhmc1p1servs, cnxhmc2p1servs, cnxhmnewownerten, cnxhmnewtenancye, cnxhmnewinvpcode, cnxhmnewinvadd1, cnxhmnewinvadd2, cnxhmnewinvadd3, cnxhmnewinvadd4, cnxhmnewinvcount, cnxhmc1addchange, cnxhmc1p2servs, cnxhmnewmpan, cnxhmnewmprn, cnxhmnewmsno, cnxhmnewlgas, cnxhmverbalcon, cnxhmclublevel, cnxhmputintoclub, cnxhmstatuscom, cnxhmfreetext, cnxhmp2complete, cnxhmnewcctype, cnxhmnewccstart, cnxhmnewccend, cnxhmnewccnum, cnxhmnewccissue, cnxhmnewfreetext, cnxhmnewebills, cnxhmnewmarket, cnxhmnewclublvl, cnxhmnewdob, cnxhmnewemail1, cnxhmcalltakerc2, cnxhmenteredonc2, cnxhmfirstpoc, cnxhmbtsocket, cnxhmphase2, cnxhmc2status, cnxhmc2mobile, cnxhmc2email, cnxhmc2moveindte, cnxhmc2landline, cnxhmcaller, cnxhmc2depagreed, cnxhminstantac, cnxhminstantbill, cnxhmstatuscomc2, cnxhminstacdone, cnxhmc2vulndet, cnxhminstbilcalc, cnxhminstbilpaid, cnxhminstbilldet, cnxhmc1commpref, cnxhmdafcb, cnxhmdafavail, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxhm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxhm{}
+
+		// scan
+		err = q.Scan(&c.Cnxhmc2dob2, &c.Cnxhmenteredonc1, &c.Cnxhmstarted, &c.Cnxhmcompleted, &c.Cnxhmaccountno, &c.Cnxhmcustname, &c.Cnxhmbillgroup, &c.Cnxhmcusttitle, &c.Cnxhmcustiniti, &c.Cnxhmcustfirstn, &c.Cnxhmcustsurnam, &c.Cnxhmcustadd1, &c.Cnxhmcustadd2, &c.Cnxhmcustadd3, &c.Cnxhmcustadd4, &c.Cnxhmcustcounty, &c.Cnxhmcustpcode, &c.Cnxhmcustphone, &c.Cnxhmcustmobile, &c.Cnxhmdateofbirth, &c.Cnxhmcustemail, &c.Cnxhmemailbills, &c.Cnxhmmoveindate, &c.Cnxhmmoveoutdate, &c.Cnxhmownertenant, &c.Cnxhmtenancyend, &c.Cnxhmnewtitle, &c.Cnxhmnewfirstnam, &c.Cnxhmnewsurname, &c.Cnxhmnewadd1, &c.Cnxhmnewadd2, &c.Cnxhmnewadd3, &c.Cnxhmnewadd4, &c.Cnxhmnewcounty, &c.Cnxhmnewpostcode, &c.Cnxhmcurrtitle, &c.Cnxhmcurrfirstn, &c.Cnxhmcurrsurname, &c.Cnxhminvtitle, &c.Cnxhminvinitials, &c.Cnxhminvfirstn, &c.Cnxhminvsurname, &c.Cnxhminvadd1, &c.Cnxhminvadd2, &c.Cnxhminvadd3, &c.Cnxhminvadd4, &c.Cnxhminvcounty, &c.Cnxhminvpostcode, &c.Cnxhminvphone, &c.Cnxhminvmobile, &c.Cnxhminvemail, &c.Cnxhmc2title2, &c.Cnxhmc2firstnam2, &c.Cnxhmc2surname2, &c.Cnxhmc2mobile2, &c.Cnxhmtempadd1, &c.Cnxhmtempadd2, &c.Cnxhmtempadd3, &c.Cnxhmtempadd4, &c.Cnxhmtempcounty, &c.Cnxhmtemppcode, &c.Cnxhmtempaddress, &c.Cnxhmnewphone, &c.Cnxhmbnksort, &c.Cnxhmbnkaccno, &c.Cnxhmbnkaccname, &c.Cnxhmbnkname, &c.Cnxhmnewbankdet, &c.Cnxhmbnksortnew, &c.Cnxhmbnkacnonew, &c.Cnxhmbnkacnamnew, &c.Cnxhmbnknamenew, &c.Cnxhmcctype, &c.Cnxhmccstartdate, &c.Cnxhmccenddate, &c.Cnxhmccname, &c.Cnxhmccnumber, &c.Cnxhmccseccode, &c.Cnxhmccissue, &c.Cnxhmcalltakerc1, &c.Cnxhmcallsinadv, &c.Cnxhmlluenabled, &c.Cnxhmcablenumber, &c.Cnxhmsameexch, &c.Cnxhmnextaction, &c.Cnxhmnextacttype, &c.Cnxhmgascomp, &c.Cnxhmc2vuln, &c.Cnxhmbcplus, &c.Cnxhmc2vulnage, &c.Cnxhmbcnumwith, &c.Cnxhmbcexdir, &c.Cnxhmbctps, &c.Cnxhmc2acname, &c.Cnxhmc2landl2, &c.Cnxhmc2vulnchage, &c.Cnxhmbcequipdel, &c.Cnxhmc2vulndisab, &c.Cnxhmbccomp, &c.Cnxhmfeatureline, &c.Cnxhmcable, &c.Cnxhmsmartbox, &c.Cnxhmspretainno, &c.Cnxhmmobsaver, &c.Cnxhmintsaver, &c.Cnxhmspnumwith, &c.Cnxhmspexdir, &c.Cnxhmsptps, &c.Cnxhmspcomp, &c.Cnxhmc2email2, &c.Cnxhmc2vulncarer, &c.Cnxhmc2vulncap, &c.Cnxhmc2vulnis, &c.Cnxhmc2vulnfinan, &c.Cnxhmgpequipdel, &c.Cnxhmc2vulnchild, &c.Cnxhmmy8comp, &c.Cnxhmmobtariff, &c.Cnxhmhandset, &c.Cnxhmrpc, &c.Cnxhminstbillval, &c.Cnxhmvoicemail, &c.Cnxhmport, &c.Cnxhmpac, &c.Cnxhmmobequipdel, &c.Cnxhmmobcomp, &c.Cnxhmstatus, &c.Cnxhmnewaddexist, &c.Cnxhmuniquesys, &c.Cnxhmnewocacno, &c.Cnxhmc1p1servs, &c.Cnxhmc2p1servs, &c.Cnxhmnewownerten, &c.Cnxhmnewtenancye, &c.Cnxhmnewinvpcode, &c.Cnxhmnewinvadd1, &c.Cnxhmnewinvadd2, &c.Cnxhmnewinvadd3, &c.Cnxhmnewinvadd4, &c.Cnxhmnewinvcount, &c.Cnxhmc1addchange, &c.Cnxhmc1p2servs, &c.Cnxhmnewmpan, &c.Cnxhmnewmprn, &c.Cnxhmnewmsno, &c.Cnxhmnewlgas, &c.Cnxhmverbalcon, &c.Cnxhmclublevel, &c.Cnxhmputintoclub, &c.Cnxhmstatuscom, &c.Cnxhmfreetext, &c.Cnxhmp2complete, &c.Cnxhmnewcctype, &c.Cnxhmnewccstart, &c.Cnxhmnewccend, &c.Cnxhmnewccnum, &c.Cnxhmnewccissue, &c.Cnxhmnewfreetext, &c.Cnxhmnewebills, &c.Cnxhmnewmarket, &c.Cnxhmnewclublvl, &c.Cnxhmnewdob, &c.Cnxhmnewemail1, &c.Cnxhmcalltakerc2, &c.Cnxhmenteredonc2, &c.Cnxhmfirstpoc, &c.Cnxhmbtsocket, &c.Cnxhmphase2, &c.Cnxhmc2status, &c.Cnxhmc2mobile, &c.Cnxhmc2email, &c.Cnxhmc2moveindte, &c.Cnxhmc2landline, &c.Cnxhmcaller, &c.Cnxhmc2depagreed, &c.Cnxhminstantac, &c.Cnxhminstantbill, &c.Cnxhmstatuscomc2, &c.Cnxhminstacdone, &c.Cnxhmc2vulndet, &c.Cnxhminstbilcalc, &c.Cnxhminstbilpaid, &c.Cnxhminstbilldet, &c.Cnxhmc1commpref, &c.Cnxhmdafcb, &c.Cnxhmdafavail, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxhmByEquinoxLrn retrieves a row from 'equinox.cnxhm' as a Cnxhm.
 //
 // Generated from index 'cnxhm_pkey'.

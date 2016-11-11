@@ -12,6 +12,37 @@ type OAttendBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllOAttendBlb(db XODB, callback func(x OAttendBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.o_attend_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		oab := OAttendBlb{}
+
+		// scan
+		err = q.Scan(&oab.BlbLrn, &oab.BlbData, &oab.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(oab) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OAttendBlbByBlbLrn retrieves a row from 'equinox.o_attend_blb' as a OAttendBlb.
 //
 // Generated from index 'o_attend_blb_pkey'.

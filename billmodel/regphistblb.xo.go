@@ -12,6 +12,37 @@ type RegphistBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllRegphistBlb(db XODB, callback func(x RegphistBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.regphist_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		rb := RegphistBlb{}
+
+		// scan
+		err = q.Scan(&rb.BlbLrn, &rb.BlbData, &rb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(rb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RegphistBlbByBlbLrn retrieves a row from 'equinox.regphist_blb' as a RegphistBlb.
 //
 // Generated from index 'regphist_blb_pkey'.

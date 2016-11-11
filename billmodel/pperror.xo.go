@@ -22,6 +22,37 @@ type Pperror struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllPperror(db XODB, callback func(x Pperror) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pperrgcn, pperrmsn, pperrdateadded, pperrlastworked, pperrowner, pperrstatus, pperrfueltype, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pperror `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pperror{}
+
+		// scan
+		err = q.Scan(&p.Pperrgcn, &p.Pperrmsn, &p.Pperrdateadded, &p.Pperrlastworked, &p.Pperrowner, &p.Pperrstatus, &p.Pperrfueltype, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PperrorByEquinoxLrn retrieves a row from 'equinox.pperror' as a Pperror.
 //
 // Generated from index 'pperror_pkey'.

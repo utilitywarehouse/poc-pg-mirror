@@ -33,6 +33,37 @@ type Smartpnd struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllSmartpnd(db XODB, callback func(x Smartpnd) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`spndaccno, spnddatecreated, spnderef, spnderefconndate, spndgref, spndgrefconndate, spndcusttype, spndreason, spndprocessed, spndexception, spndfuelstatus, spndmetermode, spndfile, spndmop, spndjobtrackdt, spndmopcontact, spndsparen1, spndsenttomop, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartpnd `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartpnd{}
+
+		// scan
+		err = q.Scan(&s.Spndaccno, &s.Spnddatecreated, &s.Spnderef, &s.Spnderefconndate, &s.Spndgref, &s.Spndgrefconndate, &s.Spndcusttype, &s.Spndreason, &s.Spndprocessed, &s.Spndexception, &s.Spndfuelstatus, &s.Spndmetermode, &s.Spndfile, &s.Spndmop, &s.Spndjobtrackdt, &s.Spndmopcontact, &s.Spndsparen1, &s.Spndsenttomop, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartpndByEquinoxLrn retrieves a row from 'equinox.smartpnd' as a Smartpnd.
 //
 // Generated from index 'smartpnd_pkey'.

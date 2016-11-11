@@ -34,6 +34,37 @@ type Cpcode struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCpcode(db XODB, callback func(x Cpcode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cpcnumber, cpccodeid, cpccode, cpcdescription, cpcdisplayorder, cpcpercentnett, cpcpercentnett2, cpcpercentnett3, cpcpercentnett4, cpcpercentnett5, cpcpercentnett6, cpcpercentnett7, cpcpercentnett8, cpcpercentnett9, cpcpercentnett10, cpcpercentnett11, cpcpercentnett12, cpcpercentnett13, cpcsparen1, cpcsparen2, cpcsparec1, cpcsparec2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cpcodes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cpcode{}
+
+		// scan
+		err = q.Scan(&c.Cpcnumber, &c.Cpccodeid, &c.Cpccode, &c.Cpcdescription, &c.Cpcdisplayorder, &c.Cpcpercentnett, &c.Cpcpercentnett2, &c.Cpcpercentnett3, &c.Cpcpercentnett4, &c.Cpcpercentnett5, &c.Cpcpercentnett6, &c.Cpcpercentnett7, &c.Cpcpercentnett8, &c.Cpcpercentnett9, &c.Cpcpercentnett10, &c.Cpcpercentnett11, &c.Cpcpercentnett12, &c.Cpcpercentnett13, &c.Cpcsparen1, &c.Cpcsparen2, &c.Cpcsparec1, &c.Cpcsparec2, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CpcodeByEquinoxLrn retrieves a row from 'equinox.cpcodes' as a Cpcode.
 //
 // Generated from index 'cpcodes_pkey'.

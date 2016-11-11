@@ -37,6 +37,37 @@ type Gmam struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGmam(db XODB, callback func(x Gmam) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gmmamid, gmorigmamid, gmeffectivedate, gmmscode, gmfiletype, gmtranstype, gmpaymehtodcode, gmmodelcode, gmyearmake, gmassetstatus, gmmetertypecode, gmmetermechanism, gmlocationcode, gmmakecode, gmmcapacity, gmunits, gmreadfactor, gmfilecreated, gmfilecreatedby, gmdials, gmrolecode, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gmam `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gmam{}
+
+		// scan
+		err = q.Scan(&g.Gmmamid, &g.Gmorigmamid, &g.Gmeffectivedate, &g.Gmmscode, &g.Gmfiletype, &g.Gmtranstype, &g.Gmpaymehtodcode, &g.Gmmodelcode, &g.Gmyearmake, &g.Gmassetstatus, &g.Gmmetertypecode, &g.Gmmetermechanism, &g.Gmlocationcode, &g.Gmmakecode, &g.Gmmcapacity, &g.Gmunits, &g.Gmreadfactor, &g.Gmfilecreated, &g.Gmfilecreatedby, &g.Gmdials, &g.Gmrolecode, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GmamByEquinoxLrn retrieves a row from 'equinox.gmam' as a Gmam.
 //
 // Generated from index 'gmam_pkey'.

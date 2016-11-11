@@ -60,6 +60,37 @@ type Gasmeter struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGasmeter(db XODB, callback func(x Gasmeter) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gmtrmprn, gmtrserialno, gmtrinstalldate, gmtreffectdate, gmtrdatesent, gmtrdateupdate, gmtrdupdatedby, gmtryearmake, gmtrmakecode, gmtrmodelcode, gmtrmetertype, gmtrcapacity, gmtrlocationcode, gmtrunits, gmtrreadfactor, gmtrdials, gmtrrolecode, gmtrmetermech, gmtrcorrfactor, gmtrstatus, gmtrpostcode, gmtrbuildingno, gmtrbuildingname, gmtrdependstreet, gmtrstreet, gmtrlocality, gmtrposttown, gmtrcounty, gmtrfilename, gmtrmeasureunits, gmtrmultipfactor, gmtrcurrentref, gmtrsmsoid, gmtrsmsoefd, gmtrserviceflag, gmtrserviceefd, gmtrsmetsinstall, gmtruprn, gmtrnwocode, gmtrnwoefd, gmtrpaymethod, gmtrmarketscode, gmtrmapid, gmtrregion, gmtraccountno, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gasmeter `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gasmeter{}
+
+		// scan
+		err = q.Scan(&g.Gmtrmprn, &g.Gmtrserialno, &g.Gmtrinstalldate, &g.Gmtreffectdate, &g.Gmtrdatesent, &g.Gmtrdateupdate, &g.Gmtrdupdatedby, &g.Gmtryearmake, &g.Gmtrmakecode, &g.Gmtrmodelcode, &g.Gmtrmetertype, &g.Gmtrcapacity, &g.Gmtrlocationcode, &g.Gmtrunits, &g.Gmtrreadfactor, &g.Gmtrdials, &g.Gmtrrolecode, &g.Gmtrmetermech, &g.Gmtrcorrfactor, &g.Gmtrstatus, &g.Gmtrpostcode, &g.Gmtrbuildingno, &g.Gmtrbuildingname, &g.Gmtrdependstreet, &g.Gmtrstreet, &g.Gmtrlocality, &g.Gmtrposttown, &g.Gmtrcounty, &g.Gmtrfilename, &g.Gmtrmeasureunits, &g.Gmtrmultipfactor, &g.Gmtrcurrentref, &g.Gmtrsmsoid, &g.Gmtrsmsoefd, &g.Gmtrserviceflag, &g.Gmtrserviceefd, &g.Gmtrsmetsinstall, &g.Gmtruprn, &g.Gmtrnwocode, &g.Gmtrnwoefd, &g.Gmtrpaymethod, &g.Gmtrmarketscode, &g.Gmtrmapid, &g.Gmtrregion, &g.Gmtraccountno, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GasmeterByEquinoxLrn retrieves a row from 'equinox.gasmeter' as a Gasmeter.
 //
 // Generated from index 'gasmeter_pkey'.

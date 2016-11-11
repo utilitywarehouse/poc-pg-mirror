@@ -17,6 +17,37 @@ type Trfpp struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllTrfpp(db XODB, callback func(x Trfpp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`trfpptype, trfppregion, trfppsupplier, trfppcharge, trfppprofileave, trfppsuppname, equinox_lrn, equinox_sec ` +
+		`FROM equinox.trfpp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Trfpp{}
+
+		// scan
+		err = q.Scan(&t.Trfpptype, &t.Trfppregion, &t.Trfppsupplier, &t.Trfppcharge, &t.Trfppprofileave, &t.Trfppsuppname, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TrfppByEquinoxLrn retrieves a row from 'equinox.trfpp' as a Trfpp.
 //
 // Generated from index 'trfpp_pkey'.

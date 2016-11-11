@@ -24,6 +24,37 @@ type Mpcaudit struct {
 	EquinoxSec  sql.NullInt64   `json:"equinox_sec"` // equinox_sec
 }
 
+func AllMpcaudit(db XODB, callback func(x Mpcaudit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mpcaid, mpcadetails, mpcaresult, mpcaddate, mpcadtime, mpcardate, mpcartime, mpcacli, mpcavresult, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mpcaudit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mpcaudit{}
+
+		// scan
+		err = q.Scan(&m.Mpcaid, &m.Mpcadetails, &m.Mpcaresult, &m.Mpcaddate, &m.Mpcadtime, &m.Mpcardate, &m.Mpcartime, &m.Mpcacli, &m.Mpcavresult, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MpcauditByEquinoxLrn retrieves a row from 'equinox.mpcaudit' as a Mpcaudit.
 //
 // Generated from index 'mpcaudit_pkey'.

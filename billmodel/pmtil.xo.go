@@ -37,6 +37,37 @@ type Pmtil struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllPmtil(db XODB, callback func(x Pmtil) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pmtid, pmttariff, pmtregion, pmtfuel, pmtpaymethod, pmtentry1, pmtentry2, pmtentry3, pmtentry4, pmtentry5, pmtentry6, pmtentry7, pmtentry8, pmtentry9, pmtentry10, pmtentry11, pmtentry12, pmtentry13, pmtentry14, pmtentry15, pmtentry16, pmtentry17, pmtentry18, pmtentry19, pmtentry20, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pmtil `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pmtil{}
+
+		// scan
+		err = q.Scan(&p.Pmtid, &p.Pmttariff, &p.Pmtregion, &p.Pmtfuel, &p.Pmtpaymethod, &p.Pmtentry1, &p.Pmtentry2, &p.Pmtentry3, &p.Pmtentry4, &p.Pmtentry5, &p.Pmtentry6, &p.Pmtentry7, &p.Pmtentry8, &p.Pmtentry9, &p.Pmtentry10, &p.Pmtentry11, &p.Pmtentry12, &p.Pmtentry13, &p.Pmtentry14, &p.Pmtentry15, &p.Pmtentry16, &p.Pmtentry17, &p.Pmtentry18, &p.Pmtentry19, &p.Pmtentry20, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PmtilByEquinoxLrn retrieves a row from 'equinox.pmtil' as a Pmtil.
 //
 // Generated from index 'pmtil_pkey'.

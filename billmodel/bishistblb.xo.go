@@ -12,6 +12,37 @@ type BishistBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllBishistBlb(db XODB, callback func(x BishistBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.bishist_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		bb := BishistBlb{}
+
+		// scan
+		err = q.Scan(&bb.BlbLrn, &bb.BlbData, &bb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(bb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BishistBlbByBlbLrn retrieves a row from 'equinox.bishist_blb' as a BishistBlb.
 //
 // Generated from index 'bishist_blb_pkey'.

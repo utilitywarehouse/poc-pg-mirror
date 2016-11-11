@@ -12,6 +12,37 @@ type Sharopt struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllSharopt(db XODB, callback func(x Sharopt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`soexid, equinox_lrn, equinox_sec ` +
+		`FROM equinox.sharopts `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Sharopt{}
+
+		// scan
+		err = q.Scan(&s.Soexid, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SharoptByEquinoxLrn retrieves a row from 'equinox.sharopts' as a Sharopt.
 //
 // Generated from index 'sharopts_pkey'.

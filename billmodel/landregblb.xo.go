@@ -12,6 +12,37 @@ type LandregBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllLandregBlb(db XODB, callback func(x LandregBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.landreg_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		lb := LandregBlb{}
+
+		// scan
+		err = q.Scan(&lb.BlbLrn, &lb.BlbData, &lb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(lb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LandregBlbByBlbLrn retrieves a row from 'equinox.landreg_blb' as a LandregBlb.
 //
 // Generated from index 'landreg_blb_pkey'.

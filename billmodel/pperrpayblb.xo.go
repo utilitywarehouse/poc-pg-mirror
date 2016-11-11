@@ -12,6 +12,37 @@ type PperrpayBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPperrpayBlb(db XODB, callback func(x PperrpayBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.pperrpay_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := PperrpayBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PperrpayBlbByBlbLrn retrieves a row from 'equinox.pperrpay_blb' as a PperrpayBlb.
 //
 // Generated from index 'pperrpay_blb_pkey'.

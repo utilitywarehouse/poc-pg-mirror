@@ -25,6 +25,37 @@ type Staffbox struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllStaffbox(db XODB, callback func(x Staffbox) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`staff_box_name, staff_box_mgr, staff_box_added, staff_box_date, staff_box_status, staff_box_sparen, staff_box_spared, staff_box_sparel, staff_box_sparec, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.staffbox `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Staffbox{}
+
+		// scan
+		err = q.Scan(&s.StaffBoxName, &s.StaffBoxMgr, &s.StaffBoxAdded, &s.StaffBoxDate, &s.StaffBoxStatus, &s.StaffBoxSparen, &s.StaffBoxSpared, &s.StaffBoxSparel, &s.StaffBoxSparec, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // StaffboxByEquinoxLrn retrieves a row from 'equinox.staffbox' as a Staffbox.
 //
 // Generated from index 'staffbox_pkey'.

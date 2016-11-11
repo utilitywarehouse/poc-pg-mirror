@@ -32,6 +32,37 @@ type Tariff struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllTariff(db XODB, callback func(x Tariff) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tariffuniquesys, tariffid, tariffname, tariffcomments, tariffstartdate, tariffenddate, tarifffreemins, tariffreducedmin, tarifffreetexts, tarifffreemintyp, tarifffreemincnt, tariffusage, tariffnewold, tariffcompack, tariffsubtariff, tariffsparen1, tariffspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tariff `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tariff{}
+
+		// scan
+		err = q.Scan(&t.Tariffuniquesys, &t.Tariffid, &t.Tariffname, &t.Tariffcomments, &t.Tariffstartdate, &t.Tariffenddate, &t.Tarifffreemins, &t.Tariffreducedmin, &t.Tarifffreetexts, &t.Tarifffreemintyp, &t.Tarifffreemincnt, &t.Tariffusage, &t.Tariffnewold, &t.Tariffcompack, &t.Tariffsubtariff, &t.Tariffsparen1, &t.Tariffspared1, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TariffByEquinoxLrn retrieves a row from 'equinox.tariff' as a Tariff.
 //
 // Generated from index 'tariff_pkey'.

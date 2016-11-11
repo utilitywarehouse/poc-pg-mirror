@@ -19,6 +19,37 @@ type Excustac struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllExcustac(db XODB, callback func(x Excustac) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`excustacno, excustacdate, excustacquality, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.excustac `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Excustac{}
+
+		// scan
+		err = q.Scan(&e.Excustacno, &e.Excustacdate, &e.Excustacquality, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExcustacByEquinoxLrn retrieves a row from 'equinox.excustac' as a Excustac.
 //
 // Generated from index 'excustac_pkey'.

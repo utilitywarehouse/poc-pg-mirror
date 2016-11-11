@@ -26,6 +26,37 @@ type Bishist struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllBishist(db XODB, callback func(x Bishist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bishfilename, bishfileid, bishdate, bishfiletype, bishfileacrj, bishread, bishresponse, bishrecacrj, bishmemo, bishhandshake, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.bishist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Bishist{}
+
+		// scan
+		err = q.Scan(&b.Bishfilename, &b.Bishfileid, &b.Bishdate, &b.Bishfiletype, &b.Bishfileacrj, &b.Bishread, &b.Bishresponse, &b.Bishrecacrj, &b.Bishmemo, &b.Bishhandshake, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BishistByEquinoxLrn retrieves a row from 'equinox.bishist' as a Bishist.
 //
 // Generated from index 'bishist_pkey'.

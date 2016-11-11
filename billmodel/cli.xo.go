@@ -87,6 +87,37 @@ type Cli struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCli(db XODB, callback func(x Cli) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cliuniquesys, clinumber, clicallchrgopt, clianumber1, clianumber2, clianumber3, clilivedate, clibarreddate, clibarredreason, clicpsdate, clicpspostcode, cliwlrdate, clienddate, cliendreason, cliloyaltystart, cliloyaltynxtcng, cliloyaltylevel, cliownership, clicarriertariff, clitariff, clisubtariff, cliactpending, cliserialnumber1, cliserialnumber2, cliserialnumber3, cliserialnumber4, cliservicetype, cliservicelvl, clioptimalplan, climinitemised, clifreetexts, clinumofunits, clivatrate1split, clivatrate2split, clinoofclaims, clipassword, clibudgetstart, clibudgetamount, clibudgettotalpd, clibudgetusage, clibudgetthismon, clienthisbillnet, clibudgetadjust, climinspend, clicallcontrol, clicreditlimit, cliexsubid, clipromocode, clideladdr, climintermend, clilastupgrade, clicontractterm, cliusername_id, cliflag, clietfamount, climobprice, clivirtuallive, cligpdate, clialk, clipeaksavecalls, cliinstallend, cliequipsupplied, clisparec1, clisparec2, clisparec3, clisparec4, clispared1, clispared2, clisparen1, clisparen2, clicpwnref, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cli `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cli{}
+
+		// scan
+		err = q.Scan(&c.Cliuniquesys, &c.Clinumber, &c.Clicallchrgopt, &c.Clianumber1, &c.Clianumber2, &c.Clianumber3, &c.Clilivedate, &c.Clibarreddate, &c.Clibarredreason, &c.Clicpsdate, &c.Clicpspostcode, &c.Cliwlrdate, &c.Clienddate, &c.Cliendreason, &c.Cliloyaltystart, &c.Cliloyaltynxtcng, &c.Cliloyaltylevel, &c.Cliownership, &c.Clicarriertariff, &c.Clitariff, &c.Clisubtariff, &c.Cliactpending, &c.Cliserialnumber1, &c.Cliserialnumber2, &c.Cliserialnumber3, &c.Cliserialnumber4, &c.Cliservicetype, &c.Cliservicelvl, &c.Clioptimalplan, &c.Climinitemised, &c.Clifreetexts, &c.Clinumofunits, &c.Clivatrate1split, &c.Clivatrate2split, &c.Clinoofclaims, &c.Clipassword, &c.Clibudgetstart, &c.Clibudgetamount, &c.Clibudgettotalpd, &c.Clibudgetusage, &c.Clibudgetthismon, &c.Clienthisbillnet, &c.Clibudgetadjust, &c.Climinspend, &c.Clicallcontrol, &c.Clicreditlimit, &c.Cliexsubid, &c.Clipromocode, &c.Clideladdr, &c.Climintermend, &c.Clilastupgrade, &c.Clicontractterm, &c.CliusernameID, &c.Cliflag, &c.Clietfamount, &c.Climobprice, &c.Clivirtuallive, &c.Cligpdate, &c.Clialk, &c.Clipeaksavecalls, &c.Cliinstallend, &c.Cliequipsupplied, &c.Clisparec1, &c.Clisparec2, &c.Clisparec3, &c.Clisparec4, &c.Clispared1, &c.Clispared2, &c.Clisparen1, &c.Clisparen2, &c.Clicpwnref, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CliByEquinoxLrn retrieves a row from 'equinox.cli' as a Cli.
 //
 // Generated from index 'cli_pkey'.

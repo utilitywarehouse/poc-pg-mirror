@@ -12,6 +12,37 @@ type TabrtrnsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllTabrtrnsBlb(db XODB, callback func(x TabrtrnsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.tabrtrns_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		tb := TabrtrnsBlb{}
+
+		// scan
+		err = q.Scan(&tb.BlbLrn, &tb.BlbData, &tb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(tb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TabrtrnsBlbByBlbLrn retrieves a row from 'equinox.tabrtrns_blb' as a TabrtrnsBlb.
 //
 // Generated from index 'tabrtrns_blb_pkey'.

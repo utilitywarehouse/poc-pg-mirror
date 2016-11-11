@@ -12,6 +12,37 @@ type OptmonthBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllOptmonthBlb(db XODB, callback func(x OptmonthBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.optmonth_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ob := OptmonthBlb{}
+
+		// scan
+		err = q.Scan(&ob.BlbLrn, &ob.BlbData, &ob.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ob) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OptmonthBlbByBlbLrn retrieves a row from 'equinox.optmonth_blb' as a OptmonthBlb.
 //
 // Generated from index 'optmonth_blb_pkey'.

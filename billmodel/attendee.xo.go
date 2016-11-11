@@ -31,6 +31,37 @@ type Attendee struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllAttendee(db XODB, callback func(x Attendee) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`att_sparec1, att_exid, att_spaces, att_sparec2, att_notifyby, att_notified, att_noshow, att_level, att_completed, att_certificate, att_oldexec, att_newexec, att_exname, att_bookedby, att_bookingno, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.attendee `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Attendee{}
+
+		// scan
+		err = q.Scan(&a.AttSparec1, &a.AttExid, &a.AttSpaces, &a.AttSparec2, &a.AttNotifyby, &a.AttNotified, &a.AttNoshow, &a.AttLevel, &a.AttCompleted, &a.AttCertificate, &a.AttOldexec, &a.AttNewexec, &a.AttExname, &a.AttBookedby, &a.AttBookingno, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AttendeeByEquinoxLrn retrieves a row from 'equinox.attendee' as a Attendee.
 //
 // Generated from index 'attendee_pkey'.

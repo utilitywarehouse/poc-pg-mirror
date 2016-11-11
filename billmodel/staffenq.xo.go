@@ -13,6 +13,37 @@ type Staffenq struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllStaffenq(db XODB, callback func(x Staffenq) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`staff_enqcode, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.staffenq `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Staffenq{}
+
+		// scan
+		err = q.Scan(&s.StaffEnqcode, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // StaffenqByEquinoxLrn retrieves a row from 'equinox.staffenq' as a Staffenq.
 //
 // Generated from index 'staffenq_pkey'.

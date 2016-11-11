@@ -21,6 +21,37 @@ type Igtrange struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllIgtrange(db XODB, callback func(x Igtrange) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`igtrstart, igtrend, igtrvalidfrom, igtrvalidto, igtrtypeid, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.igtrange `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		i := Igtrange{}
+
+		// scan
+		err = q.Scan(&i.Igtrstart, &i.Igtrend, &i.Igtrvalidfrom, &i.Igtrvalidto, &i.Igtrtypeid, &i.EquinoxPrn, &i.EquinoxLrn, &i.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(i) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // IgtrangeByEquinoxLrn retrieves a row from 'equinox.igtrange' as a Igtrange.
 //
 // Generated from index 'igtrange_pkey'.

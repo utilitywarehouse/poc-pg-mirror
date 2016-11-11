@@ -31,6 +31,37 @@ type Pesmast struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllPesmast(db XODB, callback func(x Pesmast) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pmtariff, pmdescription, pmpaymethod, pmdatefrom, pmdateto, pmrmrflag, pmmonthorday, pmfixeddateend, pmtype, pmtiedshort, pmtiedlong, pmrct, pmact, pmtermfee, pmddequiv, pmnonddeqiv, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pesmast `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pesmast{}
+
+		// scan
+		err = q.Scan(&p.Pmtariff, &p.Pmdescription, &p.Pmpaymethod, &p.Pmdatefrom, &p.Pmdateto, &p.Pmrmrflag, &p.Pmmonthorday, &p.Pmfixeddateend, &p.Pmtype, &p.Pmtiedshort, &p.Pmtiedlong, &p.Pmrct, &p.Pmact, &p.Pmtermfee, &p.Pmddequiv, &p.Pmnonddeqiv, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PesmastByEquinoxLrn retrieves a row from 'equinox.pesmast' as a Pesmast.
 //
 // Generated from index 'pesmast_pkey'.

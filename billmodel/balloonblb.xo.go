@@ -12,6 +12,37 @@ type BalloonBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllBalloonBlb(db XODB, callback func(x BalloonBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.balloon_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		bb := BalloonBlb{}
+
+		// scan
+		err = q.Scan(&bb.BlbLrn, &bb.BlbData, &bb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(bb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BalloonBlbByBlbLrn retrieves a row from 'equinox.balloon_blb' as a BalloonBlb.
 //
 // Generated from index 'balloon_blb_pkey'.

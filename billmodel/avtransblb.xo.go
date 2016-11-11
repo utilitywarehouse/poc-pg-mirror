@@ -12,6 +12,37 @@ type AvtransBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllAvtransBlb(db XODB, callback func(x AvtransBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.avtrans_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ab := AvtransBlb{}
+
+		// scan
+		err = q.Scan(&ab.BlbLrn, &ab.BlbData, &ab.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ab) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AvtransBlbByBlbLrn retrieves a row from 'equinox.avtrans_blb' as a AvtransBlb.
 //
 // Generated from index 'avtrans_blb_pkey'.

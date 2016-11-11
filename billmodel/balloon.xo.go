@@ -20,6 +20,37 @@ type Balloon struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllBalloon(db XODB, callback func(x Balloon) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bllneligible, bllntype, blln1903title, blln1903group, bllndaffigold, bllngroup, bllnids, bllnqualified, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.balloon `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Balloon{}
+
+		// scan
+		err = q.Scan(&b.Bllneligible, &b.Bllntype, &b.Blln1903title, &b.Blln1903group, &b.Bllndaffigold, &b.Bllngroup, &b.Bllnids, &b.Bllnqualified, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BalloonByEquinoxLrn retrieves a row from 'equinox.balloon' as a Balloon.
 //
 // Generated from index 'balloon_pkey'.

@@ -35,6 +35,37 @@ type Workflow struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllWorkflow(db XODB, callback func(x Workflow) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`wfuniquesys, wfaccountno, wfcode, wfdate, wfactiondate, wftaskedto, wfowner, wfrequestedby, wfpriority, wf3rdpartyref, wfqueryreason, wfownerinitial, wfspared1, wfsparet1, wfactive, wf3rdpartynote, wfsparem1, wfrequesternew, wfsparec1, wfsparen1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.workflow `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		w := Workflow{}
+
+		// scan
+		err = q.Scan(&w.Wfuniquesys, &w.Wfaccountno, &w.Wfcode, &w.Wfdate, &w.Wfactiondate, &w.Wftaskedto, &w.Wfowner, &w.Wfrequestedby, &w.Wfpriority, &w.Wf3rdpartyref, &w.Wfqueryreason, &w.Wfownerinitial, &w.Wfspared1, &w.Wfsparet1, &w.Wfactive, &w.Wf3rdpartynote, &w.Wfsparem1, &w.Wfrequesternew, &w.Wfsparec1, &w.Wfsparen1, &w.EquinoxLrn, &w.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(w) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // WorkflowByEquinoxLrn retrieves a row from 'equinox.workflow' as a Workflow.
 //
 // Generated from index 'workflow_pkey'.

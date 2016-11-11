@@ -31,6 +31,37 @@ type Order struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllOrder(db XODB, callback func(x Order) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ordertype, oproductname, omake, omodel, odateordered, odatearrived, oqtyordered, oqtyreceived, ounitprice, ovatrate, osupplier, opurchaseorder, onotes, ocompleteddate, ostockduedate, oinvoiceno, equinox_lrn, equinox_sec ` +
+		`FROM equinox.orders `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		o := Order{}
+
+		// scan
+		err = q.Scan(&o.Ordertype, &o.Oproductname, &o.Omake, &o.Omodel, &o.Odateordered, &o.Odatearrived, &o.Oqtyordered, &o.Oqtyreceived, &o.Ounitprice, &o.Ovatrate, &o.Osupplier, &o.Opurchaseorder, &o.Onotes, &o.Ocompleteddate, &o.Ostockduedate, &o.Oinvoiceno, &o.EquinoxLrn, &o.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(o) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OrderByEquinoxLrn retrieves a row from 'equinox.orders' as a Order.
 //
 // Generated from index 'orders_pkey'.

@@ -25,6 +25,37 @@ type Gascomm struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGascomm(db XODB, callback func(x Gascomm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcommdate, gcommcomment, gcommenteredby, gcommcommentcode, gcommspecific, gcommoutcome, gcommsparec1, gcommsparen1, gcommspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gascomm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gascomm{}
+
+		// scan
+		err = q.Scan(&g.Gcommdate, &g.Gcommcomment, &g.Gcommenteredby, &g.Gcommcommentcode, &g.Gcommspecific, &g.Gcommoutcome, &g.Gcommsparec1, &g.Gcommsparen1, &g.Gcommspared1, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GascommByEquinoxLrn retrieves a row from 'equinox.gascomm' as a Gascomm.
 //
 // Generated from index 'gascomm_pkey'.

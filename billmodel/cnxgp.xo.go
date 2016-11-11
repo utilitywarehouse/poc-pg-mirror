@@ -72,6 +72,37 @@ type Cnxgp struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxgp(db XODB, callback func(x Cnxgp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxgpcli, cnxgpboxes, cnxgpfeature, cnxgpcable, cnxgpni, cnxgpservicelvl, cnxgpdatetocs, cnxgpdatefromc1, cnxgpdatefromc2, cnxgpdatetoopt, cnxgpdatefromopt, cnxgpstate, cnxgptermnum, cnxgpdateentered, cnxgpweborder, cnxgpdatetobill, cnxgpdateletter, cnxgpdateprepay, cnxgpenteredby, cnxgppromocd, cnxgppackageno, cnxgpsubtariff, cnxgpcpspostcode, cnxgpextras, cnxgpmaccode, cnxgpordtype, cnxgptariff, cnxgpfilters, cnxgpsparen2, cnxgpsparen3, cnxgpcsigndate, cnxgpagreeddate, cnxgpequipment, cnxgpnetwork, cnxgpdonoracc, cnxgpdeladdr, cnxgpdeladdref, cnxgpdoncliuni, cnxgpholduntil, cnxgphmdate, cnxgpaddserv, cnxgpsparec1, cnxgpnousbadap, cnxgpvaliddate, cnxgpvalidby, cnxgpcampaign, cnxgptype, cnxgpcommandid, cnxgpreqdate, cnxgpstatedate, cnxgppassword, cnxgpcancelrid, cnxgpgainingrid, cnxgpcpwnref, cnxgplorn, cnxgpsimprovord, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxgp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxgp{}
+
+		// scan
+		err = q.Scan(&c.Cnxgpcli, &c.Cnxgpboxes, &c.Cnxgpfeature, &c.Cnxgpcable, &c.Cnxgpni, &c.Cnxgpservicelvl, &c.Cnxgpdatetocs, &c.Cnxgpdatefromc1, &c.Cnxgpdatefromc2, &c.Cnxgpdatetoopt, &c.Cnxgpdatefromopt, &c.Cnxgpstate, &c.Cnxgptermnum, &c.Cnxgpdateentered, &c.Cnxgpweborder, &c.Cnxgpdatetobill, &c.Cnxgpdateletter, &c.Cnxgpdateprepay, &c.Cnxgpenteredby, &c.Cnxgppromocd, &c.Cnxgppackageno, &c.Cnxgpsubtariff, &c.Cnxgpcpspostcode, &c.Cnxgpextras, &c.Cnxgpmaccode, &c.Cnxgpordtype, &c.Cnxgptariff, &c.Cnxgpfilters, &c.Cnxgpsparen2, &c.Cnxgpsparen3, &c.Cnxgpcsigndate, &c.Cnxgpagreeddate, &c.Cnxgpequipment, &c.Cnxgpnetwork, &c.Cnxgpdonoracc, &c.Cnxgpdeladdr, &c.Cnxgpdeladdref, &c.Cnxgpdoncliuni, &c.Cnxgpholduntil, &c.Cnxgphmdate, &c.Cnxgpaddserv, &c.Cnxgpsparec1, &c.Cnxgpnousbadap, &c.Cnxgpvaliddate, &c.Cnxgpvalidby, &c.Cnxgpcampaign, &c.Cnxgptype, &c.Cnxgpcommandid, &c.Cnxgpreqdate, &c.Cnxgpstatedate, &c.Cnxgppassword, &c.Cnxgpcancelrid, &c.Cnxgpgainingrid, &c.Cnxgpcpwnref, &c.Cnxgplorn, &c.Cnxgpsimprovord, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxgpByEquinoxLrn retrieves a row from 'equinox.cnxgp' as a Cnxgp.
 //
 // Generated from index 'cnxgp_pkey'.

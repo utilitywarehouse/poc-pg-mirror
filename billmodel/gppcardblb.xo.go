@@ -12,6 +12,37 @@ type GppcardBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllGppcardBlb(db XODB, callback func(x GppcardBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.gppcard_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		gb := GppcardBlb{}
+
+		// scan
+		err = q.Scan(&gb.BlbLrn, &gb.BlbData, &gb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(gb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GppcardBlbByBlbLrn retrieves a row from 'equinox.gppcard_blb' as a GppcardBlb.
 //
 // Generated from index 'gppcard_blb_pkey'.

@@ -38,6 +38,37 @@ type Ppmeter struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPpmeter(db XODB, callback func(x Ppmeter) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`prepaystaticid, prepaycustid, prepaysupref, prepaymeterno, prepaympr, prepaystartdate, prepayenddate, prepaycustaccno, prepaygref, prepaycustdebt, prepaytype, prepaystatus, prepayoridebt, prepaynowdebt, prepayorinondebt, prepaynownondebt, prepayrecrate, prepayrecdate, prepayecused, prepaysparec1, prepaysaprec2, prepaysparen1, prepayspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ppmeters `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Ppmeter{}
+
+		// scan
+		err = q.Scan(&p.Prepaystaticid, &p.Prepaycustid, &p.Prepaysupref, &p.Prepaymeterno, &p.Prepaympr, &p.Prepaystartdate, &p.Prepayenddate, &p.Prepaycustaccno, &p.Prepaygref, &p.Prepaycustdebt, &p.Prepaytype, &p.Prepaystatus, &p.Prepayoridebt, &p.Prepaynowdebt, &p.Prepayorinondebt, &p.Prepaynownondebt, &p.Prepayrecrate, &p.Prepayrecdate, &p.Prepayecused, &p.Prepaysparec1, &p.Prepaysaprec2, &p.Prepaysparen1, &p.Prepayspared1, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PpmeterByEquinoxLrn retrieves a row from 'equinox.ppmeters' as a Ppmeter.
 //
 // Generated from index 'ppmeters_pkey'.

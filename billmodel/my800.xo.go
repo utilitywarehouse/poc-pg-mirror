@@ -29,6 +29,37 @@ type My800 struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllMy800(db XODB, callback func(x My800) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`my800cli, my8termcli, my8dateassigned, my8customerid, my8cwreservation, my8sparec1, my8sparec2, my8sparec3, my8spared1, my8spared2, my8spared3, my8sparen1, my8sparen2, my8sparen3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.my800 `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := My800{}
+
+		// scan
+		err = q.Scan(&m.My800cli, &m.My8termcli, &m.My8dateassigned, &m.My8customerid, &m.My8cwreservation, &m.My8sparec1, &m.My8sparec2, &m.My8sparec3, &m.My8spared1, &m.My8spared2, &m.My8spared3, &m.My8sparen1, &m.My8sparen2, &m.My8sparen3, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // My800ByEquinoxLrn retrieves a row from 'equinox.my800' as a My800.
 //
 // Generated from index 'my800_pkey'.

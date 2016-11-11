@@ -14,6 +14,37 @@ type Ecurve struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllEcurve(db XODB, callback func(x Ecurve) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ecfuel, ecprofile, ecregister, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ecurve `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Ecurve{}
+
+		// scan
+		err = q.Scan(&e.Ecfuel, &e.Ecprofile, &e.Ecregister, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EcurveByEquinoxLrn retrieves a row from 'equinox.ecurve' as a Ecurve.
 //
 // Generated from index 'ecurve_pkey'.

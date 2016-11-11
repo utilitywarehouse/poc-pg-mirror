@@ -12,6 +12,37 @@ type BiscuitaBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllBiscuitaBlb(db XODB, callback func(x BiscuitaBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.biscuita_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		bb := BiscuitaBlb{}
+
+		// scan
+		err = q.Scan(&bb.BlbLrn, &bb.BlbData, &bb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(bb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BiscuitaBlbByBlbLrn retrieves a row from 'equinox.biscuita_blb' as a BiscuitaBlb.
 //
 // Generated from index 'biscuita_blb_pkey'.

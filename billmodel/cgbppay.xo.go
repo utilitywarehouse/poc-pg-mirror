@@ -14,6 +14,37 @@ type Cgbppay struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllCgbppay(db XODB, callback func(x Cgbppay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cgbpcrnumber, cgbpamount, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cgbppay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cgbppay{}
+
+		// scan
+		err = q.Scan(&c.Cgbpcrnumber, &c.Cgbpamount, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CgbppayByEquinoxLrn retrieves a row from 'equinox.cgbppay' as a Cgbppay.
 //
 // Generated from index 'cgbppay_pkey'.

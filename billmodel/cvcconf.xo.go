@@ -26,6 +26,37 @@ type Cvcconf struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCvcconf(db XODB, callback func(x Cvcconf) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cvcconfigid, cvcdescription, cvcbillsfield, cvcentrycode, cvcexectotal, cvcdownlinetotal, cvcinvoicetotal, cvcdownline, cvcratingid, cvcservicecode, cvcrateposition, cvcservposition, cvcsparen2, cvcsparec1, cvcsparec2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cvcconf `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cvcconf{}
+
+		// scan
+		err = q.Scan(&c.Cvcconfigid, &c.Cvcdescription, &c.Cvcbillsfield, &c.Cvcentrycode, &c.Cvcexectotal, &c.Cvcdownlinetotal, &c.Cvcinvoicetotal, &c.Cvcdownline, &c.Cvcratingid, &c.Cvcservicecode, &c.Cvcrateposition, &c.Cvcservposition, &c.Cvcsparen2, &c.Cvcsparec1, &c.Cvcsparec2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CvcconfByEquinoxLrn retrieves a row from 'equinox.cvcconf' as a Cvcconf.
 //
 // Generated from index 'cvcconf_pkey'.

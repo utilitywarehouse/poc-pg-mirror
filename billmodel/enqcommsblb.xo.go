@@ -12,6 +12,37 @@ type EnqcommsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllEnqcommsBlb(db XODB, callback func(x EnqcommsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.enqcomms_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		eb := EnqcommsBlb{}
+
+		// scan
+		err = q.Scan(&eb.BlbLrn, &eb.BlbData, &eb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(eb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EnqcommsBlbByBlbLrn retrieves a row from 'equinox.enqcomms_blb' as a EnqcommsBlb.
 //
 // Generated from index 'enqcomms_blb_pkey'.

@@ -28,6 +28,37 @@ type Expay struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllExpay(db XODB, callback func(x Expay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`expaypayment, expaylevel, expaytype, expaydealcode, expaysparen, expaysparec, expaynumbdb, expaypaymentraw, expaycvcrate, expaysparec1, expaysparen1, expayspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.expay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Expay{}
+
+		// scan
+		err = q.Scan(&e.Expaypayment, &e.Expaylevel, &e.Expaytype, &e.Expaydealcode, &e.Expaysparen, &e.Expaysparec, &e.Expaynumbdb, &e.Expaypaymentraw, &e.Expaycvcrate, &e.Expaysparec1, &e.Expaysparen1, &e.Expayspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExpayByEquinoxLrn retrieves a row from 'equinox.expay' as a Expay.
 //
 // Generated from index 'expay_pkey'.

@@ -14,6 +14,37 @@ type Recruit struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllRecruit(db XODB, callback func(x Recruit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`recaccountno, recinitexid, reccomuniquesys, equinox_lrn, equinox_sec ` +
+		`FROM equinox.recruit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Recruit{}
+
+		// scan
+		err = q.Scan(&r.Recaccountno, &r.Recinitexid, &r.Reccomuniquesys, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RecruitByEquinoxLrn retrieves a row from 'equinox.recruit' as a Recruit.
 //
 // Generated from index 'recruit_pkey'.

@@ -109,6 +109,37 @@ type Entariff struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllEntariff(db XODB, callback func(x Entariff) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`enversion, enrevenuegas, enrevenueelec, enrevenuee7, enscgasddse, enscgasddho, enscgasddgo, enscgasddgoh, enscgascase, enscgascaho, enscgascago, enscgascagoh, enscgasppse, enscgasppho, enscgasppgo, enscgasppgoh, enunitgasddse, enunitgasddho, enunitgasddgo, enunitgasddgoh, enunitgascase, enunitgascaho, enunitgascago, enunitgascagoh, enunitgasppse, enunitgasppho, enunitgasppgo, enunitgasppgoh, enscelecddse, enscelecddho, enscelecddgo, enscelecddgoh, ensceleccase, ensceleccaho, ensceleccago, ensceleccagoh, enscelecppse, enscelecppho, enscelecppgo, enscelecppgoh, enunitelecddse, enunitelecddho, enunitelecddgo, enunitelecddgoh, enuniteleccase, enuniteleccaho, enuniteleccago, enuniteleccagoh, enunitelecppse, enunitelecppho, enunitelecppgo, enunitelecppgoh, ensce7ddse, ensce7ddho, ensce7ddgo, ensce7ddgoh, ensce7case, ensce7caho, ensce7cago, ensce7cagoh, ensce7ppse, ensce7ppho, ensce7ppgo, ensce7ppgoh, enunite7ddse, enunite7ddho, enunite7ddgo, enunite7ddgoh, enunite7case, enunite7caho, enunite7cago, enunite7cagoh, enunite7ppse, enunite7ppho, enunite7ppgo, enunite7ppgoh, ennunite7ddse, ennunite7ddho, ennunite7ddgo, ennunite7ddgoh, ennunite7case, ennunite7caho, ennunite7cago, ennunite7cagoh, ennunite7ppse, ennunite7ppho, ennunite7ppgo, ennunite7ppgoh, ensebill, enhobill, engobill, enesebill, enehobill, enegobill, ene7sebill, ene7hobill, ene7gobill, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.entariff `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Entariff{}
+
+		// scan
+		err = q.Scan(&e.Enversion, &e.Enrevenuegas, &e.Enrevenueelec, &e.Enrevenuee7, &e.Enscgasddse, &e.Enscgasddho, &e.Enscgasddgo, &e.Enscgasddgoh, &e.Enscgascase, &e.Enscgascaho, &e.Enscgascago, &e.Enscgascagoh, &e.Enscgasppse, &e.Enscgasppho, &e.Enscgasppgo, &e.Enscgasppgoh, &e.Enunitgasddse, &e.Enunitgasddho, &e.Enunitgasddgo, &e.Enunitgasddgoh, &e.Enunitgascase, &e.Enunitgascaho, &e.Enunitgascago, &e.Enunitgascagoh, &e.Enunitgasppse, &e.Enunitgasppho, &e.Enunitgasppgo, &e.Enunitgasppgoh, &e.Enscelecddse, &e.Enscelecddho, &e.Enscelecddgo, &e.Enscelecddgoh, &e.Ensceleccase, &e.Ensceleccaho, &e.Ensceleccago, &e.Ensceleccagoh, &e.Enscelecppse, &e.Enscelecppho, &e.Enscelecppgo, &e.Enscelecppgoh, &e.Enunitelecddse, &e.Enunitelecddho, &e.Enunitelecddgo, &e.Enunitelecddgoh, &e.Enuniteleccase, &e.Enuniteleccaho, &e.Enuniteleccago, &e.Enuniteleccagoh, &e.Enunitelecppse, &e.Enunitelecppho, &e.Enunitelecppgo, &e.Enunitelecppgoh, &e.Ensce7ddse, &e.Ensce7ddho, &e.Ensce7ddgo, &e.Ensce7ddgoh, &e.Ensce7case, &e.Ensce7caho, &e.Ensce7cago, &e.Ensce7cagoh, &e.Ensce7ppse, &e.Ensce7ppho, &e.Ensce7ppgo, &e.Ensce7ppgoh, &e.Enunite7ddse, &e.Enunite7ddho, &e.Enunite7ddgo, &e.Enunite7ddgoh, &e.Enunite7case, &e.Enunite7caho, &e.Enunite7cago, &e.Enunite7cagoh, &e.Enunite7ppse, &e.Enunite7ppho, &e.Enunite7ppgo, &e.Enunite7ppgoh, &e.Ennunite7ddse, &e.Ennunite7ddho, &e.Ennunite7ddgo, &e.Ennunite7ddgoh, &e.Ennunite7case, &e.Ennunite7caho, &e.Ennunite7cago, &e.Ennunite7cagoh, &e.Ennunite7ppse, &e.Ennunite7ppho, &e.Ennunite7ppgo, &e.Ennunite7ppgoh, &e.Ensebill, &e.Enhobill, &e.Engobill, &e.Enesebill, &e.Enehobill, &e.Enegobill, &e.Ene7sebill, &e.Ene7hobill, &e.Ene7gobill, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EntariffByEquinoxLrn retrieves a row from 'equinox.entariff' as a Entariff.
 //
 // Generated from index 'entariff_pkey'.

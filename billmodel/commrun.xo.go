@@ -57,6 +57,37 @@ type Commrun struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCommrun(db XODB, callback func(x Commrun) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crnumber, crperiod, crbillinggroup, crbillsperiod, crcallsperiod, crcurrenttp, crcurrenttml, crdate, crlogfile, croutputpath, crstatementspath, crbacspath, crcmmssnblepath, crstatementsread, crstatementexten, crtabcommitted, crtabsubmitted, crtabdebited, crloanssignedoff, crstarted, crfinished, crbacssubmitted, crrensubmitted, crrendebited, crarchived, crfirstinvoiceno, crlastinvoiceno, crstatusold, cremailsent, cremailoutstndng, crprintsent, crprintoutstndng, crskipped, crrenewalcode, crsparec1, crsparec2, crsparen1, crsparen2, crsparel1, crstatus, crsarssignedoff, crpledgercrdate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.commrun `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Commrun{}
+
+		// scan
+		err = q.Scan(&c.Crnumber, &c.Crperiod, &c.Crbillinggroup, &c.Crbillsperiod, &c.Crcallsperiod, &c.Crcurrenttp, &c.Crcurrenttml, &c.Crdate, &c.Crlogfile, &c.Croutputpath, &c.Crstatementspath, &c.Crbacspath, &c.Crcmmssnblepath, &c.Crstatementsread, &c.Crstatementexten, &c.Crtabcommitted, &c.Crtabsubmitted, &c.Crtabdebited, &c.Crloanssignedoff, &c.Crstarted, &c.Crfinished, &c.Crbacssubmitted, &c.Crrensubmitted, &c.Crrendebited, &c.Crarchived, &c.Crfirstinvoiceno, &c.Crlastinvoiceno, &c.Crstatusold, &c.Cremailsent, &c.Cremailoutstndng, &c.Crprintsent, &c.Crprintoutstndng, &c.Crskipped, &c.Crrenewalcode, &c.Crsparec1, &c.Crsparec2, &c.Crsparen1, &c.Crsparen2, &c.Crsparel1, &c.Crstatus, &c.Crsarssignedoff, &c.Crpledgercrdate, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CommrunByEquinoxLrn retrieves a row from 'equinox.commrun' as a Commrun.
 //
 // Generated from index 'commrun_pkey'.

@@ -22,6 +22,37 @@ type Mpmb struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllMpmb(db XODB, callback func(x Mpmb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mpbmpancore, mpbsupplierid, mpbsettledate, mpbmetertype, mpbinstalldate, mpbmeterecoes, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mpmb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mpmb{}
+
+		// scan
+		err = q.Scan(&m.Mpbmpancore, &m.Mpbsupplierid, &m.Mpbsettledate, &m.Mpbmetertype, &m.Mpbinstalldate, &m.Mpbmeterecoes, &m.EquinoxPrn, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MpmbByEquinoxLrn retrieves a row from 'equinox.mpmb' as a Mpmb.
 //
 // Generated from index 'mpmb_pkey'.

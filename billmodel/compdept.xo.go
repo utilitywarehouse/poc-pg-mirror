@@ -22,6 +22,37 @@ type Compdept struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCompdept(db XODB, callback func(x Compdept) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`compdeptno, compdeptname, compdeptsparec1, compdeptsparen1, compdeptsparel1, compdeptspared1, compdeptsparem1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.compdept `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Compdept{}
+
+		// scan
+		err = q.Scan(&c.Compdeptno, &c.Compdeptname, &c.Compdeptsparec1, &c.Compdeptsparen1, &c.Compdeptsparel1, &c.Compdeptspared1, &c.Compdeptsparem1, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CompdeptByEquinoxLrn retrieves a row from 'equinox.compdept' as a Compdept.
 //
 // Generated from index 'compdept_pkey'.

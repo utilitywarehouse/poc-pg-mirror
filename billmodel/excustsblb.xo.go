@@ -12,6 +12,37 @@ type ExcustsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllExcustsBlb(db XODB, callback func(x ExcustsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.excusts_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		eb := ExcustsBlb{}
+
+		// scan
+		err = q.Scan(&eb.BlbLrn, &eb.BlbData, &eb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(eb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExcustsBlbByBlbLrn retrieves a row from 'equinox.excusts_blb' as a ExcustsBlb.
 //
 // Generated from index 'excusts_blb_pkey'.

@@ -12,6 +12,37 @@ type HsSpecBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllHsSpecBlb(db XODB, callback func(x HsSpecBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.hs_spec_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hsb := HsSpecBlb{}
+
+		// scan
+		err = q.Scan(&hsb.BlbLrn, &hsb.BlbData, &hsb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(hsb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HsSpecBlbByBlbLrn retrieves a row from 'equinox.hs_spec_blb' as a HsSpecBlb.
 //
 // Generated from index 'hs_spec_blb_pkey'.

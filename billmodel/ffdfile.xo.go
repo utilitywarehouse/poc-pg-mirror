@@ -68,6 +68,37 @@ type Ffdfile struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllFfdfile(db XODB, callback func(x Ffdfile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gffconqrefno, gffcaseevntdescd, gffmprn, gffstartreaddate, gffendreaddate, gffstartmeterrd, gffendmeterread, gffstartcorrrd, gffendcorrrd, gffstartrdtype, gffendrdtype, gffstartrdrsn, gffendrdrsn, gffvolconsumed, gffinvvolconsumd, gffunmtrdconsum, gfftotallocvol, gffdmdallocvol, gffdmdallocengy, gffactualenergy, gffmetertzicount, gffcorrtzicnt, gffgrecharge, gfftrecharge, gffndmreadref, gfffldrereccnadj, gffnotesconadj, gfffldrerecrprd, gffnotesrprd, gffmeterassetinc, gffntsmtrassinc, gffcorrtolfail, gffntscortolfail, gffstartrdeopnt, gffntssrtrdeopnt, gffincconsump, gffntsinccnsmptn, gffincorrectttz, gffntsincorctttz, gffhistorconsum, gffntshistconsum, gffrejctcdreason, gffcontactstatus, gffldz, gfffilterfaildt, gffprocessed, gffaccepted, gfffilename, gffarchived, gffdateimported, gfftimeimported, gffrejected, gffarchivedby, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ffdfile `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		f := Ffdfile{}
+
+		// scan
+		err = q.Scan(&f.Gffconqrefno, &f.Gffcaseevntdescd, &f.Gffmprn, &f.Gffstartreaddate, &f.Gffendreaddate, &f.Gffstartmeterrd, &f.Gffendmeterread, &f.Gffstartcorrrd, &f.Gffendcorrrd, &f.Gffstartrdtype, &f.Gffendrdtype, &f.Gffstartrdrsn, &f.Gffendrdrsn, &f.Gffvolconsumed, &f.Gffinvvolconsumd, &f.Gffunmtrdconsum, &f.Gfftotallocvol, &f.Gffdmdallocvol, &f.Gffdmdallocengy, &f.Gffactualenergy, &f.Gffmetertzicount, &f.Gffcorrtzicnt, &f.Gffgrecharge, &f.Gfftrecharge, &f.Gffndmreadref, &f.Gfffldrereccnadj, &f.Gffnotesconadj, &f.Gfffldrerecrprd, &f.Gffnotesrprd, &f.Gffmeterassetinc, &f.Gffntsmtrassinc, &f.Gffcorrtolfail, &f.Gffntscortolfail, &f.Gffstartrdeopnt, &f.Gffntssrtrdeopnt, &f.Gffincconsump, &f.Gffntsinccnsmptn, &f.Gffincorrectttz, &f.Gffntsincorctttz, &f.Gffhistorconsum, &f.Gffntshistconsum, &f.Gffrejctcdreason, &f.Gffcontactstatus, &f.Gffldz, &f.Gfffilterfaildt, &f.Gffprocessed, &f.Gffaccepted, &f.Gfffilename, &f.Gffarchived, &f.Gffdateimported, &f.Gfftimeimported, &f.Gffrejected, &f.Gffarchivedby, &f.EquinoxLrn, &f.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(f) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FfdfileByEquinoxLrn retrieves a row from 'equinox.ffdfile' as a Ffdfile.
 //
 // Generated from index 'ffdfile_pkey'.

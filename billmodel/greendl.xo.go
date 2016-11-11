@@ -21,6 +21,37 @@ type Greendl struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGreendl(db XODB, callback func(x Greendl) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gdplanid, gdmpan, gdstartdate, gdenddate, gdannualgassave, gdannualelecsave, equinox_lrn, equinox_sec ` +
+		`FROM equinox.greendl `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Greendl{}
+
+		// scan
+		err = q.Scan(&g.Gdplanid, &g.Gdmpan, &g.Gdstartdate, &g.Gdenddate, &g.Gdannualgassave, &g.Gdannualelecsave, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GreendlByEquinoxLrn retrieves a row from 'equinox.greendl' as a Greendl.
 //
 // Generated from index 'greendl_pkey'.

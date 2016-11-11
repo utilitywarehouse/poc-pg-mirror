@@ -17,6 +17,37 @@ type Gcomvat struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllGcomvat(db XODB, callback func(x Gcomvat) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcomvatid, gcomvatdescrip, gcomvatrate, gcomvatvalue, gcomvatunits, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gcomvat `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gcomvat{}
+
+		// scan
+		err = q.Scan(&g.Gcomvatid, &g.Gcomvatdescrip, &g.Gcomvatrate, &g.Gcomvatvalue, &g.Gcomvatunits, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GcomvatByEquinoxLrn retrieves a row from 'equinox.gcomvat' as a Gcomvat.
 //
 // Generated from index 'gcomvat_pkey'.

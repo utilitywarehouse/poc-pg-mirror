@@ -27,6 +27,37 @@ type Pesrate struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllPesrate(db XODB, callback func(x Pesrate) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pesregion, pesmeter, pestariffmeter, pesppkwh, pesmonthly, pesdaily, pesmonthorday, pesvalidfrom, pesvalidto, pestcr, pestcrdual, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pesrates `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pesrate{}
+
+		// scan
+		err = q.Scan(&p.Pesregion, &p.Pesmeter, &p.Pestariffmeter, &p.Pesppkwh, &p.Pesmonthly, &p.Pesdaily, &p.Pesmonthorday, &p.Pesvalidfrom, &p.Pesvalidto, &p.Pestcr, &p.Pestcrdual, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PesrateByEquinoxLrn retrieves a row from 'equinox.pesrates' as a Pesrate.
 //
 // Generated from index 'pesrates_pkey'.

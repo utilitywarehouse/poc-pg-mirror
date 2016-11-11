@@ -51,6 +51,37 @@ type Chp struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllChp(db XODB, callback func(x Chp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`chpid, chpcustaccno, chpispartner, chpstatus, chptype, chpdept, chpdebtsubgrp, chpisdup, chpservice, chpsource, chpexcaseref, chpemmaid, chpcategory, chpowner, chpcreatedby, chpopendate, chpopentime, chpclosedate, chpclosetime, chpreopened, chpreopreason, chpcontname, chpcontemail, chpcontphone, chpnotes, chpnxtdayletter, chp8weekletter, chpescto, chpsparec1, chpsparec2, chpspared1, chp4weekletter, chpsparen1, chpsparen2, chpsparel1, chpthirdparty, equinox_lrn, equinox_sec ` +
+		`FROM equinox.chp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Chp{}
+
+		// scan
+		err = q.Scan(&c.Chpid, &c.Chpcustaccno, &c.Chpispartner, &c.Chpstatus, &c.Chptype, &c.Chpdept, &c.Chpdebtsubgrp, &c.Chpisdup, &c.Chpservice, &c.Chpsource, &c.Chpexcaseref, &c.Chpemmaid, &c.Chpcategory, &c.Chpowner, &c.Chpcreatedby, &c.Chpopendate, &c.Chpopentime, &c.Chpclosedate, &c.Chpclosetime, &c.Chpreopened, &c.Chpreopreason, &c.Chpcontname, &c.Chpcontemail, &c.Chpcontphone, &c.Chpnotes, &c.Chpnxtdayletter, &c.Chp8weekletter, &c.Chpescto, &c.Chpsparec1, &c.Chpsparec2, &c.Chpspared1, &c.Chp4weekletter, &c.Chpsparen1, &c.Chpsparen2, &c.Chpsparel1, &c.Chpthirdparty, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ChpByEquinoxLrn retrieves a row from 'equinox.chp' as a Chp.
 //
 // Generated from index 'chp_pkey'.

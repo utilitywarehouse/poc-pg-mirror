@@ -69,6 +69,37 @@ type Gfit struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGfit(db XODB, callback func(x Gfit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gfitid, gfitgenid, gfitmcsnum, gfitenddate, gfittariffcode, gfittariffdescrp, gfittariffrate, gfitextariffrate, gfitpaystatus, gfitconfirmation, gfitcommisiond, gfiteligibility, gfiteligibilend, gfittechnoltype, gfitcustaccno, gfitenergyref, gfitinstallcap, gfitnetcap, gfitmetermodel, gfitexmetermod, gfitmetermanuf, gfitexmeterman, gfitexmetermpan, gfitmeterserial, gfitexmeterser, gfitmeterlocatio, gfitexmeterloc, gfitinstaller, gfitinstallphone, gfitinstalltype, gfitexref, gfitgrantref, gfitsparec4, gfitsigneddate, gfitgrantdate, gfitchglicdate, gfitappdate, gfiteayield, gfitexeayield, gfitstartread, gfitexstartread, gfitgridref, gfitsitedescrip, gfitgrantrepaid, gfitoffgrid, gfitquartnom, gfitexdeemed, gfitsigdate, gfitnotes, gfitchkdate, gfitepcrating, gfitepccertno, gfitgenpay25, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gfit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gfit{}
+
+		// scan
+		err = q.Scan(&g.Gfitid, &g.Gfitgenid, &g.Gfitmcsnum, &g.Gfitenddate, &g.Gfittariffcode, &g.Gfittariffdescrp, &g.Gfittariffrate, &g.Gfitextariffrate, &g.Gfitpaystatus, &g.Gfitconfirmation, &g.Gfitcommisiond, &g.Gfiteligibility, &g.Gfiteligibilend, &g.Gfittechnoltype, &g.Gfitcustaccno, &g.Gfitenergyref, &g.Gfitinstallcap, &g.Gfitnetcap, &g.Gfitmetermodel, &g.Gfitexmetermod, &g.Gfitmetermanuf, &g.Gfitexmeterman, &g.Gfitexmetermpan, &g.Gfitmeterserial, &g.Gfitexmeterser, &g.Gfitmeterlocatio, &g.Gfitexmeterloc, &g.Gfitinstaller, &g.Gfitinstallphone, &g.Gfitinstalltype, &g.Gfitexref, &g.Gfitgrantref, &g.Gfitsparec4, &g.Gfitsigneddate, &g.Gfitgrantdate, &g.Gfitchglicdate, &g.Gfitappdate, &g.Gfiteayield, &g.Gfitexeayield, &g.Gfitstartread, &g.Gfitexstartread, &g.Gfitgridref, &g.Gfitsitedescrip, &g.Gfitgrantrepaid, &g.Gfitoffgrid, &g.Gfitquartnom, &g.Gfitexdeemed, &g.Gfitsigdate, &g.Gfitnotes, &g.Gfitchkdate, &g.Gfitepcrating, &g.Gfitepccertno, &g.Gfitgenpay25, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GfitByEquinoxLrn retrieves a row from 'equinox.gfit' as a Gfit.
 //
 // Generated from index 'gfit_pkey'.

@@ -27,6 +27,37 @@ type Aclobj struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllAclobj(db XODB, callback func(x Aclobj) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`aclobjectid, aclobjecttype, aclobjectname, acldescription, aclnotes, aclocount, aclosparec1, aclosparec2, aclosparen1, aclosparen2, aclolastaction, aclolastuser, equinox_lrn, equinox_sec ` +
+		`FROM equinox.aclobj `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Aclobj{}
+
+		// scan
+		err = q.Scan(&a.Aclobjectid, &a.Aclobjecttype, &a.Aclobjectname, &a.Acldescription, &a.Aclnotes, &a.Aclocount, &a.Aclosparec1, &a.Aclosparec2, &a.Aclosparen1, &a.Aclosparen2, &a.Aclolastaction, &a.Aclolastuser, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AclobjByEquinoxLrn retrieves a row from 'equinox.aclobj' as a Aclobj.
 //
 // Generated from index 'aclobj_pkey'.

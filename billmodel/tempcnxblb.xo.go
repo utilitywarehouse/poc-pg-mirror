@@ -12,6 +12,37 @@ type TempCnxBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllTempCnxBlb(db XODB, callback func(x TempCnxBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.temp_cnx_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		tcb := TempCnxBlb{}
+
+		// scan
+		err = q.Scan(&tcb.BlbLrn, &tcb.BlbData, &tcb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(tcb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TempCnxBlbByBlbLrn retrieves a row from 'equinox.temp_cnx_blb' as a TempCnxBlb.
 //
 // Generated from index 'temp_cnx_blb_pkey'.

@@ -12,6 +12,37 @@ type PbssplitBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPbssplitBlb(db XODB, callback func(x PbssplitBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.pbssplit_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := PbssplitBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbssplitBlbByBlbLrn retrieves a row from 'equinox.pbssplit_blb' as a PbssplitBlb.
 //
 // Generated from index 'pbssplit_blb_pkey'.

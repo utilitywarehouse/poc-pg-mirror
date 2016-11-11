@@ -19,6 +19,37 @@ type Cscomm struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllCscomm(db XODB, callback func(x Cscomm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cscomment, cscommdate, cscommentered, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cscomm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cscomm{}
+
+		// scan
+		err = q.Scan(&c.Cscomment, &c.Cscommdate, &c.Cscommentered, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CscommByEquinoxLrn retrieves a row from 'equinox.cscomm' as a Cscomm.
 //
 // Generated from index 'cscomm_pkey'.

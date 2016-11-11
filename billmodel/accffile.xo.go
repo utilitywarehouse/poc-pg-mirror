@@ -34,6 +34,37 @@ type Accffile struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllAccffile(db XODB, callback func(x Accffile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gaccftranstype, gaccfackcode, gaccffiletype, gaccfcontactref, gaccfreadref, gaccfreasoncode, gaccfapptextval, gaccfshippercode, gaccfmprn, gaccfadjstartdte, gaccfadjenddte, gaccfadjtype, gaccfdataitemchg, gaccfrvsdvou, gaccfrsnremarks, gaccffileread, gaccfdateread, gaccftimeread, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.accffile `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Accffile{}
+
+		// scan
+		err = q.Scan(&a.Gaccftranstype, &a.Gaccfackcode, &a.Gaccffiletype, &a.Gaccfcontactref, &a.Gaccfreadref, &a.Gaccfreasoncode, &a.Gaccfapptextval, &a.Gaccfshippercode, &a.Gaccfmprn, &a.Gaccfadjstartdte, &a.Gaccfadjenddte, &a.Gaccfadjtype, &a.Gaccfdataitemchg, &a.Gaccfrvsdvou, &a.Gaccfrsnremarks, &a.Gaccffileread, &a.Gaccfdateread, &a.Gaccftimeread, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AccffileByEquinoxLrn retrieves a row from 'equinox.accffile' as a Accffile.
 //
 // Generated from index 'accffile_pkey'.

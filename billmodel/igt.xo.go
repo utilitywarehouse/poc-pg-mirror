@@ -33,6 +33,37 @@ type Igt struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllIgt(db XODB, callback func(x Igt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`igtfullname, igtidno, igtvalidfrom, igtvalidto, igtrangestart, igtrangeend, igtemail, igttelno, igtadd1, igtadd2, igtadd3, igtadd4, igtcounty, igtpostcode, igtshortname, igtsurcharge, igtsurchargeamt, igtcnfmethod, equinox_lrn, equinox_sec ` +
+		`FROM equinox.igt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		i := Igt{}
+
+		// scan
+		err = q.Scan(&i.Igtfullname, &i.Igtidno, &i.Igtvalidfrom, &i.Igtvalidto, &i.Igtrangestart, &i.Igtrangeend, &i.Igtemail, &i.Igttelno, &i.Igtadd1, &i.Igtadd2, &i.Igtadd3, &i.Igtadd4, &i.Igtcounty, &i.Igtpostcode, &i.Igtshortname, &i.Igtsurcharge, &i.Igtsurchargeamt, &i.Igtcnfmethod, &i.EquinoxLrn, &i.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(i) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // IgtByEquinoxLrn retrieves a row from 'equinox.igt' as a Igt.
 //
 // Generated from index 'igt_pkey'.

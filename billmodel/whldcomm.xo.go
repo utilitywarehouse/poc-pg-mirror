@@ -17,6 +17,37 @@ type Whldcomm struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllWhldcomm(db XODB, callback func(x Whldcomm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`wcpartnerid, wcperiodwithheld, wcperiodpaid, wctype, wcstatus, wcamount, equinox_lrn, equinox_sec ` +
+		`FROM equinox.whldcomm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		w := Whldcomm{}
+
+		// scan
+		err = q.Scan(&w.Wcpartnerid, &w.Wcperiodwithheld, &w.Wcperiodpaid, &w.Wctype, &w.Wcstatus, &w.Wcamount, &w.EquinoxLrn, &w.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(w) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // WhldcommByEquinoxLrn retrieves a row from 'equinox.whldcomm' as a Whldcomm.
 //
 // Generated from index 'whldcomm_pkey'.

@@ -12,6 +12,37 @@ type GcmeterBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllGcmeterBlb(db XODB, callback func(x GcmeterBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.gcmeter_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		gb := GcmeterBlb{}
+
+		// scan
+		err = q.Scan(&gb.BlbLrn, &gb.BlbData, &gb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(gb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GcmeterBlbByBlbLrn retrieves a row from 'equinox.gcmeter_blb' as a GcmeterBlb.
 //
 // Generated from index 'gcmeter_blb_pkey'.

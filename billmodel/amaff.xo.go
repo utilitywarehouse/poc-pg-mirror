@@ -20,6 +20,37 @@ type Amaff struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllAmaff(db XODB, callback func(x Amaff) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`amaffnetwork, amaffid, amaffid2, amaffcategory, amaffname, amaffperearn, amafffixearn, amaffstatus, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.amaff `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Amaff{}
+
+		// scan
+		err = q.Scan(&a.Amaffnetwork, &a.Amaffid, &a.Amaffid2, &a.Amaffcategory, &a.Amaffname, &a.Amaffperearn, &a.Amafffixearn, &a.Amaffstatus, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AmaffByEquinoxLrn retrieves a row from 'equinox.amaff' as a Amaff.
 //
 // Generated from index 'amaff_pkey'.

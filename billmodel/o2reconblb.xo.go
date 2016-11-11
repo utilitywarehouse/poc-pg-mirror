@@ -12,6 +12,37 @@ type O2reconBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllO2reconBlb(db XODB, callback func(x O2reconBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.o2recon_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ob := O2reconBlb{}
+
+		// scan
+		err = q.Scan(&ob.BlbLrn, &ob.BlbData, &ob.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ob) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // O2reconBlbByBlbLrn retrieves a row from 'equinox.o2recon_blb' as a O2reconBlb.
 //
 // Generated from index 'o2recon_blb_pkey'.

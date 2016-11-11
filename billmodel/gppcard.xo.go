@@ -20,6 +20,37 @@ type Gppcard struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllGppcard(db XODB, callback func(x Gppcard) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gppcardnum, gppcmsn, gppcstart, gppcend, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gppcard `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gppcard{}
+
+		// scan
+		err = q.Scan(&g.Gppcardnum, &g.Gppcmsn, &g.Gppcstart, &g.Gppcend, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GppcardByEquinoxLrn retrieves a row from 'equinox.gppcard' as a Gppcard.
 //
 // Generated from index 'gppcard_pkey'.

@@ -28,6 +28,37 @@ type Pmdetail struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllPmdetail(db XODB, callback func(x Pmdetail) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pmdregion, pmdgasmonthly, pmdgasdaily, pmdgasppkwh, pmdgastcr, pmdgastcrdual, pmdgdmonthly, pmdgddaily, pmdgdppkwh, pmdgdtcr, pmdgdtcrdual, pmde7monthly, pmde7daily, pmde7dayppkwh, pmde7nightppkwh, pmdstorageppkwh, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pmdetail `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pmdetail{}
+
+		// scan
+		err = q.Scan(&p.Pmdregion, &p.Pmdgasmonthly, &p.Pmdgasdaily, &p.Pmdgasppkwh, &p.Pmdgastcr, &p.Pmdgastcrdual, &p.Pmdgdmonthly, &p.Pmdgddaily, &p.Pmdgdppkwh, &p.Pmdgdtcr, &p.Pmdgdtcrdual, &p.Pmde7monthly, &p.Pmde7daily, &p.Pmde7dayppkwh, &p.Pmde7nightppkwh, &p.Pmdstorageppkwh, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PmdetailByEquinoxLrn retrieves a row from 'equinox.pmdetail' as a Pmdetail.
 //
 // Generated from index 'pmdetail_pkey'.

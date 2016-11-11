@@ -12,6 +12,37 @@ type EdsnotesBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllEdsnotesBlb(db XODB, callback func(x EdsnotesBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.edsnotes_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		eb := EdsnotesBlb{}
+
+		// scan
+		err = q.Scan(&eb.BlbLrn, &eb.BlbData, &eb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(eb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EdsnotesBlbByBlbLrn retrieves a row from 'equinox.edsnotes_blb' as a EdsnotesBlb.
 //
 // Generated from index 'edsnotes_blb_pkey'.

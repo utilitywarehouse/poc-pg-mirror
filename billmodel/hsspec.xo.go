@@ -26,6 +26,37 @@ type HsSpec struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllHsSpec(db XODB, callback func(x HsSpec) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`hs_spec_tariff, hs_spec_min, hs_spec_mlr, hs_free_handset, hs_spec_rpc, hs_spec_hscode, hs_spec_spared1, hs_spec_sparen1, hs_spec_suspend, hs_spec_datasize, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.hs_spec `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hs := HsSpec{}
+
+		// scan
+		err = q.Scan(&hs.HsSpecTariff, &hs.HsSpecMin, &hs.HsSpecMlr, &hs.HsFreeHandset, &hs.HsSpecRPC, &hs.HsSpecHscode, &hs.HsSpecSpared1, &hs.HsSpecSparen1, &hs.HsSpecSuspend, &hs.HsSpecDatasize, &hs.EquinoxPrn, &hs.EquinoxLrn, &hs.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(hs) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HsSpecByEquinoxLrn retrieves a row from 'equinox.hs_spec' as a HsSpec.
 //
 // Generated from index 'hs_spec_pkey'.

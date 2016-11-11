@@ -23,6 +23,37 @@ type Setting struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllSetting(db XODB, callback func(x Setting) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`slookupkey, svaluelive, svaluetest, lastmodifieddate, lastmodifiedtime, lastmodifiedby, svalueliveprev, notes, equinox_lrn, equinox_sec ` +
+		`FROM equinox.settings `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Setting{}
+
+		// scan
+		err = q.Scan(&s.Slookupkey, &s.Svaluelive, &s.Svaluetest, &s.Lastmodifieddate, &s.Lastmodifiedtime, &s.Lastmodifiedby, &s.Svalueliveprev, &s.Notes, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SettingByEquinoxLrn retrieves a row from 'equinox.settings' as a Setting.
 //
 // Generated from index 'settings_pkey'.

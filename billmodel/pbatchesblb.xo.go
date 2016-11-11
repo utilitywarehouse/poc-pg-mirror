@@ -12,6 +12,37 @@ type PbatchesBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPbatchesBlb(db XODB, callback func(x PbatchesBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.pbatches_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := PbatchesBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbatchesBlbByBlbLrn retrieves a row from 'equinox.pbatches_blb' as a PbatchesBlb.
 //
 // Generated from index 'pbatches_blb_pkey'.

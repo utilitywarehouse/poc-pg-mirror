@@ -12,6 +12,37 @@ type IgtBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllIgtBlb(db XODB, callback func(x IgtBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.igt_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ib := IgtBlb{}
+
+		// scan
+		err = q.Scan(&ib.BlbLrn, &ib.BlbData, &ib.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ib) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // IgtBlbByBlbLrn retrieves a row from 'equinox.igt_blb' as a IgtBlb.
 //
 // Generated from index 'igt_blb_pkey'.

@@ -18,6 +18,37 @@ type Aclperm struct {
 	EquinoxSec  sql.NullInt64   `json:"equinox_sec"` // equinox_sec
 }
 
+func AllAclperm(db XODB, callback func(x Aclperm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`aclpuserid, acloptions, aclpsparec1, aclpsparec2, aclpsparen1, aclpsparen2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.aclperms `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Aclperm{}
+
+		// scan
+		err = q.Scan(&a.Aclpuserid, &a.Acloptions, &a.Aclpsparec1, &a.Aclpsparec2, &a.Aclpsparen1, &a.Aclpsparen2, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AclpermByEquinoxLrn retrieves a row from 'equinox.aclperms' as a Aclperm.
 //
 // Generated from index 'aclperms_pkey'.

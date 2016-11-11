@@ -16,6 +16,37 @@ type Acluser struct {
 	EquinoxSec  sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllAcluser(db XODB, callback func(x Acluser) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`acluuserid, acluoptions, aclusparec1, aclusparec2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.aclusers `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Acluser{}
+
+		// scan
+		err = q.Scan(&a.Acluuserid, &a.Acluoptions, &a.Aclusparec1, &a.Aclusparec2, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AcluserByEquinoxLrn retrieves a row from 'equinox.aclusers' as a Acluser.
 //
 // Generated from index 'aclusers_pkey'.

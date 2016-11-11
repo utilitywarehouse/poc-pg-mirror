@@ -26,6 +26,37 @@ type Crcode struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCrcode(db XODB, callback func(x Crcode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crccodeid, crccode, crcsetdispflags, crcdisplay1, crcdisplay2, crcdisplay3, crcdisplay4, crcount, crtotal1, crtotal2, crcsparenum1, crcsparenum2, crcsparec1, crcsparec2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.crcodes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Crcode{}
+
+		// scan
+		err = q.Scan(&c.Crccodeid, &c.Crccode, &c.Crcsetdispflags, &c.Crcdisplay1, &c.Crcdisplay2, &c.Crcdisplay3, &c.Crcdisplay4, &c.Crcount, &c.Crtotal1, &c.Crtotal2, &c.Crcsparenum1, &c.Crcsparenum2, &c.Crcsparec1, &c.Crcsparec2, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrcodeByEquinoxLrn retrieves a row from 'equinox.crcodes' as a Crcode.
 //
 // Generated from index 'crcodes_pkey'.

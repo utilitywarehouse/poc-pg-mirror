@@ -31,6 +31,37 @@ type Excust struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExcust(db XODB, callback func(x Excust) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`excustscustacnt, excustsamount, excuststype, excustscstbilno, excustsdate, excustsnum1, excustsdate1, excustsservices, excustscommcode, excustsprocessed, excustscvcrate, excustshighin, excustssparec1, excustssparen1, excustsspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.excusts `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Excust{}
+
+		// scan
+		err = q.Scan(&e.Excustscustacnt, &e.Excustsamount, &e.Excuststype, &e.Excustscstbilno, &e.Excustsdate, &e.Excustsnum1, &e.Excustsdate1, &e.Excustsservices, &e.Excustscommcode, &e.Excustsprocessed, &e.Excustscvcrate, &e.Excustshighin, &e.Excustssparec1, &e.Excustssparen1, &e.Excustsspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExcustByEquinoxLrn retrieves a row from 'equinox.excusts' as a Excust.
 //
 // Generated from index 'excusts_pkey'.

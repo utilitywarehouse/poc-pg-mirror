@@ -120,6 +120,37 @@ type Enbase struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllEnbase(db XODB, callback func(x Enbase) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`endate, enregion, ensedd, ensecash, ensepp, enhodd, enhocash, enhopp, engodd, engocash, engopp, engohdd, engohcash, engohpp, enseddaq, ensecashaq, enseppaq, enhoddaq, enhocashaq, enhoppaq, engoddaq, engocashaq, engoppaq, engohddaq, engohcashaq, engohppaq, enseddelec, enseddeleceac, ensedde7, ensedde7deac, ensedde7neac, ensecashelec, ensecasheleceac, ensecashe7, ensecashe7deac, ensecashe7neac, enseppelec, enseppeleceac, enseppe7, enseppe7deac, enseppe7neac, enhoddelec, enhoddeleceac, enhodde7, enhodde7deac, enhodde7neac, enhocashelec, enhocasheleceac, enhocashe7, enhocashe7deac, enhocashe7neac, enhoppelec, enhoppeleceac, enhoppe7, enhoppe7deac, enhoppe7neac, engoddelec, engohddelec, engoddeleceac, engohddeleceac, engodde7, engohdde7, engodde7deac, engohdde7deac, engodde7neac, engohdde7neac, engocashelec, engohcashelec, engocasheleceac, engohcasheleceac, engocashe7, engohcashe7, engocashe7deac, engohcashe7deac, engocashe7neac, engohcashe7neac, engoppelec, engohppelec, engoppeleceac, engohppeleceac, engoppe7, engohppe7, engoppe7deac, engohppe7deac, engoppe7neac, engohppe7neac, entotaldualfdisc, engoldcrossover, eneleccrossover, ene7crossover, gogasddsplit, goelecddsplit, goe7ddsplitd, goe7ddsplitn, gogasddsplitaq, goelecddspliteac, goe7ddspliteac, goe7ddspliteacn, enavbill, enavebill, enave7bill, endfdiscount, endfnos, enn1, enn2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.enbase `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Enbase{}
+
+		// scan
+		err = q.Scan(&e.Endate, &e.Enregion, &e.Ensedd, &e.Ensecash, &e.Ensepp, &e.Enhodd, &e.Enhocash, &e.Enhopp, &e.Engodd, &e.Engocash, &e.Engopp, &e.Engohdd, &e.Engohcash, &e.Engohpp, &e.Enseddaq, &e.Ensecashaq, &e.Enseppaq, &e.Enhoddaq, &e.Enhocashaq, &e.Enhoppaq, &e.Engoddaq, &e.Engocashaq, &e.Engoppaq, &e.Engohddaq, &e.Engohcashaq, &e.Engohppaq, &e.Enseddelec, &e.Enseddeleceac, &e.Ensedde7, &e.Ensedde7deac, &e.Ensedde7neac, &e.Ensecashelec, &e.Ensecasheleceac, &e.Ensecashe7, &e.Ensecashe7deac, &e.Ensecashe7neac, &e.Enseppelec, &e.Enseppeleceac, &e.Enseppe7, &e.Enseppe7deac, &e.Enseppe7neac, &e.Enhoddelec, &e.Enhoddeleceac, &e.Enhodde7, &e.Enhodde7deac, &e.Enhodde7neac, &e.Enhocashelec, &e.Enhocasheleceac, &e.Enhocashe7, &e.Enhocashe7deac, &e.Enhocashe7neac, &e.Enhoppelec, &e.Enhoppeleceac, &e.Enhoppe7, &e.Enhoppe7deac, &e.Enhoppe7neac, &e.Engoddelec, &e.Engohddelec, &e.Engoddeleceac, &e.Engohddeleceac, &e.Engodde7, &e.Engohdde7, &e.Engodde7deac, &e.Engohdde7deac, &e.Engodde7neac, &e.Engohdde7neac, &e.Engocashelec, &e.Engohcashelec, &e.Engocasheleceac, &e.Engohcasheleceac, &e.Engocashe7, &e.Engohcashe7, &e.Engocashe7deac, &e.Engohcashe7deac, &e.Engocashe7neac, &e.Engohcashe7neac, &e.Engoppelec, &e.Engohppelec, &e.Engoppeleceac, &e.Engohppeleceac, &e.Engoppe7, &e.Engohppe7, &e.Engoppe7deac, &e.Engohppe7deac, &e.Engoppe7neac, &e.Engohppe7neac, &e.Entotaldualfdisc, &e.Engoldcrossover, &e.Eneleccrossover, &e.Ene7crossover, &e.Gogasddsplit, &e.Goelecddsplit, &e.Goe7ddsplitd, &e.Goe7ddsplitn, &e.Gogasddsplitaq, &e.Goelecddspliteac, &e.Goe7ddspliteac, &e.Goe7ddspliteacn, &e.Enavbill, &e.Enavebill, &e.Enave7bill, &e.Endfdiscount, &e.Endfnos, &e.Enn1, &e.Enn2, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EnbaseByEquinoxLrn retrieves a row from 'equinox.enbase' as a Enbase.
 //
 // Generated from index 'enbase_pkey'.

@@ -32,6 +32,37 @@ type Cnxpitem struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllCnxpitem(db XODB, callback func(x Cnxpitem) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxpicode, cnxpiitemdesc, cnxpiqty, cnxpinet, cnxpivat, cnxpitotal, cnxpisparec1, cnxpisparec2, cnxpisparen1, cnxpisparen2, cnxpisparen3, cnxpispared1, cnxpispared2, cnxpisparem1, cnxpisparel1, cnxpisparet1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxpitem `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxpitem{}
+
+		// scan
+		err = q.Scan(&c.Cnxpicode, &c.Cnxpiitemdesc, &c.Cnxpiqty, &c.Cnxpinet, &c.Cnxpivat, &c.Cnxpitotal, &c.Cnxpisparec1, &c.Cnxpisparec2, &c.Cnxpisparen1, &c.Cnxpisparen2, &c.Cnxpisparen3, &c.Cnxpispared1, &c.Cnxpispared2, &c.Cnxpisparem1, &c.Cnxpisparel1, &c.Cnxpisparet1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxpitemByEquinoxLrn retrieves a row from 'equinox.cnxpitem' as a Cnxpitem.
 //
 // Generated from index 'cnxpitem_pkey'.

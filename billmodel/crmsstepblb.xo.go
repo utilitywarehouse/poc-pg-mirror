@@ -12,6 +12,37 @@ type CrmsstepBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCrmsstepBlb(db XODB, callback func(x CrmsstepBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.crmsstep_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := CrmsstepBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrmsstepBlbByBlbLrn retrieves a row from 'equinox.crmsstep_blb' as a CrmsstepBlb.
 //
 // Generated from index 'crmsstep_blb_pkey'.

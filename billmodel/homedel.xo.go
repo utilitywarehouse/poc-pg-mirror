@@ -48,6 +48,37 @@ type Homedel struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllHomedel(db XODB, callback func(x Homedel) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`hdcustref, hdname, hdaddress1, hdaddress2, hdaddress3, hdaddress4, hdaddress5, hdpostcode, hdcontact, hdtelephone, hddelinstruct, hdsenderacc, hdpacks, hdweight, hddespdate, hdservicecode, hdtype, hdselect, hddeltype, hdtypeofpack, hdemail, hdsparen1, hdsparen2, hdsparen3, hdspared1, hdspared2, hdspared3, hdsparel1, hdsparel2, hdsparel3, hdprinted, hdsparec4, hdsparec5, equinox_lrn, equinox_sec ` +
+		`FROM equinox.homedel `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		h := Homedel{}
+
+		// scan
+		err = q.Scan(&h.Hdcustref, &h.Hdname, &h.Hdaddress1, &h.Hdaddress2, &h.Hdaddress3, &h.Hdaddress4, &h.Hdaddress5, &h.Hdpostcode, &h.Hdcontact, &h.Hdtelephone, &h.Hddelinstruct, &h.Hdsenderacc, &h.Hdpacks, &h.Hdweight, &h.Hddespdate, &h.Hdservicecode, &h.Hdtype, &h.Hdselect, &h.Hddeltype, &h.Hdtypeofpack, &h.Hdemail, &h.Hdsparen1, &h.Hdsparen2, &h.Hdsparen3, &h.Hdspared1, &h.Hdspared2, &h.Hdspared3, &h.Hdsparel1, &h.Hdsparel2, &h.Hdsparel3, &h.Hdprinted, &h.Hdsparec4, &h.Hdsparec5, &h.EquinoxLrn, &h.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(h) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HomedelByEquinoxLrn retrieves a row from 'equinox.homedel' as a Homedel.
 //
 // Generated from index 'homedel_pkey'.

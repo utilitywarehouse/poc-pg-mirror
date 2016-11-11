@@ -54,6 +54,37 @@ type Gmorjob struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGmorjob(db XODB, callback func(x Gmorjob) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gmoappointdate, gmoappointtime, gmoappointtype, gmoappointreason, gmorequestedby, gmodeposit, gmodepositamount, gmochargeable, gmochargereason, gmochargeamount, gmojobstatus, gmojobdate, gmodetails, gmomam, gmomobilenumber, gmoemailaddress, gmoresdate, gmoresoutcome, gmoresresason, gmotranstype, gmotranstypereas, gmotransstatus, gmocarecategory, gmorfiledate, gmormodifiedby, gmorenterred, gmortransfref, gmormetertype, gmormetermech, gmorpaymethod, gmormodelcode, gmorinstruction, gmorsiteref, gmorjobcomplete, gmorfailedreason, gmorjobuniquesys, gmorgref, gmoraccountno, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gmorjob `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gmorjob{}
+
+		// scan
+		err = q.Scan(&g.Gmoappointdate, &g.Gmoappointtime, &g.Gmoappointtype, &g.Gmoappointreason, &g.Gmorequestedby, &g.Gmodeposit, &g.Gmodepositamount, &g.Gmochargeable, &g.Gmochargereason, &g.Gmochargeamount, &g.Gmojobstatus, &g.Gmojobdate, &g.Gmodetails, &g.Gmomam, &g.Gmomobilenumber, &g.Gmoemailaddress, &g.Gmoresdate, &g.Gmoresoutcome, &g.Gmoresresason, &g.Gmotranstype, &g.Gmotranstypereas, &g.Gmotransstatus, &g.Gmocarecategory, &g.Gmorfiledate, &g.Gmormodifiedby, &g.Gmorenterred, &g.Gmortransfref, &g.Gmormetertype, &g.Gmormetermech, &g.Gmorpaymethod, &g.Gmormodelcode, &g.Gmorinstruction, &g.Gmorsiteref, &g.Gmorjobcomplete, &g.Gmorfailedreason, &g.Gmorjobuniquesys, &g.Gmorgref, &g.Gmoraccountno, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GmorjobByEquinoxLrn retrieves a row from 'equinox.gmorjob' as a Gmorjob.
 //
 // Generated from index 'gmorjob_pkey'.

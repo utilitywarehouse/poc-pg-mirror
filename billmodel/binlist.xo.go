@@ -30,6 +30,37 @@ type Binlist struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllBinlist(db XODB, callback func(x Binlist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`binno, binissuer, bincardscheme, binprodtype, binusage, binswissueno, binswissuelen, binswcdstandard, binpanlength, binbintype, binlastupdate, binlastupdateby, binentered, binspare1, binspare2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.binlist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Binlist{}
+
+		// scan
+		err = q.Scan(&b.Binno, &b.Binissuer, &b.Bincardscheme, &b.Binprodtype, &b.Binusage, &b.Binswissueno, &b.Binswissuelen, &b.Binswcdstandard, &b.Binpanlength, &b.Binbintype, &b.Binlastupdate, &b.Binlastupdateby, &b.Binentered, &b.Binspare1, &b.Binspare2, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BinlistByEquinoxLrn retrieves a row from 'equinox.binlist' as a Binlist.
 //
 // Generated from index 'binlist_pkey'.

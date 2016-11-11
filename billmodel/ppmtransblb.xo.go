@@ -12,6 +12,37 @@ type PpmtransBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPpmtransBlb(db XODB, callback func(x PpmtransBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.ppmtrans_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := PpmtransBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PpmtransBlbByBlbLrn retrieves a row from 'equinox.ppmtrans_blb' as a PpmtransBlb.
 //
 // Generated from index 'ppmtrans_blb_pkey'.

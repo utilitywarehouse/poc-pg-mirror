@@ -12,6 +12,37 @@ type ExrentalBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllExrentalBlb(db XODB, callback func(x ExrentalBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.exrental_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		eb := ExrentalBlb{}
+
+		// scan
+		err = q.Scan(&eb.BlbLrn, &eb.BlbData, &eb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(eb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExrentalBlbByBlbLrn retrieves a row from 'equinox.exrental_blb' as a ExrentalBlb.
 //
 // Generated from index 'exrental_blb_pkey'.

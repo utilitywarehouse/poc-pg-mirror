@@ -36,6 +36,37 @@ type Call struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCall(db XODB, callback func(x Call) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`calldate, calltime, calldestination, calldestnumber, callratingperiod, callduration, callcarrierband, callwholesale, callretail, callcalcwholesal, callduplicate, callfileid, callcarrier, callactretail, callactretailpre, calldesttype, callourband, callcustbillingg, callpromocode, callextn, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.calls `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Call{}
+
+		// scan
+		err = q.Scan(&c.Calldate, &c.Calltime, &c.Calldestination, &c.Calldestnumber, &c.Callratingperiod, &c.Callduration, &c.Callcarrierband, &c.Callwholesale, &c.Callretail, &c.Callcalcwholesal, &c.Callduplicate, &c.Callfileid, &c.Callcarrier, &c.Callactretail, &c.Callactretailpre, &c.Calldesttype, &c.Callourband, &c.Callcustbillingg, &c.Callpromocode, &c.Callextn, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CallByEquinoxLrn retrieves a row from 'equinox.calls' as a Call.
 //
 // Generated from index 'calls_pkey'.

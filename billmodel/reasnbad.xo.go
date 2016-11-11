@@ -14,6 +14,37 @@ type Reasnbad struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllReasnbad(db XODB, callback func(x Reasnbad) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`reaid, readescrip, reareportname, equinox_lrn, equinox_sec ` +
+		`FROM equinox.reasnbad `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Reasnbad{}
+
+		// scan
+		err = q.Scan(&r.Reaid, &r.Readescrip, &r.Reareportname, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ReasnbadByEquinoxLrn retrieves a row from 'equinox.reasnbad' as a Reasnbad.
 //
 // Generated from index 'reasnbad_pkey'.

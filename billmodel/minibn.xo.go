@@ -18,6 +18,37 @@ type Minibn struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllMinibn(db XODB, callback func(x Minibn) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`minischeme, miniidbonus, minicustbonus, minibonuscap, miniglbonus, minisglbonus, minidescription, equinox_lrn, equinox_sec ` +
+		`FROM equinox.minibns `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Minibn{}
+
+		// scan
+		err = q.Scan(&m.Minischeme, &m.Miniidbonus, &m.Minicustbonus, &m.Minibonuscap, &m.Miniglbonus, &m.Minisglbonus, &m.Minidescription, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MinibnByEquinoxLrn retrieves a row from 'equinox.minibns' as a Minibn.
 //
 // Generated from index 'minibns_pkey'.

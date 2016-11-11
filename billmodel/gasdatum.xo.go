@@ -22,6 +22,37 @@ type Gasdatum struct {
 	EquinoxSec sql.NullInt64   `json:"equinox_sec"` // equinox_sec
 }
 
+func AllGasdatum(db XODB, callback func(x Gasdatum) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gwldz, gwdate, gwewcf, gwalp01, gwalp02, gwdaf01, gwdaf02, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gasdata `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gasdatum{}
+
+		// scan
+		err = q.Scan(&g.Gwldz, &g.Gwdate, &g.Gwewcf, &g.Gwalp01, &g.Gwalp02, &g.Gwdaf01, &g.Gwdaf02, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GasdatumByEquinoxLrn retrieves a row from 'equinox.gasdata' as a Gasdatum.
 //
 // Generated from index 'gasdata_pkey'.

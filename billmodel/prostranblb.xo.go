@@ -12,6 +12,37 @@ type ProstranBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllProstranBlb(db XODB, callback func(x ProstranBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.prostran_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := ProstranBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ProstranBlbByBlbLrn retrieves a row from 'equinox.prostran_blb' as a ProstranBlb.
 //
 // Generated from index 'prostran_blb_pkey'.

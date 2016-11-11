@@ -21,6 +21,37 @@ type Pbsubbat struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPbsubbat(db XODB, callback func(x Pbsubbat) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pbsubbatchref, pbsubbatchdate, pbsubbatchamount, pbsubbatchtype, pbsubbatchbalanc, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pbsubbat `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pbsubbat{}
+
+		// scan
+		err = q.Scan(&p.Pbsubbatchref, &p.Pbsubbatchdate, &p.Pbsubbatchamount, &p.Pbsubbatchtype, &p.Pbsubbatchbalanc, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbsubbatByEquinoxLrn retrieves a row from 'equinox.pbsubbat' as a Pbsubbat.
 //
 // Generated from index 'pbsubbat_pkey'.

@@ -95,6 +95,37 @@ type Cnxmobil struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxmobil(db XODB, callback func(x Cnxmobil) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxmobcli, cnxmobsim, cnxmobiemi, cnxmobphonereqd, cnxmobcover, cnxmobvmail, cnxmobsecurity, cnxmobdateentrd, cnxmobdateorder, cnxmobdateivrreg, cnxmobdatetompc, cnxmobpp3pounds, cnxmobdatefrmmpc, cnxmobweborder, cnxmobpackageno, cnxmobdatetobill, cnxmobdateletter, cnxmobdateprepay, cnxmobfreeaccess, cnxmobenteredby, cnxmobpromocd, cnxmobprice, cnxmobprepaid, cnxmobprepayment, cnxmobloyaltylvl, cnxmobloyaltynxt, cnxmobport, cnxmobcallquota, cnxmobnettarrif, cnxmoboptrpc, cnxmoboptsms, cnxmoboptmms, cnxmoboptgprs, cnxmoboptlocal, cnxmoboptintern, cnxmoboptspare1, cnxmoboptspare2, cnxmobdiscount, cnxmobdeladdr, cnxmobdeladdref, cnxmobsubtariff, cnxmobservicelvl, cnxmobrpc, cnxmobsms, cnxmobmms, cnxmobgprs, cnxmoblocal, cnxmobinternat, cnxmoblinerental, cnxmobcgbid, cnxmobminterm, cnxmobunsubprice, cnxmobordtype, cnxmobdatabundle, cnxmobbolton, cnxmobsparen1, cnxmobsparen2, cnxmobsparen3, cnxmobportdate, cnxmobcsigndate, cnxmobspared3, cnxmobtmlsalerep, cnxmobspecialoff, cnxmobdonoracc, cnxmobdoncliuni, cnxmobholduntil, cnxmobhmdate, cnxmobiladdserv, cnxmobsmartphone, cnxmobvaliddate, cnxmobvalidby, cnxmobsold, cnxmobquicksim, cnxmobcampaign, cnxmobhscode, cnxmobpaccode, cnxmobpacexpiry, cnxmobportingcli, cnxmobstatus, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxmobil `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxmobil{}
+
+		// scan
+		err = q.Scan(&c.Cnxmobcli, &c.Cnxmobsim, &c.Cnxmobiemi, &c.Cnxmobphonereqd, &c.Cnxmobcover, &c.Cnxmobvmail, &c.Cnxmobsecurity, &c.Cnxmobdateentrd, &c.Cnxmobdateorder, &c.Cnxmobdateivrreg, &c.Cnxmobdatetompc, &c.Cnxmobpp3pounds, &c.Cnxmobdatefrmmpc, &c.Cnxmobweborder, &c.Cnxmobpackageno, &c.Cnxmobdatetobill, &c.Cnxmobdateletter, &c.Cnxmobdateprepay, &c.Cnxmobfreeaccess, &c.Cnxmobenteredby, &c.Cnxmobpromocd, &c.Cnxmobprice, &c.Cnxmobprepaid, &c.Cnxmobprepayment, &c.Cnxmobloyaltylvl, &c.Cnxmobloyaltynxt, &c.Cnxmobport, &c.Cnxmobcallquota, &c.Cnxmobnettarrif, &c.Cnxmoboptrpc, &c.Cnxmoboptsms, &c.Cnxmoboptmms, &c.Cnxmoboptgprs, &c.Cnxmoboptlocal, &c.Cnxmoboptintern, &c.Cnxmoboptspare1, &c.Cnxmoboptspare2, &c.Cnxmobdiscount, &c.Cnxmobdeladdr, &c.Cnxmobdeladdref, &c.Cnxmobsubtariff, &c.Cnxmobservicelvl, &c.Cnxmobrpc, &c.Cnxmobsms, &c.Cnxmobmms, &c.Cnxmobgprs, &c.Cnxmoblocal, &c.Cnxmobinternat, &c.Cnxmoblinerental, &c.Cnxmobcgbid, &c.Cnxmobminterm, &c.Cnxmobunsubprice, &c.Cnxmobordtype, &c.Cnxmobdatabundle, &c.Cnxmobbolton, &c.Cnxmobsparen1, &c.Cnxmobsparen2, &c.Cnxmobsparen3, &c.Cnxmobportdate, &c.Cnxmobcsigndate, &c.Cnxmobspared3, &c.Cnxmobtmlsalerep, &c.Cnxmobspecialoff, &c.Cnxmobdonoracc, &c.Cnxmobdoncliuni, &c.Cnxmobholduntil, &c.Cnxmobhmdate, &c.Cnxmobiladdserv, &c.Cnxmobsmartphone, &c.Cnxmobvaliddate, &c.Cnxmobvalidby, &c.Cnxmobsold, &c.Cnxmobquicksim, &c.Cnxmobcampaign, &c.Cnxmobhscode, &c.Cnxmobpaccode, &c.Cnxmobpacexpiry, &c.Cnxmobportingcli, &c.Cnxmobstatus, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxmobilByEquinoxLrn retrieves a row from 'equinox.cnxmobil' as a Cnxmobil.
 //
 // Generated from index 'cnxmobil_pkey'.

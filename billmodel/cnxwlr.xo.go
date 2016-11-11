@@ -57,6 +57,37 @@ type Cnxwlr struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxwlr(db XODB, callback func(x Cnxwlr) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxwlorref, cnxwlclinumber, cnxwlcliuniquesy, cnxwllivedate, cnxwlordertype, cnxwlorderstatus, cnxwlengineervi, cnxwlcontactno, cnxwlwlrtype, cnxwlservicelvl, cnxwlcontterm, cnxwlcallbundle, cnxwlservicereq, cnxwlequipment, cnxwldateentered, cnxwlenteredby, cnxwlchangedate, cnxwlchangetime, cnxwlchangedby, cnxwlcpsreq, cnxwlpromocd, cnxwltariff, cnxwlsubtarrif, cnxwlport, cnxwltps, cnxwlwelclett, cnxwlordernotes, cnxwlinstprice, cnxwlexdir, cnxwldeladdr, cnxwlmobsaver, cnxwlbttermend, cnxwlpostcode, cnxwldiscband, cnxwlinstalladdr, cnxwlapptdate, cnxwlfilters, cnxwlreqdate, cnxwlrdonotllu, cnxwlrcampaign, cnxwldeladdref, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxwlr `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxwlr{}
+
+		// scan
+		err = q.Scan(&c.Cnxwlorref, &c.Cnxwlclinumber, &c.Cnxwlcliuniquesy, &c.Cnxwllivedate, &c.Cnxwlordertype, &c.Cnxwlorderstatus, &c.Cnxwlengineervi, &c.Cnxwlcontactno, &c.Cnxwlwlrtype, &c.Cnxwlservicelvl, &c.Cnxwlcontterm, &c.Cnxwlcallbundle, &c.Cnxwlservicereq, &c.Cnxwlequipment, &c.Cnxwldateentered, &c.Cnxwlenteredby, &c.Cnxwlchangedate, &c.Cnxwlchangetime, &c.Cnxwlchangedby, &c.Cnxwlcpsreq, &c.Cnxwlpromocd, &c.Cnxwltariff, &c.Cnxwlsubtarrif, &c.Cnxwlport, &c.Cnxwltps, &c.Cnxwlwelclett, &c.Cnxwlordernotes, &c.Cnxwlinstprice, &c.Cnxwlexdir, &c.Cnxwldeladdr, &c.Cnxwlmobsaver, &c.Cnxwlbttermend, &c.Cnxwlpostcode, &c.Cnxwldiscband, &c.Cnxwlinstalladdr, &c.Cnxwlapptdate, &c.Cnxwlfilters, &c.Cnxwlreqdate, &c.Cnxwlrdonotllu, &c.Cnxwlrcampaign, &c.Cnxwldeladdref, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxwlrByEquinoxLrn retrieves a row from 'equinox.cnxwlr' as a Cnxwlr.
 //
 // Generated from index 'cnxwlr_pkey'.

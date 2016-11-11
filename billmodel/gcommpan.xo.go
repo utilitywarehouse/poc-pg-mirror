@@ -20,6 +20,37 @@ type Gcommpan struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGcommpan(db XODB, callback func(x Gcommpan) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcommpanprofile, gcommpanmts, gcommpanllf, gcommpanbot1, gcommpanbot2, gcommpanbot3, gcommpanbot4, gcommpanfull, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gcommpan `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gcommpan{}
+
+		// scan
+		err = q.Scan(&g.Gcommpanprofile, &g.Gcommpanmts, &g.Gcommpanllf, &g.Gcommpanbot1, &g.Gcommpanbot2, &g.Gcommpanbot3, &g.Gcommpanbot4, &g.Gcommpanfull, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GcommpanByEquinoxLrn retrieves a row from 'equinox.gcommpan' as a Gcommpan.
 //
 // Generated from index 'gcommpan_pkey'.

@@ -12,6 +12,37 @@ type VccommdtBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllVccommdtBlb(db XODB, callback func(x VccommdtBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.vccommdt_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		vb := VccommdtBlb{}
+
+		// scan
+		err = q.Scan(&vb.BlbLrn, &vb.BlbData, &vb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(vb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VccommdtBlbByBlbLrn retrieves a row from 'equinox.vccommdt_blb' as a VccommdtBlb.
 //
 // Generated from index 'vccommdt_blb_pkey'.

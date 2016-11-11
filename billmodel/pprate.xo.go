@@ -22,6 +22,37 @@ type Pprate struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPprate(db XODB, callback func(x Pprate) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pprregion, pprmeter, pprvalidfrom, pprvalidto, pprstandingcharg, pprppkwh1, pprppkwh2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pprates `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pprate{}
+
+		// scan
+		err = q.Scan(&p.Pprregion, &p.Pprmeter, &p.Pprvalidfrom, &p.Pprvalidto, &p.Pprstandingcharg, &p.Pprppkwh1, &p.Pprppkwh2, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PprateByEquinoxLrn retrieves a row from 'equinox.pprates' as a Pprate.
 //
 // Generated from index 'pprates_pkey'.

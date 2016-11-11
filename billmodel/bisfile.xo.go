@@ -38,6 +38,37 @@ type Bisfile struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllBisfile(db XODB, callback func(x Bisfile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bisfiletype, bisdate, bisfilehandshake, bisfileresponse, bisfilename, biszipname, bisfileoutcome, bisnum1, bisnum2, bisfilecontid, bischar2, bischar3, bischar4, bisdate1, bisdate2, bisdate3, bisdate4, bisfiledetail, bisfileidentify, bisfilesparec1, bisfilesparen1, bisfilespared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.bisfile `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Bisfile{}
+
+		// scan
+		err = q.Scan(&b.Bisfiletype, &b.Bisdate, &b.Bisfilehandshake, &b.Bisfileresponse, &b.Bisfilename, &b.Biszipname, &b.Bisfileoutcome, &b.Bisnum1, &b.Bisnum2, &b.Bisfilecontid, &b.Bischar2, &b.Bischar3, &b.Bischar4, &b.Bisdate1, &b.Bisdate2, &b.Bisdate3, &b.Bisdate4, &b.Bisfiledetail, &b.Bisfileidentify, &b.Bisfilesparec1, &b.Bisfilesparen1, &b.Bisfilespared1, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BisfileByEquinoxLrn retrieves a row from 'equinox.bisfile' as a Bisfile.
 //
 // Generated from index 'bisfile_pkey'.

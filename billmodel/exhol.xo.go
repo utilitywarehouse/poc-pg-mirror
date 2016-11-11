@@ -43,6 +43,37 @@ type Exhol struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllExhol(db XODB, callback func(x Exhol) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exholperiod, exholtype, exholvoucher, exholdwnpot, exholperpot, exholtotpot, exholdwnact, exholperact, exholcfpoints, exholtotact, exhollog, exholsparec1, exholsparec2, exholsparec3, exholsparec4, exholspared1, exholspared2, exholspared3, exholspared4, exholpurchased, exholsparen2, exholsparen3, exholsparen4, exholsparen5, exholsparen6, exholsparen7, exholsparen8, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exhol `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exhol{}
+
+		// scan
+		err = q.Scan(&e.Exholperiod, &e.Exholtype, &e.Exholvoucher, &e.Exholdwnpot, &e.Exholperpot, &e.Exholtotpot, &e.Exholdwnact, &e.Exholperact, &e.Exholcfpoints, &e.Exholtotact, &e.Exhollog, &e.Exholsparec1, &e.Exholsparec2, &e.Exholsparec3, &e.Exholsparec4, &e.Exholspared1, &e.Exholspared2, &e.Exholspared3, &e.Exholspared4, &e.Exholpurchased, &e.Exholsparen2, &e.Exholsparen3, &e.Exholsparen4, &e.Exholsparen5, &e.Exholsparen6, &e.Exholsparen7, &e.Exholsparen8, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExholByEquinoxLrn retrieves a row from 'equinox.exhol' as a Exhol.
 //
 // Generated from index 'exhol_pkey'.

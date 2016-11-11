@@ -19,6 +19,37 @@ type Pbssplit struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllPbssplit(db XODB, callback func(x Pbssplit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pbsinvoiceno, pbsaccountno, pbsamount, pbs_auniquesys, pbsstatus, pbscliservice, pbscliuniquesys, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pbssplit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pbssplit{}
+
+		// scan
+		err = q.Scan(&p.Pbsinvoiceno, &p.Pbsaccountno, &p.Pbsamount, &p.PbsAuniquesys, &p.Pbsstatus, &p.Pbscliservice, &p.Pbscliuniquesys, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbssplitByEquinoxLrn retrieves a row from 'equinox.pbssplit' as a Pbssplit.
 //
 // Generated from index 'pbssplit_pkey'.

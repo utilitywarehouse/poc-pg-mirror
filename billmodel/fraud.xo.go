@@ -80,6 +80,37 @@ type Fraud struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllFraud(db XODB, callback func(x Fraud) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`frdcli, frdcliuniquesys, frduseageindex, frdlastcall, frdspendm0, frdspendm1, frdspendm2, frdspendm3, frdcallsm0, frdcallsm1, frdcallsm2, frdcallsm3, frdtextsm0, frdtextsm1, frdtextsm2, frdtextsm3, frdtextschrgm0, frdtextschrgm1, frdtextschrgm2, frdtextschrgm3, frdwholesalem0, frdwholesalem1, frdwholesalem2, frdwholesalem3, frddurationm0, frddurationm1, frddurationm2, frddurationm3, frddurwholeminm0, frddurwholeminm1, frddurwholeminm2, frddurwholeminm3, frdbundleminm0, frdbundleminm1, frdbundleminm2, frdbundleminm3, frddatam0, frddatam1, frddatam2, frddatam3, frdintdatam0, frdintdatam1, frdintdatam2, frdintdatam3, frdintm0, frdintm1, frdintm2, frdintm3, frdpremm0, frdpremm1, frdpremm2, frdpremm3, frdcreditbar, frdcallcontbar, frdspendyest, frdspendyestw, frdspendav, frdcallsav, frdtextsav, frdnewcall, frdmonthlylimit, frdlastukdata, frdlastroamdata, frdnotes, frd20p, equinox_lrn, equinox_sec ` +
+		`FROM equinox.fraud `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		f := Fraud{}
+
+		// scan
+		err = q.Scan(&f.Frdcli, &f.Frdcliuniquesys, &f.Frduseageindex, &f.Frdlastcall, &f.Frdspendm0, &f.Frdspendm1, &f.Frdspendm2, &f.Frdspendm3, &f.Frdcallsm0, &f.Frdcallsm1, &f.Frdcallsm2, &f.Frdcallsm3, &f.Frdtextsm0, &f.Frdtextsm1, &f.Frdtextsm2, &f.Frdtextsm3, &f.Frdtextschrgm0, &f.Frdtextschrgm1, &f.Frdtextschrgm2, &f.Frdtextschrgm3, &f.Frdwholesalem0, &f.Frdwholesalem1, &f.Frdwholesalem2, &f.Frdwholesalem3, &f.Frddurationm0, &f.Frddurationm1, &f.Frddurationm2, &f.Frddurationm3, &f.Frddurwholeminm0, &f.Frddurwholeminm1, &f.Frddurwholeminm2, &f.Frddurwholeminm3, &f.Frdbundleminm0, &f.Frdbundleminm1, &f.Frdbundleminm2, &f.Frdbundleminm3, &f.Frddatam0, &f.Frddatam1, &f.Frddatam2, &f.Frddatam3, &f.Frdintdatam0, &f.Frdintdatam1, &f.Frdintdatam2, &f.Frdintdatam3, &f.Frdintm0, &f.Frdintm1, &f.Frdintm2, &f.Frdintm3, &f.Frdpremm0, &f.Frdpremm1, &f.Frdpremm2, &f.Frdpremm3, &f.Frdcreditbar, &f.Frdcallcontbar, &f.Frdspendyest, &f.Frdspendyestw, &f.Frdspendav, &f.Frdcallsav, &f.Frdtextsav, &f.Frdnewcall, &f.Frdmonthlylimit, &f.Frdlastukdata, &f.Frdlastroamdata, &f.Frdnotes, &f.Frd20p, &f.EquinoxLrn, &f.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(f) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FraudByEquinoxLrn retrieves a row from 'equinox.fraud' as a Fraud.
 //
 // Generated from index 'fraud_pkey'.

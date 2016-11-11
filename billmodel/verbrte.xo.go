@@ -22,6 +22,37 @@ type Verbrte struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllVerbrte(db XODB, callback func(x Verbrte) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`vrtableno, vrtabletype, vrterm, vrcommission, vrfromdate, vrtodate, vrmultiple, equinox_lrn, equinox_sec ` +
+		`FROM equinox.verbrte `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		v := Verbrte{}
+
+		// scan
+		err = q.Scan(&v.Vrtableno, &v.Vrtabletype, &v.Vrterm, &v.Vrcommission, &v.Vrfromdate, &v.Vrtodate, &v.Vrmultiple, &v.EquinoxLrn, &v.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(v) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VerbrteByEquinoxLrn retrieves a row from 'equinox.verbrte' as a Verbrte.
 //
 // Generated from index 'verbrte_pkey'.

@@ -19,6 +19,37 @@ type Tcgbsv struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllTcgbsv(db XODB, callback func(x Tcgbsv) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tcgbnumbersvs, tcgbamount, tcgbstartdate, tcgbenddate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tcgbsvs `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tcgbsv{}
+
+		// scan
+		err = q.Scan(&t.Tcgbnumbersvs, &t.Tcgbamount, &t.Tcgbstartdate, &t.Tcgbenddate, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TcgbsvByEquinoxLrn retrieves a row from 'equinox.tcgbsvs' as a Tcgbsv.
 //
 // Generated from index 'tcgbsvs_pkey'.

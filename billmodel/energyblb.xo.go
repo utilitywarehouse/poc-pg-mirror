@@ -12,6 +12,37 @@ type EnergyBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllEnergyBlb(db XODB, callback func(x EnergyBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.energy_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		eb := EnergyBlb{}
+
+		// scan
+		err = q.Scan(&eb.BlbLrn, &eb.BlbData, &eb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(eb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EnergyBlbByBlbLrn retrieves a row from 'equinox.energy_blb' as a EnergyBlb.
 //
 // Generated from index 'energy_blb_pkey'.

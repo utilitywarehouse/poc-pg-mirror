@@ -12,6 +12,37 @@ type CgbpcustBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCgbpcustBlb(db XODB, callback func(x CgbpcustBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.cgbpcust_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := CgbpcustBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CgbpcustBlbByBlbLrn retrieves a row from 'equinox.cgbpcust_blb' as a CgbpcustBlb.
 //
 // Generated from index 'cgbpcust_blb_pkey'.

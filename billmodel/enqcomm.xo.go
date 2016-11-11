@@ -44,6 +44,37 @@ type Enqcomm struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllEnqcomm(db XODB, callback func(x Enqcomm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`eqcomuniquesys, ecomdate, ecomtime, ecomprobcode, ecomdetails, ecomenteredby, ecomcliservice, ecomadditional1, ecomadditional2, ecomadditional3, ecomadditional4, ecomadditional5, ecomadditional6, ecomadditional7, ecomadditional8, ecomadditional9, ecomadditional10, ecompriority, ecomstatus, ecomtaskto, ecomcompletedate, ecomcompleteby, ecomhistoric, ecomactiondate, ecomactiontime, ecomdip, ecomlastchange, ecomletterpath, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.enqcomms `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Enqcomm{}
+
+		// scan
+		err = q.Scan(&e.Eqcomuniquesys, &e.Ecomdate, &e.Ecomtime, &e.Ecomprobcode, &e.Ecomdetails, &e.Ecomenteredby, &e.Ecomcliservice, &e.Ecomadditional1, &e.Ecomadditional2, &e.Ecomadditional3, &e.Ecomadditional4, &e.Ecomadditional5, &e.Ecomadditional6, &e.Ecomadditional7, &e.Ecomadditional8, &e.Ecomadditional9, &e.Ecomadditional10, &e.Ecompriority, &e.Ecomstatus, &e.Ecomtaskto, &e.Ecomcompletedate, &e.Ecomcompleteby, &e.Ecomhistoric, &e.Ecomactiondate, &e.Ecomactiontime, &e.Ecomdip, &e.Ecomlastchange, &e.Ecomletterpath, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EnqcommByEquinoxLrn retrieves a row from 'equinox.enqcomms' as a Enqcomm.
 //
 // Generated from index 'enqcomms_pkey'.

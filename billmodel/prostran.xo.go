@@ -40,6 +40,37 @@ type Prostran struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllProstran(db XODB, callback func(x Prostran) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pttransactionid, ptdate, ptdatesettled, ptdateprocessed, pttranstype, ptlocaliso, ptvaluegbp, ptvaluelocal, ptauthcode, ptmerchantnum, ptdescription, ptmerchantcat, ptsaving, ptbillnumber, ptexchangerate, pttransactionchg, ptpptreference, ptprossave, ptprospercent, ptaffmer, pteligiblespend, ptdateclaimed, ptdontpay, ptpaidfuel, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.prostran `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Prostran{}
+
+		// scan
+		err = q.Scan(&p.Pttransactionid, &p.Ptdate, &p.Ptdatesettled, &p.Ptdateprocessed, &p.Pttranstype, &p.Ptlocaliso, &p.Ptvaluegbp, &p.Ptvaluelocal, &p.Ptauthcode, &p.Ptmerchantnum, &p.Ptdescription, &p.Ptmerchantcat, &p.Ptsaving, &p.Ptbillnumber, &p.Ptexchangerate, &p.Pttransactionchg, &p.Ptpptreference, &p.Ptprossave, &p.Ptprospercent, &p.Ptaffmer, &p.Pteligiblespend, &p.Ptdateclaimed, &p.Ptdontpay, &p.Ptpaidfuel, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ProstranByEquinoxLrn retrieves a row from 'equinox.prostran' as a Prostran.
 //
 // Generated from index 'prostran_pkey'.

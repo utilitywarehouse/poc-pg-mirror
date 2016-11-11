@@ -22,6 +22,37 @@ type Gcominv struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllGcominv(db XODB, callback func(x Gcominv) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcominvid, gcominvdate, gcominvtotal, gcominvnet, gcominvvat, gcominvbilled, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gcominv `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gcominv{}
+
+		// scan
+		err = q.Scan(&g.Gcominvid, &g.Gcominvdate, &g.Gcominvtotal, &g.Gcominvnet, &g.Gcominvvat, &g.Gcominvbilled, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GcominvByEquinoxLrn retrieves a row from 'equinox.gcominv' as a Gcominv.
 //
 // Generated from index 'gcominv_pkey'.

@@ -12,6 +12,37 @@ type PbaccntBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPbaccntBlb(db XODB, callback func(x PbaccntBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.pbaccnt_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := PbaccntBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbaccntBlbByBlbLrn retrieves a row from 'equinox.pbaccnt_blb' as a PbaccntBlb.
 //
 // Generated from index 'pbaccnt_blb_pkey'.

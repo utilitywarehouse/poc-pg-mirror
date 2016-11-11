@@ -12,6 +12,37 @@ type Hol2014oBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllHol2014oBlb(db XODB, callback func(x Hol2014oBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.hol2014o_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hb := Hol2014oBlb{}
+
+		// scan
+		err = q.Scan(&hb.BlbLrn, &hb.BlbData, &hb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(hb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // Hol2014oBlbByBlbLrn retrieves a row from 'equinox.hol2014o_blb' as a Hol2014oBlb.
 //
 // Generated from index 'hol2014o_blb_pkey'.

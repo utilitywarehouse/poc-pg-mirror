@@ -48,6 +48,37 @@ type Cgb struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCgb(db XODB, callback func(x Cgb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cgbid, cgbcustaccountno, cgbbillinggroup, cgbcustexecid, cgbcli, cgbperiod, cgbspamount, cgbfpamount, cgbmpamount, cgbgpamount, cgbelecamount, cgbgasamount, cgbdoubleamount, cgbrating, cgbcustservices, cgbcustlivedate, cgbconnectiondat, cgbcustamount, cgbcustclaw, cgbdoubleclaw, cgbcustclawperio, cgboldnew, cgbftcgb, cgbsparec1, cgbsparec2, cgbbcamount, cgbspared1, cgbtbbpartner, cgbtbbamount, cgbordownload, cgborinstantsim, cgbobngn, cgbtotal, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cgb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cgb{}
+
+		// scan
+		err = q.Scan(&c.Cgbid, &c.Cgbcustaccountno, &c.Cgbbillinggroup, &c.Cgbcustexecid, &c.Cgbcli, &c.Cgbperiod, &c.Cgbspamount, &c.Cgbfpamount, &c.Cgbmpamount, &c.Cgbgpamount, &c.Cgbelecamount, &c.Cgbgasamount, &c.Cgbdoubleamount, &c.Cgbrating, &c.Cgbcustservices, &c.Cgbcustlivedate, &c.Cgbconnectiondat, &c.Cgbcustamount, &c.Cgbcustclaw, &c.Cgbdoubleclaw, &c.Cgbcustclawperio, &c.Cgboldnew, &c.Cgbftcgb, &c.Cgbsparec1, &c.Cgbsparec2, &c.Cgbbcamount, &c.Cgbspared1, &c.Cgbtbbpartner, &c.Cgbtbbamount, &c.Cgbordownload, &c.Cgborinstantsim, &c.Cgbobngn, &c.Cgbtotal, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CgbByEquinoxLrn retrieves a row from 'equinox.cgb' as a Cgb.
 //
 // Generated from index 'cgb_pkey'.

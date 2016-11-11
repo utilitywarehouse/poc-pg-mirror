@@ -14,6 +14,37 @@ type Slethist struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllSlethist(db XODB, callback func(x Slethist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`slhmonth, slhcount, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.slethist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Slethist{}
+
+		// scan
+		err = q.Scan(&s.Slhmonth, &s.Slhcount, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SlethistByEquinoxLrn retrieves a row from 'equinox.slethist' as a Slethist.
 //
 // Generated from index 'slethist_pkey'.

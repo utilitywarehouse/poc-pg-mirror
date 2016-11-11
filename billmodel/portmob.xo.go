@@ -51,6 +51,37 @@ type Portmob struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPortmob(db XODB, callback func(x Portmob) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`portmobcli, portmobsim, portmobcover, portmobvmail, portmobsecurity, portmobpackageno, portdspreject, portmobequip, portmodel, portmobpromocode, portpackagecost, portmoboutso, portoriginalcli, portcharge, portoptrpc, portoptsms, portoptmms, portoptgprs, portoptlocal, portoptintern, portunlock, portmobsparen1, portmobsparen2, portrpccode, portsmscode, portmmscode, portgprscode, portlocalcode, portintlcode, portcontract, portdatabundle, portbolton, portsmartphone, portspecialdeal, portcampaign, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.portmob `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Portmob{}
+
+		// scan
+		err = q.Scan(&p.Portmobcli, &p.Portmobsim, &p.Portmobcover, &p.Portmobvmail, &p.Portmobsecurity, &p.Portmobpackageno, &p.Portdspreject, &p.Portmobequip, &p.Portmodel, &p.Portmobpromocode, &p.Portpackagecost, &p.Portmoboutso, &p.Portoriginalcli, &p.Portcharge, &p.Portoptrpc, &p.Portoptsms, &p.Portoptmms, &p.Portoptgprs, &p.Portoptlocal, &p.Portoptintern, &p.Portunlock, &p.Portmobsparen1, &p.Portmobsparen2, &p.Portrpccode, &p.Portsmscode, &p.Portmmscode, &p.Portgprscode, &p.Portlocalcode, &p.Portintlcode, &p.Portcontract, &p.Portdatabundle, &p.Portbolton, &p.Portsmartphone, &p.Portspecialdeal, &p.Portcampaign, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PortmobByEquinoxLrn retrieves a row from 'equinox.portmob' as a Portmob.
 //
 // Generated from index 'portmob_pkey'.

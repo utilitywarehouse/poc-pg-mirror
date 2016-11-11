@@ -26,6 +26,37 @@ type Deposit struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllDeposit(db XODB, callback func(x Deposit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`deposituniquesys, depositdate, deposittime, deposittotal, deposittype, depositourref, depositcomments, depositbilldate, depositbillno, depositholduntil, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.deposits `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		d := Deposit{}
+
+		// scan
+		err = q.Scan(&d.Deposituniquesys, &d.Depositdate, &d.Deposittime, &d.Deposittotal, &d.Deposittype, &d.Depositourref, &d.Depositcomments, &d.Depositbilldate, &d.Depositbillno, &d.Depositholduntil, &d.EquinoxPrn, &d.EquinoxLrn, &d.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(d) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // DepositByEquinoxLrn retrieves a row from 'equinox.deposits' as a Deposit.
 //
 // Generated from index 'deposits_pkey'.

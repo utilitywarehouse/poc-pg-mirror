@@ -45,6 +45,37 @@ type Psrcust struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPsrcust(db XODB, callback func(x Psrcust) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`psrcustref, psrdigits, psrnums, psrlifesupequip, psrcomments, psrpassword, psrdatetotransco, psrdatetoess, psrsuccessdate, psrtransconfirm, psrapplication, psrgref, psreref, psrgascheckmeter, psrdatecreated, psrelecdigits, psrsparec2, psrspared1, psrsparen1, psrsparec3, psrelecnums, psrappname, psrconname, psrconphone, psrconadd1, psrconadd2, psrconadd3, psrconadd4, psrconcounty, psrconpostcode, equinox_lrn, equinox_sec ` +
+		`FROM equinox.psrcust `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Psrcust{}
+
+		// scan
+		err = q.Scan(&p.Psrcustref, &p.Psrdigits, &p.Psrnums, &p.Psrlifesupequip, &p.Psrcomments, &p.Psrpassword, &p.Psrdatetotransco, &p.Psrdatetoess, &p.Psrsuccessdate, &p.Psrtransconfirm, &p.Psrapplication, &p.Psrgref, &p.Psreref, &p.Psrgascheckmeter, &p.Psrdatecreated, &p.Psrelecdigits, &p.Psrsparec2, &p.Psrspared1, &p.Psrsparen1, &p.Psrsparec3, &p.Psrelecnums, &p.Psrappname, &p.Psrconname, &p.Psrconphone, &p.Psrconadd1, &p.Psrconadd2, &p.Psrconadd3, &p.Psrconadd4, &p.Psrconcounty, &p.Psrconpostcode, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PsrcustByEquinoxLrn retrieves a row from 'equinox.psrcust' as a Psrcust.
 //
 // Generated from index 'psrcust_pkey'.

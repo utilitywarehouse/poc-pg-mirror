@@ -88,6 +88,37 @@ type Cnxip struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxip(db XODB, callback func(x Cnxip) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxipcli, cnxipcliline1, cnxipcliline2, cnxipsecondline, cnxipservtype, cnxipsurcharge, cnxipentityno, cnxipextensionno, cnxipextnnol2, cnxipdatetocs, cnxipdatefromc1, cnxipdatefromc2, cnxipdatetoopt, cnxipdatefromopt, cnxipdatetobill, cnxippackageno, cnxipmaccode, cnxipdateentered, cnxipenteredby, cnxipdateletter, cnxipbtpostcode, cnxipstdcode, cnxipordtype, cnxipcsigndate, cnxipdeladdr, cnxipdeladdref, cnxipmobsaver, cnxipintsaver, cnxipequipment, cnxipweborder, cnxipprepayment, cnxipdateprepay, cnxipservicelvl, cnxipfreebox, cnxipprice, cnxipsubtarrif, cnxipextras, cnxiptariff, cnxipcontterm, cnxipdonoracc, cnxipdoncliuni, cnxipdiscband, cnxipholduntil, cnxipbtaccountno, cnxiptps, cnxiphmdate, cnxipbttermend, cnxiplinewithbt, cnxippromocode, cnxipss07, cnxipss01, cnxipss1a, cnxipss08, cnxipss06, cnxipss09, cnxipss02, cnxipss05, cnxipss14, cnxipnumwithheld, cnxipextnpassl1, cnxipextnpassl2, cnxipvmailcli, cnxipmoretalk, cnxiprpc, cnxipspared1, cnxipspared2, cnxipsparen1, cnxipsparen2, cnxipaddserv, cnxipvaliddate, cnxipvalidby, cnxipcampaign, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxip `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxip{}
+
+		// scan
+		err = q.Scan(&c.Cnxipcli, &c.Cnxipcliline1, &c.Cnxipcliline2, &c.Cnxipsecondline, &c.Cnxipservtype, &c.Cnxipsurcharge, &c.Cnxipentityno, &c.Cnxipextensionno, &c.Cnxipextnnol2, &c.Cnxipdatetocs, &c.Cnxipdatefromc1, &c.Cnxipdatefromc2, &c.Cnxipdatetoopt, &c.Cnxipdatefromopt, &c.Cnxipdatetobill, &c.Cnxippackageno, &c.Cnxipmaccode, &c.Cnxipdateentered, &c.Cnxipenteredby, &c.Cnxipdateletter, &c.Cnxipbtpostcode, &c.Cnxipstdcode, &c.Cnxipordtype, &c.Cnxipcsigndate, &c.Cnxipdeladdr, &c.Cnxipdeladdref, &c.Cnxipmobsaver, &c.Cnxipintsaver, &c.Cnxipequipment, &c.Cnxipweborder, &c.Cnxipprepayment, &c.Cnxipdateprepay, &c.Cnxipservicelvl, &c.Cnxipfreebox, &c.Cnxipprice, &c.Cnxipsubtarrif, &c.Cnxipextras, &c.Cnxiptariff, &c.Cnxipcontterm, &c.Cnxipdonoracc, &c.Cnxipdoncliuni, &c.Cnxipdiscband, &c.Cnxipholduntil, &c.Cnxipbtaccountno, &c.Cnxiptps, &c.Cnxiphmdate, &c.Cnxipbttermend, &c.Cnxiplinewithbt, &c.Cnxippromocode, &c.Cnxipss07, &c.Cnxipss01, &c.Cnxipss1a, &c.Cnxipss08, &c.Cnxipss06, &c.Cnxipss09, &c.Cnxipss02, &c.Cnxipss05, &c.Cnxipss14, &c.Cnxipnumwithheld, &c.Cnxipextnpassl1, &c.Cnxipextnpassl2, &c.Cnxipvmailcli, &c.Cnxipmoretalk, &c.Cnxiprpc, &c.Cnxipspared1, &c.Cnxipspared2, &c.Cnxipsparen1, &c.Cnxipsparen2, &c.Cnxipaddserv, &c.Cnxipvaliddate, &c.Cnxipvalidby, &c.Cnxipcampaign, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxipByEquinoxLrn retrieves a row from 'equinox.cnxip' as a Cnxip.
 //
 // Generated from index 'cnxip_pkey'.

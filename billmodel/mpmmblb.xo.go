@@ -12,6 +12,37 @@ type MpmmBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllMpmmBlb(db XODB, callback func(x MpmmBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.mpmm_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		mb := MpmmBlb{}
+
+		// scan
+		err = q.Scan(&mb.BlbLrn, &mb.BlbData, &mb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(mb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MpmmBlbByBlbLrn retrieves a row from 'equinox.mpmm_blb' as a MpmmBlb.
 //
 // Generated from index 'mpmm_blb_pkey'.

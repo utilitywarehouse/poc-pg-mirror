@@ -12,6 +12,37 @@ type MobhistBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllMobhistBlb(db XODB, callback func(x MobhistBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.mobhist_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		mb := MobhistBlb{}
+
+		// scan
+		err = q.Scan(&mb.BlbLrn, &mb.BlbData, &mb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(mb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MobhistBlbByBlbLrn retrieves a row from 'equinox.mobhist_blb' as a MobhistBlb.
 //
 // Generated from index 'mobhist_blb_pkey'.

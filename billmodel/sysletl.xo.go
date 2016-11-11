@@ -14,6 +14,37 @@ type Sysletl struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllSysletl(db XODB, callback func(x Sysletl) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`sllettercode, slcountquarterly, slcountannual, equinox_lrn, equinox_sec ` +
+		`FROM equinox.sysletl `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Sysletl{}
+
+		// scan
+		err = q.Scan(&s.Sllettercode, &s.Slcountquarterly, &s.Slcountannual, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SysletlByEquinoxLrn retrieves a row from 'equinox.sysletl' as a Sysletl.
 //
 // Generated from index 'sysletl_pkey'.

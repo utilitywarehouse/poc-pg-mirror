@@ -44,6 +44,37 @@ type Citylink struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCitylink(db XODB, callback func(x Citylink) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cl_uniqueid, cl_address1, cl_address2, cl_address3, cl_address4, cl_postcode, cl_buildingname, cl_buildingno, cl_street, cl_locale, cl_posttown, cl_county, cl_packs, cl_name, cl_accountname, cl_accountno, cl_printed, cl_entereddate, cl_source, cl_createfile, cl_sparec1, cl_sparec2, cl_spared1, cl_spared2, cl_sparen1, cl_sparen2, cl_telno, cl_email, cl_deliverytype, equinox_lrn, equinox_sec ` +
+		`FROM equinox.citylink `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Citylink{}
+
+		// scan
+		err = q.Scan(&c.ClUniqueid, &c.ClAddress1, &c.ClAddress2, &c.ClAddress3, &c.ClAddress4, &c.ClPostcode, &c.ClBuildingname, &c.ClBuildingno, &c.ClStreet, &c.ClLocale, &c.ClPosttown, &c.ClCounty, &c.ClPacks, &c.ClName, &c.ClAccountname, &c.ClAccountno, &c.ClPrinted, &c.ClEntereddate, &c.ClSource, &c.ClCreatefile, &c.ClSparec1, &c.ClSparec2, &c.ClSpared1, &c.ClSpared2, &c.ClSparen1, &c.ClSparen2, &c.ClTelno, &c.ClEmail, &c.ClDeliverytype, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CitylinkByEquinoxLrn retrieves a row from 'equinox.citylink' as a Citylink.
 //
 // Generated from index 'citylink_pkey'.

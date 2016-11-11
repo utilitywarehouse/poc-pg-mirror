@@ -44,6 +44,37 @@ type Excom struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExcom(db XODB, callback func(x Excom) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`excomuniquesys, excomdate, excomtime, excomprobcode, excomadditional1, excomadditional2, excomadditional3, excomadditional8, excomadditional7, excomadditional6, excomadditional5, excomadditional4, excomdetails, excomenteredby, excompriority, excomstatus, excomticketno, excomcompleted, excomcompletby, excomactiondate, excomstrtime, excomssparen1, excomstrdate, excomslastchange, excomsspared1, excomssparet1, excomadditional9, excomadd10, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.excoms `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Excom{}
+
+		// scan
+		err = q.Scan(&e.Excomuniquesys, &e.Excomdate, &e.Excomtime, &e.Excomprobcode, &e.Excomadditional1, &e.Excomadditional2, &e.Excomadditional3, &e.Excomadditional8, &e.Excomadditional7, &e.Excomadditional6, &e.Excomadditional5, &e.Excomadditional4, &e.Excomdetails, &e.Excomenteredby, &e.Excompriority, &e.Excomstatus, &e.Excomticketno, &e.Excomcompleted, &e.Excomcompletby, &e.Excomactiondate, &e.Excomstrtime, &e.Excomssparen1, &e.Excomstrdate, &e.Excomslastchange, &e.Excomsspared1, &e.Excomssparet1, &e.Excomadditional9, &e.Excomadd10, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExcomByEquinoxLrn retrieves a row from 'equinox.excoms' as a Excom.
 //
 // Generated from index 'excoms_pkey'.

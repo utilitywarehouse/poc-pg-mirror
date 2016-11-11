@@ -23,6 +23,37 @@ type Brserv struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllBrserv(db XODB, callback func(x Brserv) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`brstype, brscallcnt, brscallsecs, brsretail, brsmonnet, brsmontot, brsmonvatstd, brsmonvatnrg, brswhole, brsvatstd, brsvatnrg, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.brserv `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Brserv{}
+
+		// scan
+		err = q.Scan(&b.Brstype, &b.Brscallcnt, &b.Brscallsecs, &b.Brsretail, &b.Brsmonnet, &b.Brsmontot, &b.Brsmonvatstd, &b.Brsmonvatnrg, &b.Brswhole, &b.Brsvatstd, &b.Brsvatnrg, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BrservByEquinoxLrn retrieves a row from 'equinox.brserv' as a Brserv.
 //
 // Generated from index 'brserv_pkey'.

@@ -12,6 +12,37 @@ type GdpledgeBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllGdpledgeBlb(db XODB, callback func(x GdpledgeBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.gdpledge_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		gb := GdpledgeBlb{}
+
+		// scan
+		err = q.Scan(&gb.BlbLrn, &gb.BlbData, &gb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(gb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GdpledgeBlbByBlbLrn retrieves a row from 'equinox.gdpledge_blb' as a GdpledgeBlb.
 //
 // Generated from index 'gdpledge_blb_pkey'.

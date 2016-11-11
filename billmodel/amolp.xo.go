@@ -20,6 +20,37 @@ type Amolp struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllAmolp(db XODB, callback func(x Amolp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`amolpdatefrom, amolpdateto, amolppercent, amolppercentearn, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.amolp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Amolp{}
+
+		// scan
+		err = q.Scan(&a.Amolpdatefrom, &a.Amolpdateto, &a.Amolppercent, &a.Amolppercentearn, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AmolpByEquinoxLrn retrieves a row from 'equinox.amolp' as a Amolp.
 //
 // Generated from index 'amolp_pkey'.

@@ -12,6 +12,37 @@ type ActcodesBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllActcodesBlb(db XODB, callback func(x ActcodesBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.actcodes_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ab := ActcodesBlb{}
+
+		// scan
+		err = q.Scan(&ab.BlbLrn, &ab.BlbData, &ab.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ab) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ActcodesBlbByBlbLrn retrieves a row from 'equinox.actcodes_blb' as a ActcodesBlb.
 //
 // Generated from index 'actcodes_blb_pkey'.

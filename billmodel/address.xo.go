@@ -34,6 +34,37 @@ type Address struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllAddress(db XODB, callback func(x Address) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`addpostcode, addroadnumber, addsubpremises, addroadname, addlocality, addposttown, addcounty, addalk, addmpr, addmpan, addcli, addaccountno, addlastupdate, addlastuptime, addlastupdateby, addnotes, addline1, addline2, addline3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.address `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Address{}
+
+		// scan
+		err = q.Scan(&a.Addpostcode, &a.Addroadnumber, &a.Addsubpremises, &a.Addroadname, &a.Addlocality, &a.Addposttown, &a.Addcounty, &a.Addalk, &a.Addmpr, &a.Addmpan, &a.Addcli, &a.Addaccountno, &a.Addlastupdate, &a.Addlastuptime, &a.Addlastupdateby, &a.Addnotes, &a.Addline1, &a.Addline2, &a.Addline3, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AddressByEquinoxLrn retrieves a row from 'equinox.address' as a Address.
 //
 // Generated from index 'address_pkey'.

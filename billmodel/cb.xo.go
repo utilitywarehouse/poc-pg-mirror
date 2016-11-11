@@ -26,6 +26,37 @@ type Cb struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCb(db XODB, callback func(x Cb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cbuniquesys, cblocation, cbdescription, cbretailband, cbwholebandbt, cbwholebandcw, cbwholebandcwin, cbwholebandenerg, cbwholebandgamma, cbwholebandmpc, cbwholebandmpcp, cbwholebandntl, cbwholebando2, cbwholebandopal, cbtype, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cb{}
+
+		// scan
+		err = q.Scan(&c.Cbuniquesys, &c.Cblocation, &c.Cbdescription, &c.Cbretailband, &c.Cbwholebandbt, &c.Cbwholebandcw, &c.Cbwholebandcwin, &c.Cbwholebandenerg, &c.Cbwholebandgamma, &c.Cbwholebandmpc, &c.Cbwholebandmpcp, &c.Cbwholebandntl, &c.Cbwholebando2, &c.Cbwholebandopal, &c.Cbtype, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CbByEquinoxLrn retrieves a row from 'equinox.cb' as a Cb.
 //
 // Generated from index 'cb_pkey'.

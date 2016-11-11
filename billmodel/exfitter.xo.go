@@ -36,6 +36,37 @@ type Exfitter struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExfitter(db XODB, callback func(x Exfitter) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`efid, efcaptstatus, efnotification, efappname, efvanid, efcontractsigned, efpassedexam, efpassedeyetest, eftrainingatt, efdate, efappid, eftype, efvatreg, efvatno, efmobileno, efemailaddress, effirstname, efsurname, effitstatus, efwelcsent, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exfitter `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exfitter{}
+
+		// scan
+		err = q.Scan(&e.Efid, &e.Efcaptstatus, &e.Efnotification, &e.Efappname, &e.Efvanid, &e.Efcontractsigned, &e.Efpassedexam, &e.Efpassedeyetest, &e.Eftrainingatt, &e.Efdate, &e.Efappid, &e.Eftype, &e.Efvatreg, &e.Efvatno, &e.Efmobileno, &e.Efemailaddress, &e.Effirstname, &e.Efsurname, &e.Effitstatus, &e.Efwelcsent, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExfitterByEquinoxLrn retrieves a row from 'equinox.exfitter' as a Exfitter.
 //
 // Generated from index 'exfitter_pkey'.

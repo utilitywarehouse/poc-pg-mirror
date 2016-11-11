@@ -65,6 +65,37 @@ type Promotn struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPromotn(db XODB, callback func(x Promotn) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`promocode, promodescrip, promostart, promoend, promonumber, promoloyalty, promofreecalls, promoloyaltylvl, promoownership, promotariff, promo_nettariff, promo_linerent, promo_rpc, promo_sms, promo_mms, promo_gprs, promo_local, promo_internatl, promo_pack, promo_spare2, promo_spare3, promo_suspend, promo_available, promo_discount, promo_disclevel1, promo_disclevel2, promo_disclevel3, promo_disclevel4, promoshortdesc, promosetupcharge, promofreetexts, promoconnbonus, promoconnbonusam, promoconnbonusa2, promocommisonlr, promouserlevel, promo_notes, promo_tariffchg, promomustcli_sl, promooptcli_sl, promosparec3, promosparen1, promosparen2, promosparen3, promospared1, promospared2, promospared3, promodataopts, promobbopts, promoclisubtar, equinox_lrn, equinox_sec ` +
+		`FROM equinox.promotn `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Promotn{}
+
+		// scan
+		err = q.Scan(&p.Promocode, &p.Promodescrip, &p.Promostart, &p.Promoend, &p.Promonumber, &p.Promoloyalty, &p.Promofreecalls, &p.Promoloyaltylvl, &p.Promoownership, &p.Promotariff, &p.PromoNettariff, &p.PromoLinerent, &p.PromoRPC, &p.PromoSms, &p.PromoMms, &p.PromoGprs, &p.PromoLocal, &p.PromoInternatl, &p.PromoPack, &p.PromoSpare2, &p.PromoSpare3, &p.PromoSuspend, &p.PromoAvailable, &p.PromoDiscount, &p.PromoDisclevel1, &p.PromoDisclevel2, &p.PromoDisclevel3, &p.PromoDisclevel4, &p.Promoshortdesc, &p.Promosetupcharge, &p.Promofreetexts, &p.Promoconnbonus, &p.Promoconnbonusam, &p.Promoconnbonusa2, &p.Promocommisonlr, &p.Promouserlevel, &p.PromoNotes, &p.PromoTariffchg, &p.PromomustcliSl, &p.PromooptcliSl, &p.Promosparec3, &p.Promosparen1, &p.Promosparen2, &p.Promosparen3, &p.Promospared1, &p.Promospared2, &p.Promospared3, &p.Promodataopts, &p.Promobbopts, &p.Promoclisubtar, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PromotnByEquinoxLrn retrieves a row from 'equinox.promotn' as a Promotn.
 //
 // Generated from index 'promotn_pkey'.

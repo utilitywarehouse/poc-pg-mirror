@@ -79,6 +79,37 @@ type Exorder struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExorder(db XODB, callback func(x Exorder) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exordnumber, exorddate, exordtype, exordnett, exordvat, exordpandp, exorddisc, exordtotal, exordcctype, exordccnumber, exordccexpdate, exordccstartdate, exordccissue, exordchequeno, exordtransaccode, exordreffield, exordexportflag, exordauthorised, exordauthamount, exordauthdate, exordauthtext, exorddelname, exorddeladd1, exorddeladd2, exorddeladd3, exorddeladd4, exorddeladd5, exorddelpostcode, exorddeltelno, exordcommisvalue, exordcommispayab, exordprinted, exordcomplete, exordbycustomer, exorddespdate, exordcustno, exordmemo, exordletteraddr, exordinvaddr, exorddespmethod, exordcancelled, exordchanged, exordcccancelled, exordchqrefunded, exordcredit, exordcreditvat, exordinvoiceexec, exordsalesvatmix, exordcommispaid, exordfoc, exordweborder, exorderssparec1, exorderssparen1, exordersspared1, exordersinvoice, exordbanked, exordrefund, exordtime, exordpsp, exordref, exordshopref, exordcontract, exordrefundamt, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exorders `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exorder{}
+
+		// scan
+		err = q.Scan(&e.Exordnumber, &e.Exorddate, &e.Exordtype, &e.Exordnett, &e.Exordvat, &e.Exordpandp, &e.Exorddisc, &e.Exordtotal, &e.Exordcctype, &e.Exordccnumber, &e.Exordccexpdate, &e.Exordccstartdate, &e.Exordccissue, &e.Exordchequeno, &e.Exordtransaccode, &e.Exordreffield, &e.Exordexportflag, &e.Exordauthorised, &e.Exordauthamount, &e.Exordauthdate, &e.Exordauthtext, &e.Exorddelname, &e.Exorddeladd1, &e.Exorddeladd2, &e.Exorddeladd3, &e.Exorddeladd4, &e.Exorddeladd5, &e.Exorddelpostcode, &e.Exorddeltelno, &e.Exordcommisvalue, &e.Exordcommispayab, &e.Exordprinted, &e.Exordcomplete, &e.Exordbycustomer, &e.Exorddespdate, &e.Exordcustno, &e.Exordmemo, &e.Exordletteraddr, &e.Exordinvaddr, &e.Exorddespmethod, &e.Exordcancelled, &e.Exordchanged, &e.Exordcccancelled, &e.Exordchqrefunded, &e.Exordcredit, &e.Exordcreditvat, &e.Exordinvoiceexec, &e.Exordsalesvatmix, &e.Exordcommispaid, &e.Exordfoc, &e.Exordweborder, &e.Exorderssparec1, &e.Exorderssparen1, &e.Exordersspared1, &e.Exordersinvoice, &e.Exordbanked, &e.Exordrefund, &e.Exordtime, &e.Exordpsp, &e.Exordref, &e.Exordshopref, &e.Exordcontract, &e.Exordrefundamt, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExorderByEquinoxLrn retrieves a row from 'equinox.exorders' as a Exorder.
 //
 // Generated from index 'exorders_pkey'.

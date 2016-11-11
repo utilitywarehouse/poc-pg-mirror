@@ -43,6 +43,37 @@ type Failpay struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllFailpay(db XODB, callback func(x Failpay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`fpaccount, fpadd1, fpadd2, fpadd3, fpadd4, fpcounty, fppostcode, fpsqlid, fpccnumber, fpccstart, fpccend, fpccissue, fpccname, fpccpostcode, fpccpciuniqueno, fpcctotal, fpcccbc, fpccreddeposit, fpcchandsetdep, fpcchsetoneoff, fpcconlyverify, fpcctranserrcde, fpccprepayhdset, fpccauthcode, fpcctype, fpreexported, fpdate, fpcctranserrmsg, equinox_lrn, equinox_sec ` +
+		`FROM equinox.failpay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		f := Failpay{}
+
+		// scan
+		err = q.Scan(&f.Fpaccount, &f.Fpadd1, &f.Fpadd2, &f.Fpadd3, &f.Fpadd4, &f.Fpcounty, &f.Fppostcode, &f.Fpsqlid, &f.Fpccnumber, &f.Fpccstart, &f.Fpccend, &f.Fpccissue, &f.Fpccname, &f.Fpccpostcode, &f.Fpccpciuniqueno, &f.Fpcctotal, &f.Fpcccbc, &f.Fpccreddeposit, &f.Fpcchandsetdep, &f.Fpcchsetoneoff, &f.Fpcconlyverify, &f.Fpcctranserrcde, &f.Fpccprepayhdset, &f.Fpccauthcode, &f.Fpcctype, &f.Fpreexported, &f.Fpdate, &f.Fpcctranserrmsg, &f.EquinoxLrn, &f.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(f) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FailpayByEquinoxLrn retrieves a row from 'equinox.failpay' as a Failpay.
 //
 // Generated from index 'failpay_pkey'.

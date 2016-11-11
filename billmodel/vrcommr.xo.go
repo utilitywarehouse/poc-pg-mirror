@@ -24,6 +24,37 @@ type Vrcommr struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllVrcommr(db XODB, callback func(x Vrcommr) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`vrnumber, vrfrom, vrto, vrbillinggroup, vrstarted, vrended, vrcurrent, vrfiles, vrstatements, equinox_lrn, equinox_sec ` +
+		`FROM equinox.vrcommr `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		v := Vrcommr{}
+
+		// scan
+		err = q.Scan(&v.Vrnumber, &v.Vrfrom, &v.Vrto, &v.Vrbillinggroup, &v.Vrstarted, &v.Vrended, &v.Vrcurrent, &v.Vrfiles, &v.Vrstatements, &v.EquinoxLrn, &v.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(v) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VrcommrByEquinoxLrn retrieves a row from 'equinox.vrcommr' as a Vrcommr.
 //
 // Generated from index 'vrcommr_pkey'.

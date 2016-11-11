@@ -45,6 +45,37 @@ type Affmer struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllAffmer(db XODB, callback func(x Affmer) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`affmerid, affmername, affmerdesc, affmerpreferred, affmerperpay, affmerfixpay, affmercashback, affmerbuyressign, affmerspecial, affmerspecialcbc, affmersectors, affmerstatus, affmerrefresh, affmerspecialurl, affmerdeeplinkur, affmerstoreurl, affmerdomain, affmerpref2, affmerchanged, affmerpmmref, affmerranking, affmerbignames, affmernotes, affmerstart, affmerend, affmernovouchers, affmersparec1, affmersparec2, affmersparen1, affmersparen2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.affmer `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Affmer{}
+
+		// scan
+		err = q.Scan(&a.Affmerid, &a.Affmername, &a.Affmerdesc, &a.Affmerpreferred, &a.Affmerperpay, &a.Affmerfixpay, &a.Affmercashback, &a.Affmerbuyressign, &a.Affmerspecial, &a.Affmerspecialcbc, &a.Affmersectors, &a.Affmerstatus, &a.Affmerrefresh, &a.Affmerspecialurl, &a.Affmerdeeplinkur, &a.Affmerstoreurl, &a.Affmerdomain, &a.Affmerpref2, &a.Affmerchanged, &a.Affmerpmmref, &a.Affmerranking, &a.Affmerbignames, &a.Affmernotes, &a.Affmerstart, &a.Affmerend, &a.Affmernovouchers, &a.Affmersparec1, &a.Affmersparec2, &a.Affmersparen1, &a.Affmersparen2, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AffmerByEquinoxLrn retrieves a row from 'equinox.affmer' as a Affmer.
 //
 // Generated from index 'affmer_pkey'.

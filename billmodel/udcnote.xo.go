@@ -23,6 +23,37 @@ type Udcnote struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllUdcnote(db XODB, callback func(x Udcnote) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`udcnotes, udcentereddate, udcenteredtime, udcenteredby, uddateofreminder, udcdiarise, udcncategory, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.udcnotes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Udcnote{}
+
+		// scan
+		err = q.Scan(&u.Udcnotes, &u.Udcentereddate, &u.Udcenteredtime, &u.Udcenteredby, &u.Uddateofreminder, &u.Udcdiarise, &u.Udcncategory, &u.EquinoxPrn, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UdcnoteByEquinoxLrn retrieves a row from 'equinox.udcnotes' as a Udcnote.
 //
 // Generated from index 'udcnotes_pkey'.

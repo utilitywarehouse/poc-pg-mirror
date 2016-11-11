@@ -12,6 +12,37 @@ type EnbaseBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllEnbaseBlb(db XODB, callback func(x EnbaseBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.enbase_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		eb := EnbaseBlb{}
+
+		// scan
+		err = q.Scan(&eb.BlbLrn, &eb.BlbData, &eb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(eb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EnbaseBlbByBlbLrn retrieves a row from 'equinox.enbase_blb' as a EnbaseBlb.
 //
 // Generated from index 'enbase_blb_pkey'.

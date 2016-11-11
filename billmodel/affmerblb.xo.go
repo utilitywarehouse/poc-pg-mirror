@@ -12,6 +12,37 @@ type AffmerBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllAffmerBlb(db XODB, callback func(x AffmerBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.affmer_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ab := AffmerBlb{}
+
+		// scan
+		err = q.Scan(&ab.BlbLrn, &ab.BlbData, &ab.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ab) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AffmerBlbByBlbLrn retrieves a row from 'equinox.affmer_blb' as a AffmerBlb.
 //
 // Generated from index 'affmer_blb_pkey'.

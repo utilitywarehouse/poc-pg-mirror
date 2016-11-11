@@ -14,6 +14,37 @@ type Ffdlookp struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllFfdlookp(db XODB, callback func(x Ffdlookp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`glkpcode, glkpdesc, glkplookuptype, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ffdlookp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		f := Ffdlookp{}
+
+		// scan
+		err = q.Scan(&f.Glkpcode, &f.Glkpdesc, &f.Glkplookuptype, &f.EquinoxLrn, &f.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(f) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FfdlookpByEquinoxLrn retrieves a row from 'equinox.ffdlookp' as a Ffdlookp.
 //
 // Generated from index 'ffdlookp_pkey'.

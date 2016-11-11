@@ -22,6 +22,37 @@ type Category struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCategory(db XODB, callback func(x Category) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`categorycode, catdescription, catprinterid, catoutputtray, catschedule, catpriority, catlastrun, catsparechar1, catsparechar2, catsparenum1, catsparenum2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.category `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Category{}
+
+		// scan
+		err = q.Scan(&c.Categorycode, &c.Catdescription, &c.Catprinterid, &c.Catoutputtray, &c.Catschedule, &c.Catpriority, &c.Catlastrun, &c.Catsparechar1, &c.Catsparechar2, &c.Catsparenum1, &c.Catsparenum2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CategoryByEquinoxLrn retrieves a row from 'equinox.category' as a Category.
 //
 // Generated from index 'category_pkey'.

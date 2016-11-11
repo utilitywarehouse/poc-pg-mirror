@@ -22,6 +22,37 @@ type Mobtran struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllMobtran(db XODB, callback func(x Mobtran) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mpptdate, mppttime, mpptamount, mpptccrefernce, mpptbillnumber, mppttranstype, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mobtrans `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mobtran{}
+
+		// scan
+		err = q.Scan(&m.Mpptdate, &m.Mppttime, &m.Mpptamount, &m.Mpptccrefernce, &m.Mpptbillnumber, &m.Mppttranstype, &m.EquinoxPrn, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MobtranByEquinoxLrn retrieves a row from 'equinox.mobtrans' as a Mobtran.
 //
 // Generated from index 'mobtrans_pkey'.

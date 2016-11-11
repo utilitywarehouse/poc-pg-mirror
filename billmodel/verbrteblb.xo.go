@@ -12,6 +12,37 @@ type VerbrteBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllVerbrteBlb(db XODB, callback func(x VerbrteBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.verbrte_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		vb := VerbrteBlb{}
+
+		// scan
+		err = q.Scan(&vb.BlbLrn, &vb.BlbData, &vb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(vb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VerbrteBlbByBlbLrn retrieves a row from 'equinox.verbrte_blb' as a VerbrteBlb.
 //
 // Generated from index 'verbrte_blb_pkey'.

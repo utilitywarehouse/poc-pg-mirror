@@ -12,6 +12,37 @@ type Cash4cusBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCash4cusBlb(db XODB, callback func(x Cash4cusBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.cash4cus_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := Cash4cusBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // Cash4cusBlbByBlbLrn retrieves a row from 'equinox.cash4cus_blb' as a Cash4cusBlb.
 //
 // Generated from index 'cash4cus_blb_pkey'.

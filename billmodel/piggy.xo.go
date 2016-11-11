@@ -28,6 +28,37 @@ type Piggy struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllPiggy(db XODB, callback func(x Piggy) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`piggybondid, pbtype, pbvalue, pbdestination, pbexecid, pbclaimperiod, pbentered, pbenteredby, pbsparec1, pbsparec2, pbsparen1, pbsparen2, pbspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.piggies `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Piggy{}
+
+		// scan
+		err = q.Scan(&p.Piggybondid, &p.Pbtype, &p.Pbvalue, &p.Pbdestination, &p.Pbexecid, &p.Pbclaimperiod, &p.Pbentered, &p.Pbenteredby, &p.Pbsparec1, &p.Pbsparec2, &p.Pbsparen1, &p.Pbsparen2, &p.Pbspared1, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PiggyByEquinoxLrn retrieves a row from 'equinox.piggies' as a Piggy.
 //
 // Generated from index 'piggies_pkey'.

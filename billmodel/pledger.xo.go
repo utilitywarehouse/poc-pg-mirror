@@ -13,6 +13,37 @@ type Pledger struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllPledger(db XODB, callback func(x Pledger) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`plpartnerid, ploutstanding, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pledger `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pledger{}
+
+		// scan
+		err = q.Scan(&p.Plpartnerid, &p.Ploutstanding, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PledgerByEquinoxLrn retrieves a row from 'equinox.pledger' as a Pledger.
 //
 // Generated from index 'pledger_pkey'.

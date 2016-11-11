@@ -96,6 +96,37 @@ type Gastran struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGastran(db XODB, callback func(x Gastran) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gtrandatecreated, gtranfiletype, gtransource, gtranfileproduce, gtrantype, gtranstatus, gtranref, gtransc, gtranregref, gtrancf, gtranlastinspd, gtranappointd, gtranrolecodeins, gtranmamid, gtranourstatus, gtransenttoxoser, gtranxoserveresp, gtranxoserverdat, gtranrecordcount, gtranremmsn, gtranremlc, gtranremlcword, gtranremlcnote, gtranremastatusc, gtranremmtypec, gtranremmtypew, gtranremmechc, gtranremmechw, gtranremoamidate, gtranremrolecode, gtranremmeascap, gtranremmdials, gtranremiorm, gtranremrf, gtranremreadd, gtranremreadttz, gtranremreading, gtranremtobill, gtranrembilltox, gtranrembilld, gtranrembillttz, gtranrembillread, gtraninsmake, gtraninsmodel, gtraninsyman, gtraninsmsn, gtraninslc, gtraninslcword, gtraninslcnote, gtraninsstatusc, gtraninsmettypec, gtraninsmetw, gtraninsmetmechc, gtraninsmetmechw, gtraninsoamidate, gtraninsrolecode, gtraninsmeascap, gtraninsmdials, gtraninsiorm, gtraninsrf, gtraninsreadd, gtraninsreadttz, gtraninsreading, gtraninstobill, gtraninsbilld, gtraninsbillttz, gtraninsbillread, gtranrolecoder, gtraninsbilltox, gjrsfile, gtransc3, gtransn1, gtransn2, gtransn3, gtransd1, gtransd2, gtransd3, gtransc4, gtransc5, gtransoutput, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gastrans `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gastran{}
+
+		// scan
+		err = q.Scan(&g.Gtrandatecreated, &g.Gtranfiletype, &g.Gtransource, &g.Gtranfileproduce, &g.Gtrantype, &g.Gtranstatus, &g.Gtranref, &g.Gtransc, &g.Gtranregref, &g.Gtrancf, &g.Gtranlastinspd, &g.Gtranappointd, &g.Gtranrolecodeins, &g.Gtranmamid, &g.Gtranourstatus, &g.Gtransenttoxoser, &g.Gtranxoserveresp, &g.Gtranxoserverdat, &g.Gtranrecordcount, &g.Gtranremmsn, &g.Gtranremlc, &g.Gtranremlcword, &g.Gtranremlcnote, &g.Gtranremastatusc, &g.Gtranremmtypec, &g.Gtranremmtypew, &g.Gtranremmechc, &g.Gtranremmechw, &g.Gtranremoamidate, &g.Gtranremrolecode, &g.Gtranremmeascap, &g.Gtranremmdials, &g.Gtranremiorm, &g.Gtranremrf, &g.Gtranremreadd, &g.Gtranremreadttz, &g.Gtranremreading, &g.Gtranremtobill, &g.Gtranrembilltox, &g.Gtranrembilld, &g.Gtranrembillttz, &g.Gtranrembillread, &g.Gtraninsmake, &g.Gtraninsmodel, &g.Gtraninsyman, &g.Gtraninsmsn, &g.Gtraninslc, &g.Gtraninslcword, &g.Gtraninslcnote, &g.Gtraninsstatusc, &g.Gtraninsmettypec, &g.Gtraninsmetw, &g.Gtraninsmetmechc, &g.Gtraninsmetmechw, &g.Gtraninsoamidate, &g.Gtraninsrolecode, &g.Gtraninsmeascap, &g.Gtraninsmdials, &g.Gtraninsiorm, &g.Gtraninsrf, &g.Gtraninsreadd, &g.Gtraninsreadttz, &g.Gtraninsreading, &g.Gtraninstobill, &g.Gtraninsbilld, &g.Gtraninsbillttz, &g.Gtraninsbillread, &g.Gtranrolecoder, &g.Gtraninsbilltox, &g.Gjrsfile, &g.Gtransc3, &g.Gtransn1, &g.Gtransn2, &g.Gtransn3, &g.Gtransd1, &g.Gtransd2, &g.Gtransd3, &g.Gtransc4, &g.Gtransc5, &g.Gtransoutput, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GastranByEquinoxLrn retrieves a row from 'equinox.gastrans' as a Gastran.
 //
 // Generated from index 'gastrans_pkey'.

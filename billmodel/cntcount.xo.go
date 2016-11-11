@@ -14,6 +14,37 @@ type Cntcount struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllCntcount(db XODB, callback func(x Cntcount) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cntcmonth, cntccount, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cntcount `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cntcount{}
+
+		// scan
+		err = q.Scan(&c.Cntcmonth, &c.Cntccount, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CntcountByEquinoxLrn retrieves a row from 'equinox.cntcount' as a Cntcount.
 //
 // Generated from index 'cntcount_pkey'.

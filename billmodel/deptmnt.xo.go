@@ -14,6 +14,37 @@ type Deptmnt struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllDeptmnt(db XODB, callback func(x Deptmnt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`deptno, deptname, deptaccess, equinox_lrn, equinox_sec ` +
+		`FROM equinox.deptmnt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		d := Deptmnt{}
+
+		// scan
+		err = q.Scan(&d.Deptno, &d.Deptname, &d.Deptaccess, &d.EquinoxLrn, &d.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(d) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // DeptmntByEquinoxLrn retrieves a row from 'equinox.deptmnt' as a Deptmnt.
 //
 // Generated from index 'deptmnt_pkey'.

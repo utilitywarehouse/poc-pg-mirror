@@ -12,6 +12,37 @@ type HolcustBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllHolcustBlb(db XODB, callback func(x HolcustBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.holcust_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hb := HolcustBlb{}
+
+		// scan
+		err = q.Scan(&hb.BlbLrn, &hb.BlbData, &hb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(hb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HolcustBlbByBlbLrn retrieves a row from 'equinox.holcust_blb' as a HolcustBlb.
 //
 // Generated from index 'holcust_blb_pkey'.

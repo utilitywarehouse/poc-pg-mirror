@@ -12,6 +12,37 @@ type FfdfileBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllFfdfileBlb(db XODB, callback func(x FfdfileBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.ffdfile_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		fb := FfdfileBlb{}
+
+		// scan
+		err = q.Scan(&fb.BlbLrn, &fb.BlbData, &fb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(fb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FfdfileBlbByBlbLrn retrieves a row from 'equinox.ffdfile_blb' as a FfdfileBlb.
 //
 // Generated from index 'ffdfile_blb_pkey'.

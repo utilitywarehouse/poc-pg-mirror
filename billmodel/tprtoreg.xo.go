@@ -13,6 +13,37 @@ type Tprtoreg struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllTprtoreg(db XODB, callback func(x Tprtoreg) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tprid, tprtype, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tprtoreg `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tprtoreg{}
+
+		// scan
+		err = q.Scan(&t.Tprid, &t.Tprtype, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TprtoregByEquinoxLrn retrieves a row from 'equinox.tprtoreg' as a Tprtoreg.
 //
 // Generated from index 'tprtoreg_pkey'.

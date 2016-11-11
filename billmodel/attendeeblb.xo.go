@@ -12,6 +12,37 @@ type AttendeeBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllAttendeeBlb(db XODB, callback func(x AttendeeBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.attendee_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ab := AttendeeBlb{}
+
+		// scan
+		err = q.Scan(&ab.BlbLrn, &ab.BlbData, &ab.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ab) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AttendeeBlbByBlbLrn retrieves a row from 'equinox.attendee_blb' as a AttendeeBlb.
 //
 // Generated from index 'attendee_blb_pkey'.

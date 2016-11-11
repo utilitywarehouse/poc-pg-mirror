@@ -26,6 +26,37 @@ type Ledgerp struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllLedgerp(db XODB, callback func(x Ledgerp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`plguniquesys, plgdate, plgtime, plgourref, plgreason, plgvattotal, plgnettotal, plgtotal, plgflag, plgtype, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ledgerp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		l := Ledgerp{}
+
+		// scan
+		err = q.Scan(&l.Plguniquesys, &l.Plgdate, &l.Plgtime, &l.Plgourref, &l.Plgreason, &l.Plgvattotal, &l.Plgnettotal, &l.Plgtotal, &l.Plgflag, &l.Plgtype, &l.EquinoxPrn, &l.EquinoxLrn, &l.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(l) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LedgerpByEquinoxLrn retrieves a row from 'equinox.ledgerp' as a Ledgerp.
 //
 // Generated from index 'ledgerp_pkey'.

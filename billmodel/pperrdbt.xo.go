@@ -33,6 +33,37 @@ type Pperrdbt struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPperrdbt(db XODB, callback func(x Pperrdbt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pperrdbtdate, pperrdbtdebt, pperrdbtwkmax, pperrdbtwkmin, pperrdbtperc, pperrdbtngdbt, pperrdbtemgcrdlm, pperrdbtemhcrddb, pperrdbtlog1, pperrdbtlog2, pperrdbtlog3, pperrdbtlog4, pperrdbtadded, pperrdbtalloc, pperrdbtallocto, pperrdbtsrc, pperrdbtorigref, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pperrdbt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pperrdbt{}
+
+		// scan
+		err = q.Scan(&p.Pperrdbtdate, &p.Pperrdbtdebt, &p.Pperrdbtwkmax, &p.Pperrdbtwkmin, &p.Pperrdbtperc, &p.Pperrdbtngdbt, &p.Pperrdbtemgcrdlm, &p.Pperrdbtemhcrddb, &p.Pperrdbtlog1, &p.Pperrdbtlog2, &p.Pperrdbtlog3, &p.Pperrdbtlog4, &p.Pperrdbtadded, &p.Pperrdbtalloc, &p.Pperrdbtallocto, &p.Pperrdbtsrc, &p.Pperrdbtorigref, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PperrdbtByEquinoxLrn retrieves a row from 'equinox.pperrdbt' as a Pperrdbt.
 //
 // Generated from index 'pperrdbt_pkey'.

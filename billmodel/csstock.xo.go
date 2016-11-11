@@ -62,6 +62,37 @@ type Csstock struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCsstock(db XODB, callback func(x Csstock) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`csreference, cscompleted, csiemi, csiemireplace, csfirstdate, csreason, cslocation, csclinumber, csaccountno, cspackageno, csrefundamount, csrefundreason, csrefundstatus, csivrd, csfaultreason, csfaultcode, csrpc, csfaultletter, csfaultphonesent, csfaultphonefrom, csfaultphonerec, csclaimamount, csclaimtype, csclaimcode, csclaimcrimeref, csclaimstatus, csclaimdetails, csclaimreceived, csclaimform, csclaimpaymentr, csclaimletter1, csclaimletter2, csenteredby, csmodel, cssellprice, csfaultstatus, csclaimpending, cssimreplace, csletterid, csjobtype, csdamagephonerec, csoverriderpc, cssim, csneworss, csnewsimrequired, csnewmodel, csdispatchnote, equinox_lrn, equinox_sec ` +
+		`FROM equinox.csstock `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Csstock{}
+
+		// scan
+		err = q.Scan(&c.Csreference, &c.Cscompleted, &c.Csiemi, &c.Csiemireplace, &c.Csfirstdate, &c.Csreason, &c.Cslocation, &c.Csclinumber, &c.Csaccountno, &c.Cspackageno, &c.Csrefundamount, &c.Csrefundreason, &c.Csrefundstatus, &c.Csivrd, &c.Csfaultreason, &c.Csfaultcode, &c.Csrpc, &c.Csfaultletter, &c.Csfaultphonesent, &c.Csfaultphonefrom, &c.Csfaultphonerec, &c.Csclaimamount, &c.Csclaimtype, &c.Csclaimcode, &c.Csclaimcrimeref, &c.Csclaimstatus, &c.Csclaimdetails, &c.Csclaimreceived, &c.Csclaimform, &c.Csclaimpaymentr, &c.Csclaimletter1, &c.Csclaimletter2, &c.Csenteredby, &c.Csmodel, &c.Cssellprice, &c.Csfaultstatus, &c.Csclaimpending, &c.Cssimreplace, &c.Csletterid, &c.Csjobtype, &c.Csdamagephonerec, &c.Csoverriderpc, &c.Cssim, &c.Csneworss, &c.Csnewsimrequired, &c.Csnewmodel, &c.Csdispatchnote, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CsstockByEquinoxLrn retrieves a row from 'equinox.csstock' as a Csstock.
 //
 // Generated from index 'csstock_pkey'.

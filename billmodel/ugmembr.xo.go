@@ -14,6 +14,37 @@ type Ugmembr struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllUgmembr(db XODB, callback func(x Ugmembr) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ugmuserid, ugmgroupid, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ugmembr `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Ugmembr{}
+
+		// scan
+		err = q.Scan(&u.Ugmuserid, &u.Ugmgroupid, &u.EquinoxPrn, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UgmembrByEquinoxLrn retrieves a row from 'equinox.ugmembr' as a Ugmembr.
 //
 // Generated from index 'ugmembr_pkey'.

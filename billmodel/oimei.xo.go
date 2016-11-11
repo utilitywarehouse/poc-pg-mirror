@@ -24,6 +24,37 @@ type Oimei struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllOimei(db XODB, callback func(x Oimei) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`oimeikey, oimeimake, oimeimodel, oimeiother, oimeidateentered, oimeistocklevel, oimeicriticallev, oimeiorder, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.oimei `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		o := Oimei{}
+
+		// scan
+		err = q.Scan(&o.Oimeikey, &o.Oimeimake, &o.Oimeimodel, &o.Oimeiother, &o.Oimeidateentered, &o.Oimeistocklevel, &o.Oimeicriticallev, &o.Oimeiorder, &o.EquinoxPrn, &o.EquinoxLrn, &o.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(o) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OimeiByEquinoxLrn retrieves a row from 'equinox.oimei' as a Oimei.
 //
 // Generated from index 'oimei_pkey'.

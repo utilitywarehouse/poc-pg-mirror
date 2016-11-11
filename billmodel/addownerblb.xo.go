@@ -12,6 +12,37 @@ type AddownerBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllAddownerBlb(db XODB, callback func(x AddownerBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.addowner_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ab := AddownerBlb{}
+
+		// scan
+		err = q.Scan(&ab.BlbLrn, &ab.BlbData, &ab.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ab) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AddownerBlbByBlbLrn retrieves a row from 'equinox.addowner_blb' as a AddownerBlb.
 //
 // Generated from index 'addowner_blb_pkey'.

@@ -29,6 +29,37 @@ type Gpppay struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllGpppay(db XODB, callback func(x Gpppay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gpppoutlet, gppptransdate, gppptranstime, gpppamount, gpppmsnmatch, gpppmpid, gppptca, gpppinfdate, gpppbalance, gpppstdchrg, gpppdayrate, gpppnightrate, gppptransno, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gpppay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gpppay{}
+
+		// scan
+		err = q.Scan(&g.Gpppoutlet, &g.Gppptransdate, &g.Gppptranstime, &g.Gpppamount, &g.Gpppmsnmatch, &g.Gpppmpid, &g.Gppptca, &g.Gpppinfdate, &g.Gpppbalance, &g.Gpppstdchrg, &g.Gpppdayrate, &g.Gpppnightrate, &g.Gppptransno, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GpppayByEquinoxLrn retrieves a row from 'equinox.gpppay' as a Gpppay.
 //
 // Generated from index 'gpppay_pkey'.

@@ -15,6 +15,37 @@ type Cntpart struct {
 	EquinoxSec  sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllCntpart(db XODB, callback func(x Cntpart) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cntpindex, cntptype, cntpcontent, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cntpart `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cntpart{}
+
+		// scan
+		err = q.Scan(&c.Cntpindex, &c.Cntptype, &c.Cntpcontent, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CntpartByEquinoxLrn retrieves a row from 'equinox.cntpart' as a Cntpart.
 //
 // Generated from index 'cntpart_pkey'.

@@ -26,6 +26,37 @@ type Ostock struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllOstock(db XODB, callback func(x Ostock) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ostockimei, ostockmaccode, ostockdatein, ostocktimein, ostockpackageno, ostockstatus, ostocklocation, ostockdateout, ostocktimeout, ostockaccountno, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ostock `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		o := Ostock{}
+
+		// scan
+		err = q.Scan(&o.Ostockimei, &o.Ostockmaccode, &o.Ostockdatein, &o.Ostocktimein, &o.Ostockpackageno, &o.Ostockstatus, &o.Ostocklocation, &o.Ostockdateout, &o.Ostocktimeout, &o.Ostockaccountno, &o.EquinoxPrn, &o.EquinoxLrn, &o.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(o) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OstockByEquinoxLrn retrieves a row from 'equinox.ostock' as a Ostock.
 //
 // Generated from index 'ostock_pkey'.

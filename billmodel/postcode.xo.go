@@ -21,6 +21,37 @@ type Postcode struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllPostcode(db XODB, callback func(x Postcode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pcpostcode, pctown, pcstd, pcmobcoverage, pcarea, pcnoexecs, pcnounqexecs, pcnocust, pcnomobcust, pcelecreg, equinox_lrn, equinox_sec ` +
+		`FROM equinox.postcode `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Postcode{}
+
+		// scan
+		err = q.Scan(&p.Pcpostcode, &p.Pctown, &p.Pcstd, &p.Pcmobcoverage, &p.Pcarea, &p.Pcnoexecs, &p.Pcnounqexecs, &p.Pcnocust, &p.Pcnomobcust, &p.Pcelecreg, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PostcodeByEquinoxLrn retrieves a row from 'equinox.postcode' as a Postcode.
 //
 // Generated from index 'postcode_pkey'.

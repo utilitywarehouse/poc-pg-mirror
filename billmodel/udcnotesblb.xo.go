@@ -12,6 +12,37 @@ type UdcnotesBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllUdcnotesBlb(db XODB, callback func(x UdcnotesBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.udcnotes_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ub := UdcnotesBlb{}
+
+		// scan
+		err = q.Scan(&ub.BlbLrn, &ub.BlbData, &ub.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ub) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UdcnotesBlbByBlbLrn retrieves a row from 'equinox.udcnotes_blb' as a UdcnotesBlb.
 //
 // Generated from index 'udcnotes_blb_pkey'.

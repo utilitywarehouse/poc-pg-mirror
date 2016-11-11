@@ -20,6 +20,37 @@ type Chpaudit struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllChpaudit(db XODB, callback func(x Chpaudit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`chpauddt, chpaudtm, chpauduser, chpaudaction, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.chpaudit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Chpaudit{}
+
+		// scan
+		err = q.Scan(&c.Chpauddt, &c.Chpaudtm, &c.Chpauduser, &c.Chpaudaction, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ChpauditByEquinoxLrn retrieves a row from 'equinox.chpaudit' as a Chpaudit.
 //
 // Generated from index 'chpaudit_pkey'.

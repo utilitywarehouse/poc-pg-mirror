@@ -14,6 +14,37 @@ type Usergrp struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllUsergrp(db XODB, callback func(x Usergrp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`usergroupid, ugname, ugdescription, equinox_lrn, equinox_sec ` +
+		`FROM equinox.usergrp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Usergrp{}
+
+		// scan
+		err = q.Scan(&u.Usergroupid, &u.Ugname, &u.Ugdescription, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UsergrpByEquinoxLrn retrieves a row from 'equinox.usergrp' as a Usergrp.
 //
 // Generated from index 'usergrp_pkey'.

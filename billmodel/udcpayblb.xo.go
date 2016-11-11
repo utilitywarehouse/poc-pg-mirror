@@ -12,6 +12,37 @@ type UdcpayBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllUdcpayBlb(db XODB, callback func(x UdcpayBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.udcpay_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ub := UdcpayBlb{}
+
+		// scan
+		err = q.Scan(&ub.BlbLrn, &ub.BlbData, &ub.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ub) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UdcpayBlbByBlbLrn retrieves a row from 'equinox.udcpay_blb' as a UdcpayBlb.
 //
 // Generated from index 'udcpay_blb_pkey'.

@@ -35,6 +35,37 @@ type Pperrpay struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPperrpay(db XODB, callback func(x Pperrpay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pperrpaydt, pperrpaytm, pperrpayamt, pperrpayoutlet, pperrpaympid, pperrpaytca, pperrpayinfdt, pperrpaybal, pperrpaystdchrg, pperrpaydyrt, pperrpayngtrt, pperrpaytransno, pperrpayadded, pperrpayalloc, pperrpayallocto, pperrpayrefunded, pperrpayrefto, pperrpayorigref, pperrpaysrc, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pperrpay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pperrpay{}
+
+		// scan
+		err = q.Scan(&p.Pperrpaydt, &p.Pperrpaytm, &p.Pperrpayamt, &p.Pperrpayoutlet, &p.Pperrpaympid, &p.Pperrpaytca, &p.Pperrpayinfdt, &p.Pperrpaybal, &p.Pperrpaystdchrg, &p.Pperrpaydyrt, &p.Pperrpayngtrt, &p.Pperrpaytransno, &p.Pperrpayadded, &p.Pperrpayalloc, &p.Pperrpayallocto, &p.Pperrpayrefunded, &p.Pperrpayrefto, &p.Pperrpayorigref, &p.Pperrpaysrc, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PperrpayByEquinoxLrn retrieves a row from 'equinox.pperrpay' as a Pperrpay.
 //
 // Generated from index 'pperrpay_pkey'.

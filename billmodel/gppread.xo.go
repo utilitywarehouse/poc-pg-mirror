@@ -22,6 +22,37 @@ type Gppread struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllGppread(db XODB, callback func(x Gppread) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gpprreading, gpprdate, gpprtariff, gpprtariffdate, gpprmsnmatch, gpprreg, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gppreads `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gppread{}
+
+		// scan
+		err = q.Scan(&g.Gpprreading, &g.Gpprdate, &g.Gpprtariff, &g.Gpprtariffdate, &g.Gpprmsnmatch, &g.Gpprreg, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GppreadByEquinoxLrn retrieves a row from 'equinox.gppreads' as a Gppread.
 //
 // Generated from index 'gppreads_pkey'.

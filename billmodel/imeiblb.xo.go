@@ -12,6 +12,37 @@ type ImeiBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllImeiBlb(db XODB, callback func(x ImeiBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.imei_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ib := ImeiBlb{}
+
+		// scan
+		err = q.Scan(&ib.BlbLrn, &ib.BlbData, &ib.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ib) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ImeiBlbByBlbLrn retrieves a row from 'equinox.imei_blb' as a ImeiBlb.
 //
 // Generated from index 'imei_blb_pkey'.

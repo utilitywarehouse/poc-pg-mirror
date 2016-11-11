@@ -20,6 +20,37 @@ type Amvouch struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllAmvouch(db XODB, callback func(x Amvouch) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`amvouenddate, amvoustartdate, amvoucode, amvoudesc, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.amvouch `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Amvouch{}
+
+		// scan
+		err = q.Scan(&a.Amvouenddate, &a.Amvoustartdate, &a.Amvoucode, &a.Amvoudesc, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AmvouchByEquinoxLrn retrieves a row from 'equinox.amvouch' as a Amvouch.
 //
 // Generated from index 'amvouch_pkey'.

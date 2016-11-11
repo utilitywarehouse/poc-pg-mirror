@@ -12,6 +12,37 @@ type RepeventBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllRepeventBlb(db XODB, callback func(x RepeventBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.repevent_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		rb := RepeventBlb{}
+
+		// scan
+		err = q.Scan(&rb.BlbLrn, &rb.BlbData, &rb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(rb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RepeventBlbByBlbLrn retrieves a row from 'equinox.repevent_blb' as a RepeventBlb.
 //
 // Generated from index 'repevent_blb_pkey'.

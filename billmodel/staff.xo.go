@@ -45,6 +45,37 @@ type Staff struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllStaff(db XODB, callback func(x Staff) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`staffno, staffname, staffdeptid, staffteamid, staffphoneext, staffemail, stafflogin, staffgroup, staffeditstaff, staffrestrict, staffmanager, staffbilling, staffmobadmin, staffdeleterecs, staffeditrecs, staffeditcomment, staffoutputdir, staffuserid, staffavailable, staffmobileno, staffposition, staffaccessflags, staffsparen1, staffspared1, staffphonelogin, staffcompdeptid, staffleftcompany, staffhrdept, stafftopinbox, staffsparec1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.staff `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Staff{}
+
+		// scan
+		err = q.Scan(&s.Staffno, &s.Staffname, &s.Staffdeptid, &s.Staffteamid, &s.Staffphoneext, &s.Staffemail, &s.Stafflogin, &s.Staffgroup, &s.Staffeditstaff, &s.Staffrestrict, &s.Staffmanager, &s.Staffbilling, &s.Staffmobadmin, &s.Staffdeleterecs, &s.Staffeditrecs, &s.Staffeditcomment, &s.Staffoutputdir, &s.Staffuserid, &s.Staffavailable, &s.Staffmobileno, &s.Staffposition, &s.Staffaccessflags, &s.Staffsparen1, &s.Staffspared1, &s.Staffphonelogin, &s.Staffcompdeptid, &s.Staffleftcompany, &s.Staffhrdept, &s.Stafftopinbox, &s.Staffsparec1, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // StaffByEquinoxLrn retrieves a row from 'equinox.staff' as a Staff.
 //
 // Generated from index 'staff_pkey'.

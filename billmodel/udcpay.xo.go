@@ -25,6 +25,37 @@ type Udcpay struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllUdcpay(db XODB, callback func(x Udcpay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`udcpayment, udcpaymentdate, udcpaymenttype, udcpaymenttime, udcpaymentno, udcpayvspcode, udcpaybankcode, udcpaymentvalid, udcpayledsys, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.udcpay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Udcpay{}
+
+		// scan
+		err = q.Scan(&u.Udcpayment, &u.Udcpaymentdate, &u.Udcpaymenttype, &u.Udcpaymenttime, &u.Udcpaymentno, &u.Udcpayvspcode, &u.Udcpaybankcode, &u.Udcpaymentvalid, &u.Udcpayledsys, &u.EquinoxPrn, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UdcpayByEquinoxLrn retrieves a row from 'equinox.udcpay' as a Udcpay.
 //
 // Generated from index 'udcpay_pkey'.

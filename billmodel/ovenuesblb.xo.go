@@ -12,6 +12,37 @@ type OVenuesBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllOVenuesBlb(db XODB, callback func(x OVenuesBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.o_venues_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ovb := OVenuesBlb{}
+
+		// scan
+		err = q.Scan(&ovb.BlbLrn, &ovb.BlbData, &ovb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ovb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OVenuesBlbByBlbLrn retrieves a row from 'equinox.o_venues_blb' as a OVenuesBlb.
 //
 // Generated from index 'o_venues_blb_pkey'.

@@ -12,6 +12,37 @@ type ContentBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllContentBlb(db XODB, callback func(x ContentBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.content_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := ContentBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ContentBlbByBlbLrn retrieves a row from 'equinox.content_blb' as a ContentBlb.
 //
 // Generated from index 'content_blb_pkey'.

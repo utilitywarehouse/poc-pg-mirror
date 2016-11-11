@@ -29,6 +29,37 @@ type Property struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllProperty(db XODB, callback func(x Property) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`propertyid, propertyname, propertytable, propertyvalname, propertyblankok, propertydatatype, propertyvalues, propertydescript, propertynotes, propertychar1, propertychar2, propertynum1, propertynum2, propertydate1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.property `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Property{}
+
+		// scan
+		err = q.Scan(&p.Propertyid, &p.Propertyname, &p.Propertytable, &p.Propertyvalname, &p.Propertyblankok, &p.Propertydatatype, &p.Propertyvalues, &p.Propertydescript, &p.Propertynotes, &p.Propertychar1, &p.Propertychar2, &p.Propertynum1, &p.Propertynum2, &p.Propertydate1, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PropertyByEquinoxLrn retrieves a row from 'equinox.property' as a Property.
 //
 // Generated from index 'property_pkey'.

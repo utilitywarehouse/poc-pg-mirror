@@ -23,6 +23,37 @@ type Optmonth struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllOptmonth(db XODB, callback func(x Optmonth) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ommonth, omcustsnqservs1, omcustsnqservs2, omcustsnqservs3, omcustsnqservs4, omcustsnqservs5, omcustsqservs1, omcustsqservs2, omcustsqservs3, omcustsqservs4, omcustsqservs5, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.optmonth `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		o := Optmonth{}
+
+		// scan
+		err = q.Scan(&o.Ommonth, &o.Omcustsnqservs1, &o.Omcustsnqservs2, &o.Omcustsnqservs3, &o.Omcustsnqservs4, &o.Omcustsnqservs5, &o.Omcustsqservs1, &o.Omcustsqservs2, &o.Omcustsqservs3, &o.Omcustsqservs4, &o.Omcustsqservs5, &o.EquinoxPrn, &o.EquinoxLrn, &o.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(o) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OptmonthByEquinoxLrn retrieves a row from 'equinox.optmonth' as a Optmonth.
 //
 // Generated from index 'optmonth_pkey'.

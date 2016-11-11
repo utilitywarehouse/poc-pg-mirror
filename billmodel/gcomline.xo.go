@@ -33,6 +33,37 @@ type Gcomline struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGcomline(db XODB, callback func(x Gcomline) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcomlineid, gcomlinempan, gcomlineserial, gcomlineregno, gcomlinedescrip, gcomlinedate1, gcomlinedate2, gcomlineunits, gcomlineprice, gcomlinevalue, gcomlinetype, gcomlineunitdisp, gcomlinepricedis, gcomlineread1, gcomlineread2, gcomlineperiod, gcomlinemultiply, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gcomline `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gcomline{}
+
+		// scan
+		err = q.Scan(&g.Gcomlineid, &g.Gcomlinempan, &g.Gcomlineserial, &g.Gcomlineregno, &g.Gcomlinedescrip, &g.Gcomlinedate1, &g.Gcomlinedate2, &g.Gcomlineunits, &g.Gcomlineprice, &g.Gcomlinevalue, &g.Gcomlinetype, &g.Gcomlineunitdisp, &g.Gcomlinepricedis, &g.Gcomlineread1, &g.Gcomlineread2, &g.Gcomlineperiod, &g.Gcomlinemultiply, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GcomlineByEquinoxLrn retrieves a row from 'equinox.gcomline' as a Gcomline.
 //
 // Generated from index 'gcomline_pkey'.

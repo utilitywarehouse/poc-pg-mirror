@@ -12,6 +12,37 @@ type CrmsblokBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCrmsblokBlb(db XODB, callback func(x CrmsblokBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.crmsblok_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := CrmsblokBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrmsblokBlbByBlbLrn retrieves a row from 'equinox.crmsblok_blb' as a CrmsblokBlb.
 //
 // Generated from index 'crmsblok_blb_pkey'.

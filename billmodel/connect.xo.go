@@ -76,6 +76,37 @@ type Connect struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllConnect(db XODB, callback func(x Connect) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxaccountno, cnxbtbillsupp, cnxletterflag, cnxactpending, cnxspmp, cnxcomment, cnxcomment2, cnxcomment3, cnxconnqueries, cnxaddrcheck, cnxappform, cnxcbccreditcard, cnxcontacttel, cnxcoudatetobill, cnxreferral, cnxownerortenant, cnxinitservices, cnxexpress, cnxeligablecust, cnxappformno, cnxrequestservs, cnxdatetolr, cnxtenancyend, cnxcbcbarred, cnxversion, cnxprotectorlvl, cnxcreditscore, cnxexorder, cnxsurname2, cnxtitle2, cnxfirstname2, cnxrelationship, cnxcreditcheck, cnxchecking, cnxvaliddate, cnxvalidby, cnxappsource, cnxcampaign, cnxeligablesrvs, cnxgiftsettled, cnxservicelvl, cnxapptype, cnxbusnature, cnxcomregno, cnxyrstrading, cnxcomcredscore, cnxsiccode, cnxcompanypos, cnxownerfirst, cnxownerlast, cnxownertitle, cnxownerdob, cnxowneradd1, cnxowneradd2, cnxowneradd3, cnxownercity, cnxownercnty, cnxownerpcod, cnxowneraddver, cnxidcheck, cnxelectoral, equinox_lrn, equinox_sec ` +
+		`FROM equinox.connect `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Connect{}
+
+		// scan
+		err = q.Scan(&c.Cnxaccountno, &c.Cnxbtbillsupp, &c.Cnxletterflag, &c.Cnxactpending, &c.Cnxspmp, &c.Cnxcomment, &c.Cnxcomment2, &c.Cnxcomment3, &c.Cnxconnqueries, &c.Cnxaddrcheck, &c.Cnxappform, &c.Cnxcbccreditcard, &c.Cnxcontacttel, &c.Cnxcoudatetobill, &c.Cnxreferral, &c.Cnxownerortenant, &c.Cnxinitservices, &c.Cnxexpress, &c.Cnxeligablecust, &c.Cnxappformno, &c.Cnxrequestservs, &c.Cnxdatetolr, &c.Cnxtenancyend, &c.Cnxcbcbarred, &c.Cnxversion, &c.Cnxprotectorlvl, &c.Cnxcreditscore, &c.Cnxexorder, &c.Cnxsurname2, &c.Cnxtitle2, &c.Cnxfirstname2, &c.Cnxrelationship, &c.Cnxcreditcheck, &c.Cnxchecking, &c.Cnxvaliddate, &c.Cnxvalidby, &c.Cnxappsource, &c.Cnxcampaign, &c.Cnxeligablesrvs, &c.Cnxgiftsettled, &c.Cnxservicelvl, &c.Cnxapptype, &c.Cnxbusnature, &c.Cnxcomregno, &c.Cnxyrstrading, &c.Cnxcomcredscore, &c.Cnxsiccode, &c.Cnxcompanypos, &c.Cnxownerfirst, &c.Cnxownerlast, &c.Cnxownertitle, &c.Cnxownerdob, &c.Cnxowneradd1, &c.Cnxowneradd2, &c.Cnxowneradd3, &c.Cnxownercity, &c.Cnxownercnty, &c.Cnxownerpcod, &c.Cnxowneraddver, &c.Cnxidcheck, &c.Cnxelectoral, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ConnectByEquinoxLrn retrieves a row from 'equinox.connect' as a Connect.
 //
 // Generated from index 'connect_pkey'.

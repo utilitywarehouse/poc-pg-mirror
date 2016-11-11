@@ -12,6 +12,37 @@ type ChpauditBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllChpauditBlb(db XODB, callback func(x ChpauditBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.chpaudit_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := ChpauditBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ChpauditBlbByBlbLrn retrieves a row from 'equinox.chpaudit_blb' as a ChpauditBlb.
 //
 // Generated from index 'chpaudit_blb_pkey'.

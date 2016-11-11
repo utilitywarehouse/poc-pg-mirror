@@ -77,6 +77,37 @@ type Cnxsp struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxsp(db XODB, callback func(x Cnxsp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxspcli, cnxspboxes, cnxspfeature, cnxspcable, cnxspni, cnxspservicelvl, cnxspdatetocs, cnxspdatefromc1, cnxspdatefromc2, cnxspdatetoopt, cnxspdatefromopt, cnxspoptordnum, cnxspserialnum, cnxspdateentered, cnxspweborder, cnxspdatetobill, cnxspdateletter, cnxspprepayment, cnxspdateprepay, cnxspenteredby, cnxspfreebox, cnxsppromocd, cnxspprice, cnxsppackageno, cnxspsubtarrif, cnxspcpspostcode, cnxspdatecps, cnxspcpsreqd, cnxspoptimalplan, cnxspcpsstrikes, cnxspcpsdstrke1, cnxspcpsdstrke2, cnxspcpsdstrke3, cnxspcpscarrier, cnxspextras, cnxspwlrtype, cnxspcpscancel, cnxspmaccode, cnxspordtype, cnxsptariff, cnxspsparen1, cnxspsparen2, cnxspcontterm, cnxspcsigndate, cnxspspared3, cnxspcnf, cnxspdonoracc, cnxspdoncliuni, cnxspdiscband, cnxspholduntil, cnxspbtaccountno, cnxsptps, cnxsphmdate, cnxspbttermend, cnxsplinewithbt, cnxspwelclett, cnxspaddserv, cnxspcallbundle, cnxspvaiddate, cnxspvalidby, cnxspcampaign, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxsp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxsp{}
+
+		// scan
+		err = q.Scan(&c.Cnxspcli, &c.Cnxspboxes, &c.Cnxspfeature, &c.Cnxspcable, &c.Cnxspni, &c.Cnxspservicelvl, &c.Cnxspdatetocs, &c.Cnxspdatefromc1, &c.Cnxspdatefromc2, &c.Cnxspdatetoopt, &c.Cnxspdatefromopt, &c.Cnxspoptordnum, &c.Cnxspserialnum, &c.Cnxspdateentered, &c.Cnxspweborder, &c.Cnxspdatetobill, &c.Cnxspdateletter, &c.Cnxspprepayment, &c.Cnxspdateprepay, &c.Cnxspenteredby, &c.Cnxspfreebox, &c.Cnxsppromocd, &c.Cnxspprice, &c.Cnxsppackageno, &c.Cnxspsubtarrif, &c.Cnxspcpspostcode, &c.Cnxspdatecps, &c.Cnxspcpsreqd, &c.Cnxspoptimalplan, &c.Cnxspcpsstrikes, &c.Cnxspcpsdstrke1, &c.Cnxspcpsdstrke2, &c.Cnxspcpsdstrke3, &c.Cnxspcpscarrier, &c.Cnxspextras, &c.Cnxspwlrtype, &c.Cnxspcpscancel, &c.Cnxspmaccode, &c.Cnxspordtype, &c.Cnxsptariff, &c.Cnxspsparen1, &c.Cnxspsparen2, &c.Cnxspcontterm, &c.Cnxspcsigndate, &c.Cnxspspared3, &c.Cnxspcnf, &c.Cnxspdonoracc, &c.Cnxspdoncliuni, &c.Cnxspdiscband, &c.Cnxspholduntil, &c.Cnxspbtaccountno, &c.Cnxsptps, &c.Cnxsphmdate, &c.Cnxspbttermend, &c.Cnxsplinewithbt, &c.Cnxspwelclett, &c.Cnxspaddserv, &c.Cnxspcallbundle, &c.Cnxspvaiddate, &c.Cnxspvalidby, &c.Cnxspcampaign, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxspByEquinoxLrn retrieves a row from 'equinox.cnxsp' as a Cnxsp.
 //
 // Generated from index 'cnxsp_pkey'.

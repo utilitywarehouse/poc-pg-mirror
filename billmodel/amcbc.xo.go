@@ -22,6 +22,37 @@ type Amcbc struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllAmcbc(db XODB, callback func(x Amcbc) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`amcbcdatefrom, amcbcdateto, amcbcpercent, amcbcpercentearn, amcbcminspend, amcbcmaxspend, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.amcbc `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Amcbc{}
+
+		// scan
+		err = q.Scan(&a.Amcbcdatefrom, &a.Amcbcdateto, &a.Amcbcpercent, &a.Amcbcpercentearn, &a.Amcbcminspend, &a.Amcbcmaxspend, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AmcbcByEquinoxLrn retrieves a row from 'equinox.amcbc' as a Amcbc.
 //
 // Generated from index 'amcbc_pkey'.

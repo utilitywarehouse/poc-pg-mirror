@@ -15,6 +15,37 @@ type Mobpart struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllMobpart(db XODB, callback func(x Mobpart) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mobpartupc, mobpartmake, mobpartmodel, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mobpart `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mobpart{}
+
+		// scan
+		err = q.Scan(&m.Mobpartupc, &m.Mobpartmake, &m.Mobpartmodel, &m.EquinoxPrn, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MobpartByEquinoxLrn retrieves a row from 'equinox.mobpart' as a Mobpart.
 //
 // Generated from index 'mobpart_pkey'.

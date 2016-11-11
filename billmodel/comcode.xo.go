@@ -43,6 +43,37 @@ type Comcode struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllComcode(db XODB, callback func(x Comcode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`comcodeid, cccode, ccpart1, ccpart2, ccdescription, ccdisplaytext, cccommistype, cctotalingtype, cctotalto, cccomheadfield, ccdisplayorder, ccsubtariffband, ccunique, ccuniquefield, ccactive, ccusage, ccapplyvat, ccdowns, ccdowne, cclevel, ccrootentry, ccsparechar1, ccsparechar2, ccsparechar3, ccsparenum1, ccsparenum2, ccsparenum3, ccsparedate1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.comcodes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Comcode{}
+
+		// scan
+		err = q.Scan(&c.Comcodeid, &c.Cccode, &c.Ccpart1, &c.Ccpart2, &c.Ccdescription, &c.Ccdisplaytext, &c.Cccommistype, &c.Cctotalingtype, &c.Cctotalto, &c.Cccomheadfield, &c.Ccdisplayorder, &c.Ccsubtariffband, &c.Ccunique, &c.Ccuniquefield, &c.Ccactive, &c.Ccusage, &c.Ccapplyvat, &c.Ccdowns, &c.Ccdowne, &c.Cclevel, &c.Ccrootentry, &c.Ccsparechar1, &c.Ccsparechar2, &c.Ccsparechar3, &c.Ccsparenum1, &c.Ccsparenum2, &c.Ccsparenum3, &c.Ccsparedate1, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ComcodeByEquinoxLrn retrieves a row from 'equinox.comcodes' as a Comcode.
 //
 // Generated from index 'comcodes_pkey'.

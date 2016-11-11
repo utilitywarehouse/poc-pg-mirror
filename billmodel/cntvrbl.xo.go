@@ -14,6 +14,37 @@ type Cntvrbl struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCntvrbl(db XODB, callback func(x Cntvrbl) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cntvvariablename, cntvvariabledata, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cntvrbls `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cntvrbl{}
+
+		// scan
+		err = q.Scan(&c.Cntvvariablename, &c.Cntvvariabledata, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CntvrblByEquinoxLrn retrieves a row from 'equinox.cntvrbls' as a Cntvrbl.
 //
 // Generated from index 'cntvrbls_pkey'.

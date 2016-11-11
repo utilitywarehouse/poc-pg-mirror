@@ -12,6 +12,37 @@ type Promo struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllPromo(db XODB, callback func(x Promo) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`promo_code, equinox_lrn, equinox_sec ` +
+		`FROM equinox.promo `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Promo{}
+
+		// scan
+		err = q.Scan(&p.PromoCode, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PromoByEquinoxLrn retrieves a row from 'equinox.promo' as a Promo.
 //
 // Generated from index 'promo_pkey'.

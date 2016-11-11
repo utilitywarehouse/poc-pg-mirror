@@ -44,6 +44,37 @@ type Edsmain struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllEdsmain(db XODB, callback func(x Edsmain) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`edscustaccountno, edsimportbalance, edscustname, edsbillingadd1, edsbillingadd2, edsbillingadd3, edsbillingadd4, edsbillingcounty, edsbillingpostco, edsdefault, edsdefault2, edsfueldirect, edsfdweekpay, edsagency, edsppagreed, edsppamount, edsppagreed2, edsppamount2, edsdeposit, edswalkaway, edsbalancepaid, edscontactphone, edscontactemail, edscontactfax, edscontactmobile, edsinvtitle, edsinvfirstname, edsinvsurname, edsinvinitials, equinox_lrn, equinox_sec ` +
+		`FROM equinox.edsmain `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Edsmain{}
+
+		// scan
+		err = q.Scan(&e.Edscustaccountno, &e.Edsimportbalance, &e.Edscustname, &e.Edsbillingadd1, &e.Edsbillingadd2, &e.Edsbillingadd3, &e.Edsbillingadd4, &e.Edsbillingcounty, &e.Edsbillingpostco, &e.Edsdefault, &e.Edsdefault2, &e.Edsfueldirect, &e.Edsfdweekpay, &e.Edsagency, &e.Edsppagreed, &e.Edsppamount, &e.Edsppagreed2, &e.Edsppamount2, &e.Edsdeposit, &e.Edswalkaway, &e.Edsbalancepaid, &e.Edscontactphone, &e.Edscontactemail, &e.Edscontactfax, &e.Edscontactmobile, &e.Edsinvtitle, &e.Edsinvfirstname, &e.Edsinvsurname, &e.Edsinvinitials, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EdsmainByEquinoxLrn retrieves a row from 'equinox.edsmain' as a Edsmain.
 //
 // Generated from index 'edsmain_pkey'.

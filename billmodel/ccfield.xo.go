@@ -25,6 +25,37 @@ type Ccfield struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCcfield(db XODB, callback func(x Ccfield) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ccfieldname, ccfdescription, ccfcontents, ccsparec1, ccsparec2, ccsparec3, ccsparen1, ccsparen2, ccspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ccfields `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Ccfield{}
+
+		// scan
+		err = q.Scan(&c.Ccfieldname, &c.Ccfdescription, &c.Ccfcontents, &c.Ccsparec1, &c.Ccsparec2, &c.Ccsparec3, &c.Ccsparen1, &c.Ccsparen2, &c.Ccspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CcfieldByEquinoxLrn retrieves a row from 'equinox.ccfields' as a Ccfield.
 //
 // Generated from index 'ccfields_pkey'.

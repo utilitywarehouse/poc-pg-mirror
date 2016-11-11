@@ -20,6 +20,37 @@ type Gdcharge struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllGdcharge(db XODB, callback func(x Gdcharge) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gdcstartdate, gdcenddate, gdcprovid, gdcrate, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gdcharge `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gdcharge{}
+
+		// scan
+		err = q.Scan(&g.Gdcstartdate, &g.Gdcenddate, &g.Gdcprovid, &g.Gdcrate, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GdchargeByEquinoxLrn retrieves a row from 'equinox.gdcharge' as a Gdcharge.
 //
 // Generated from index 'gdcharge_pkey'.

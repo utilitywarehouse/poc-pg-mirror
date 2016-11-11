@@ -12,6 +12,37 @@ type My800Blb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllMy800Blb(db XODB, callback func(x My800Blb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.my800_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		mb := My800Blb{}
+
+		// scan
+		err = q.Scan(&mb.BlbLrn, &mb.BlbData, &mb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(mb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // My800BlbByBlbLrn retrieves a row from 'equinox.my800_blb' as a My800Blb.
 //
 // Generated from index 'my800_blb_pkey'.

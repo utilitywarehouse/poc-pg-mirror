@@ -12,6 +12,37 @@ type RecruitBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllRecruitBlb(db XODB, callback func(x RecruitBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.recruit_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		rb := RecruitBlb{}
+
+		// scan
+		err = q.Scan(&rb.BlbLrn, &rb.BlbData, &rb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(rb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RecruitBlbByBlbLrn retrieves a row from 'equinox.recruit_blb' as a RecruitBlb.
 //
 // Generated from index 'recruit_blb_pkey'.

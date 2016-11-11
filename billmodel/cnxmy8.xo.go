@@ -50,6 +50,37 @@ type Cnxmy8 struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxmy8(db XODB, callback func(x Cnxmy8) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxmy8cli, cnxmy8termcli, cnxmy8datetorsl, cnxmy8datefrmrsl, cnxmy8billopt, cnxmy8dateentere, cnxmy8weborder, cnxmy8datetobill, cnxmy8dateletter, cnxmy8enteredby, cnxmy8servicelvl, cnxmy8dateprepay, cnxmy8promocode, cnxmy8subtariff, cnxmy8linerental, cnxmy8setup, cnxmy8ordtype, cnxmy8tariff, cnxmy8sparec2, cnxmy8sparec3, cnxmy8sparen1, cnxmy8sparen2, cnxmy8sparen3, cnxmy8csigndate, cnxmy8spared2, cnxmy8spared3, cnxmy8sparec4, cnxmy8donoracc, cnxmy8doncliuni, cnxmy8holduntil, cnxmy8hmdate, cnxmy8addserv, cnxmy8validdate, cnxmy8validby, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxmy8 `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxmy8{}
+
+		// scan
+		err = q.Scan(&c.Cnxmy8cli, &c.Cnxmy8termcli, &c.Cnxmy8datetorsl, &c.Cnxmy8datefrmrsl, &c.Cnxmy8billopt, &c.Cnxmy8dateentere, &c.Cnxmy8weborder, &c.Cnxmy8datetobill, &c.Cnxmy8dateletter, &c.Cnxmy8enteredby, &c.Cnxmy8servicelvl, &c.Cnxmy8dateprepay, &c.Cnxmy8promocode, &c.Cnxmy8subtariff, &c.Cnxmy8linerental, &c.Cnxmy8setup, &c.Cnxmy8ordtype, &c.Cnxmy8tariff, &c.Cnxmy8sparec2, &c.Cnxmy8sparec3, &c.Cnxmy8sparen1, &c.Cnxmy8sparen2, &c.Cnxmy8sparen3, &c.Cnxmy8csigndate, &c.Cnxmy8spared2, &c.Cnxmy8spared3, &c.Cnxmy8sparec4, &c.Cnxmy8donoracc, &c.Cnxmy8doncliuni, &c.Cnxmy8holduntil, &c.Cnxmy8hmdate, &c.Cnxmy8addserv, &c.Cnxmy8validdate, &c.Cnxmy8validby, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // Cnxmy8ByEquinoxLrn retrieves a row from 'equinox.cnxmy8' as a Cnxmy8.
 //
 // Generated from index 'cnxmy8_pkey'.

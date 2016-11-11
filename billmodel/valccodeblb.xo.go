@@ -12,6 +12,37 @@ type ValccodeBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllValccodeBlb(db XODB, callback func(x ValccodeBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.valccode_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		vb := ValccodeBlb{}
+
+		// scan
+		err = q.Scan(&vb.BlbLrn, &vb.BlbData, &vb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(vb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ValccodeBlbByBlbLrn retrieves a row from 'equinox.valccode_blb' as a ValccodeBlb.
 //
 // Generated from index 'valccode_blb_pkey'.

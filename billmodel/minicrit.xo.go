@@ -15,6 +15,37 @@ type Minicrit struct {
 	EquinoxSec       sql.NullInt64 `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllMinicrit(db XODB, callback func(x Minicrit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`minicrcriteriano, minicrcustomers, minicrids, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.minicrit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Minicrit{}
+
+		// scan
+		err = q.Scan(&m.Minicrcriteriano, &m.Minicrcustomers, &m.Minicrids, &m.EquinoxPrn, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MinicritByEquinoxLrn retrieves a row from 'equinox.minicrit' as a Minicrit.
 //
 // Generated from index 'minicrit_pkey'.

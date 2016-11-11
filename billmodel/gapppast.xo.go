@@ -23,6 +23,37 @@ type Gapppast struct {
 	EquinoxSec     sql.NullInt64 `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllGapppast(db XODB, callback func(x Gapppast) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gappps, gapppe, gappaqapplied, gappp1aq, gappp2aq, gappp3aq, gapppbilledkwh, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gapppast `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gapppast{}
+
+		// scan
+		err = q.Scan(&g.Gappps, &g.Gapppe, &g.Gappaqapplied, &g.Gappp1aq, &g.Gappp2aq, &g.Gappp3aq, &g.Gapppbilledkwh, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GapppastByEquinoxLrn retrieves a row from 'equinox.gapppast' as a Gapppast.
 //
 // Generated from index 'gapppast_pkey'.

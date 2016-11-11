@@ -43,6 +43,37 @@ type Invcomm struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllInvcomm(db XODB, callback func(x Invcomm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`icbillno, iccustaccountno, ictelephony, icenergy, icwlr, icbroadcall1, icbroadcall2, icbroadcall3, icbroadcall4, icgoldmembership, icsilvermembersh, icbillsperiod, iccomispaid, icmobile1, icmobile2, icmobile3, icmobile4, icvaluepay, iccashback, icfit, iceligibleservs, icsparechar2, icsparechar3, icsparedate2, icservstel, icservsmob, icservsbband, icservsenergy, equinox_lrn, equinox_sec ` +
+		`FROM equinox.invcomm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		i := Invcomm{}
+
+		// scan
+		err = q.Scan(&i.Icbillno, &i.Iccustaccountno, &i.Ictelephony, &i.Icenergy, &i.Icwlr, &i.Icbroadcall1, &i.Icbroadcall2, &i.Icbroadcall3, &i.Icbroadcall4, &i.Icgoldmembership, &i.Icsilvermembersh, &i.Icbillsperiod, &i.Iccomispaid, &i.Icmobile1, &i.Icmobile2, &i.Icmobile3, &i.Icmobile4, &i.Icvaluepay, &i.Iccashback, &i.Icfit, &i.Iceligibleservs, &i.Icsparechar2, &i.Icsparechar3, &i.Icsparedate2, &i.Icservstel, &i.Icservsmob, &i.Icservsbband, &i.Icservsenergy, &i.EquinoxLrn, &i.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(i) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // InvcommByEquinoxLrn retrieves a row from 'equinox.invcomm' as a Invcomm.
 //
 // Generated from index 'invcomm_pkey'.

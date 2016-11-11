@@ -25,6 +25,37 @@ type Crlog struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllCrlog(db XODB, callback func(x Crlog) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crldate, crltime, crlparamfile, crltitle, crlentry, crlorder, crlaction, crlstep, crlcompleted, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.crlog `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Crlog{}
+
+		// scan
+		err = q.Scan(&c.Crldate, &c.Crltime, &c.Crlparamfile, &c.Crltitle, &c.Crlentry, &c.Crlorder, &c.Crlaction, &c.Crlstep, &c.Crlcompleted, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrlogByEquinoxLrn retrieves a row from 'equinox.crlog' as a Crlog.
 //
 // Generated from index 'crlog_pkey'.

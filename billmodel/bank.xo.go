@@ -35,6 +35,37 @@ type Bank struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllBank(db XODB, callback func(x Bank) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`banksortcode, bankname, bankadd1, bankadd2, bankadd3, bankadd4, bankadd5, bankpostcode, bankmask, bankmodulus, bankbranchname, bankspared1, bankspared2, bankspared3, banksparec1, banksparec2, banksparec3, banksparen1, banksparen2, banksparen3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.banks `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Bank{}
+
+		// scan
+		err = q.Scan(&b.Banksortcode, &b.Bankname, &b.Bankadd1, &b.Bankadd2, &b.Bankadd3, &b.Bankadd4, &b.Bankadd5, &b.Bankpostcode, &b.Bankmask, &b.Bankmodulus, &b.Bankbranchname, &b.Bankspared1, &b.Bankspared2, &b.Bankspared3, &b.Banksparec1, &b.Banksparec2, &b.Banksparec3, &b.Banksparen1, &b.Banksparen2, &b.Banksparen3, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BankByEquinoxLrn retrieves a row from 'equinox.banks' as a Bank.
 //
 // Generated from index 'banks_pkey'.

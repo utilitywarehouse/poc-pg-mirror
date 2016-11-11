@@ -66,6 +66,37 @@ type Gascon struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGascon(db XODB, callback func(x Gascon) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcdateentered, gcreference, gcconfirmation, gcmpr, gcdatetoaquila, gcdatefromaquila, gcstatus, gcmeterserialno, gcaq, gcnomref, gcnomnumber, gcnomsent, gcnomresponse, gcrejcode, gcrejrec, gcobjrec, gcaccepted, gcomr, gcomrsent, gcomrresponse, gcomrrespcode, gcconnectiondate, gcponr, gcmultimpr, gcconcotindicato, gccurrentmam, gcgaoowner, gcmamsent, gcmamrec, gccancellation, gccantotransco, gccanfromtransco, gctypeimpormet, gccorrectionfact, gconmeterdials, gcorigmam, gcrejectioncode, gccompetitive, gcappealsref, gcsparenum2, gconsparec1, gconsparec2, gconspared1, gconspared2, gcmonthly, gcnewaggregation, gcmultilmpan, gconsparec3, gconspared3, gcnewaggreason, gcsparel2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gascon `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gascon{}
+
+		// scan
+		err = q.Scan(&g.Gcdateentered, &g.Gcreference, &g.Gcconfirmation, &g.Gcmpr, &g.Gcdatetoaquila, &g.Gcdatefromaquila, &g.Gcstatus, &g.Gcmeterserialno, &g.Gcaq, &g.Gcnomref, &g.Gcnomnumber, &g.Gcnomsent, &g.Gcnomresponse, &g.Gcrejcode, &g.Gcrejrec, &g.Gcobjrec, &g.Gcaccepted, &g.Gcomr, &g.Gcomrsent, &g.Gcomrresponse, &g.Gcomrrespcode, &g.Gcconnectiondate, &g.Gcponr, &g.Gcmultimpr, &g.Gcconcotindicato, &g.Gccurrentmam, &g.Gcgaoowner, &g.Gcmamsent, &g.Gcmamrec, &g.Gccancellation, &g.Gccantotransco, &g.Gccanfromtransco, &g.Gctypeimpormet, &g.Gccorrectionfact, &g.Gconmeterdials, &g.Gcorigmam, &g.Gcrejectioncode, &g.Gccompetitive, &g.Gcappealsref, &g.Gcsparenum2, &g.Gconsparec1, &g.Gconsparec2, &g.Gconspared1, &g.Gconspared2, &g.Gcmonthly, &g.Gcnewaggregation, &g.Gcmultilmpan, &g.Gconsparec3, &g.Gconspared3, &g.Gcnewaggreason, &g.Gcsparel2, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GasconByEquinoxLrn retrieves a row from 'equinox.gascon' as a Gascon.
 //
 // Generated from index 'gascon_pkey'.

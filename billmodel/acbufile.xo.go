@@ -31,6 +31,37 @@ type Acbufile struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllAcbufile(db XODB, callback func(x Acbufile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gacbutranstype, gacbushiprsortcd, gacbuadjfromdate, gacbuadjtodate, gacbureasoncode, gacbuadjusttype, gacbudataitemchg, gacbuvalue, gacburvdvolorgun, gacbureasnremrks, gacbudatecreated, gacbutimecreated, gacbufilecreated, gacbureadrefrnce, gacbuapprovaltxt, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.acbufile `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Acbufile{}
+
+		// scan
+		err = q.Scan(&a.Gacbutranstype, &a.Gacbushiprsortcd, &a.Gacbuadjfromdate, &a.Gacbuadjtodate, &a.Gacbureasoncode, &a.Gacbuadjusttype, &a.Gacbudataitemchg, &a.Gacbuvalue, &a.Gacburvdvolorgun, &a.Gacbureasnremrks, &a.Gacbudatecreated, &a.Gacbutimecreated, &a.Gacbufilecreated, &a.Gacbureadrefrnce, &a.Gacbuapprovaltxt, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AcbufileByEquinoxLrn retrieves a row from 'equinox.acbufile' as a Acbufile.
 //
 // Generated from index 'acbufile_pkey'.

@@ -33,6 +33,37 @@ type Benefit struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllBenefit(db XODB, callback func(x Benefit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ben_accountno, ben_startdate, ben_type, ben_addinfo1, ben_addinfo2, ben_addinfo3, ben_changed, ben_nextchngd, ben_nextchnga1, ben_nexttype, ben_nextchngs, ben_status, ben_suspended, ben_nextchnga2, ben_sparen1, ben_spared1, ben_sparel1, ben_chargedate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.benefits `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Benefit{}
+
+		// scan
+		err = q.Scan(&b.BenAccountno, &b.BenStartdate, &b.BenType, &b.BenAddinfo1, &b.BenAddinfo2, &b.BenAddinfo3, &b.BenChanged, &b.BenNextchngd, &b.BenNextchnga1, &b.BenNexttype, &b.BenNextchngs, &b.BenStatus, &b.BenSuspended, &b.BenNextchnga2, &b.BenSparen1, &b.BenSpared1, &b.BenSparel1, &b.BenChargedate, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BenefitByEquinoxLrn retrieves a row from 'equinox.benefits' as a Benefit.
 //
 // Generated from index 'benefits_pkey'.

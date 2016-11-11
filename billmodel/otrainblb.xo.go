@@ -12,6 +12,37 @@ type OTrainBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllOTrainBlb(db XODB, callback func(x OTrainBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.o_train_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		otb := OTrainBlb{}
+
+		// scan
+		err = q.Scan(&otb.BlbLrn, &otb.BlbData, &otb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(otb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OTrainBlbByBlbLrn retrieves a row from 'equinox.o_train_blb' as a OTrainBlb.
 //
 // Generated from index 'o_train_blb_pkey'.

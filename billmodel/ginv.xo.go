@@ -39,6 +39,37 @@ type Ginv struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGinv(db XODB, callback func(x Ginv) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ginvgreference, ginvyear, ginvbilledkwh, ginvbilledexvat, ginvreadtypes, ginv11monthskwh, ginvyearly, ginvppkwh, ginvaqkwh, ginvppkwhs, ginvnewlivedate, ginvnewtariff, ginvnewnotified, ginvtcr, ginvtcrdual, ginvrct, ginvrctsave, ginvact, ginvactsave, ginvtariffreason, ginvprojection, ginvprojkwh, ginvactest, ginvlastyear, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ginv `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Ginv{}
+
+		// scan
+		err = q.Scan(&g.Ginvgreference, &g.Ginvyear, &g.Ginvbilledkwh, &g.Ginvbilledexvat, &g.Ginvreadtypes, &g.Ginv11monthskwh, &g.Ginvyearly, &g.Ginvppkwh, &g.Ginvaqkwh, &g.Ginvppkwhs, &g.Ginvnewlivedate, &g.Ginvnewtariff, &g.Ginvnewnotified, &g.Ginvtcr, &g.Ginvtcrdual, &g.Ginvrct, &g.Ginvrctsave, &g.Ginvact, &g.Ginvactsave, &g.Ginvtariffreason, &g.Ginvprojection, &g.Ginvprojkwh, &g.Ginvactest, &g.Ginvlastyear, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GinvByEquinoxLrn retrieves a row from 'equinox.ginv' as a Ginv.
 //
 // Generated from index 'ginv_pkey'.

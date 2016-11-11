@@ -32,6 +32,37 @@ type Eventlog struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllEventlog(db XODB, callback func(x Eventlog) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`elid, eleventid, eldate, eltime, elstartdate, elstarttime, elenddate, elendtime, elmessage, eldetails, eltype, elcategory, elraisedby, eladditional1, eladditional2, eladditional3, eladditional4, equinox_lrn, equinox_sec ` +
+		`FROM equinox.eventlog `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Eventlog{}
+
+		// scan
+		err = q.Scan(&e.Elid, &e.Eleventid, &e.Eldate, &e.Eltime, &e.Elstartdate, &e.Elstarttime, &e.Elenddate, &e.Elendtime, &e.Elmessage, &e.Eldetails, &e.Eltype, &e.Elcategory, &e.Elraisedby, &e.Eladditional1, &e.Eladditional2, &e.Eladditional3, &e.Eladditional4, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EventlogByEquinoxLrn retrieves a row from 'equinox.eventlog' as a Eventlog.
 //
 // Generated from index 'eventlog_pkey'.

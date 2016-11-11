@@ -102,6 +102,37 @@ type Cnxbcv struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxbcv(db XODB, callback func(x Cnxbcv) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxbcvcli, cnxbcvni, cnxbcvfeature, cnxbcvservicelvl, cnxbcvcable, cnxbcvdatetocs, cnxbcvdatefromcs, cnxbcvdatetoopt, cnxbcvdatefrmopt, cnxbcvserialnum, cnxbcvdateentere, cnxbcvweborder, cnxbcvdatetobill, cnxbcvdateletter, cnxbcventeredby, cnxbcvpackageno, cnxbcvcpspostcod, cnxbcvwlrtype, cnxbcvcsigndate, cnxbcvholddate, cnxbcvbtaccno, cnxbcvholduntil, cnxbcvdeladdr, cnxbcvdeaddref, cnxbcvexdir, cnxbcvnumwithhel, cnxbcvequip, cnxbcvtps, cnxbcvss07, cnxbcvss01, cnxbcvss1a, cnxbcvss08, cnxbcvss06, cnxbcvss09, cnxbcvss02, cnxbcvss05, cnxbcvss14, cnxbcvreqdate, cnxbcvexcd, cnxbcvexname, cnxbcvstatus, cnxbcvorderid, cnxbcvcommandid, cnxbcvstate, cnxbcvoptordnum, cnxbcvstatedate, cnxbcvagreeddate, cnxbcvdonoracc, cnxbcvrejcpde, cnxbcvhmdate, cnxbcvtariff, cnxbcvmobsaver, cnxbcvdatecheck, cnxbcvtermnum, cnxbcvsubtariff, cnxbcvsvctype, cnxbcvordertype, cnxbcvspared1, cnxbcvspared2, cnxbcv50211sent, cnxbcvinstaldate, cnxbcvsparen1, cnxbcvsparen2, cnxbcvsparen3, cnxbcvcontterm, cnxbcvsparel1, cnxbcvsparel2, cnxbcvsparel3, cnxbcvnewprovide, cnxbcvaddserv, cnxbcvss20, cnxbcvtype, cnxbcvinstaltime, cnxbcvengvisit, cnxbcvcontactno, cnxbcvcategory, cnxbcvalk, cnxbcvvaliddate, cnxbcvvalidby, cnxbcvcampaign, cnxbcvported, cnxbcvexactdate, cnxbcvcancelrid, cnxbcvgainingrid, cnxbcvcpwnref, cnxbcvlorn, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxbcv `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxbcv{}
+
+		// scan
+		err = q.Scan(&c.Cnxbcvcli, &c.Cnxbcvni, &c.Cnxbcvfeature, &c.Cnxbcvservicelvl, &c.Cnxbcvcable, &c.Cnxbcvdatetocs, &c.Cnxbcvdatefromcs, &c.Cnxbcvdatetoopt, &c.Cnxbcvdatefrmopt, &c.Cnxbcvserialnum, &c.Cnxbcvdateentere, &c.Cnxbcvweborder, &c.Cnxbcvdatetobill, &c.Cnxbcvdateletter, &c.Cnxbcventeredby, &c.Cnxbcvpackageno, &c.Cnxbcvcpspostcod, &c.Cnxbcvwlrtype, &c.Cnxbcvcsigndate, &c.Cnxbcvholddate, &c.Cnxbcvbtaccno, &c.Cnxbcvholduntil, &c.Cnxbcvdeladdr, &c.Cnxbcvdeaddref, &c.Cnxbcvexdir, &c.Cnxbcvnumwithhel, &c.Cnxbcvequip, &c.Cnxbcvtps, &c.Cnxbcvss07, &c.Cnxbcvss01, &c.Cnxbcvss1a, &c.Cnxbcvss08, &c.Cnxbcvss06, &c.Cnxbcvss09, &c.Cnxbcvss02, &c.Cnxbcvss05, &c.Cnxbcvss14, &c.Cnxbcvreqdate, &c.Cnxbcvexcd, &c.Cnxbcvexname, &c.Cnxbcvstatus, &c.Cnxbcvorderid, &c.Cnxbcvcommandid, &c.Cnxbcvstate, &c.Cnxbcvoptordnum, &c.Cnxbcvstatedate, &c.Cnxbcvagreeddate, &c.Cnxbcvdonoracc, &c.Cnxbcvrejcpde, &c.Cnxbcvhmdate, &c.Cnxbcvtariff, &c.Cnxbcvmobsaver, &c.Cnxbcvdatecheck, &c.Cnxbcvtermnum, &c.Cnxbcvsubtariff, &c.Cnxbcvsvctype, &c.Cnxbcvordertype, &c.Cnxbcvspared1, &c.Cnxbcvspared2, &c.Cnxbcv50211sent, &c.Cnxbcvinstaldate, &c.Cnxbcvsparen1, &c.Cnxbcvsparen2, &c.Cnxbcvsparen3, &c.Cnxbcvcontterm, &c.Cnxbcvsparel1, &c.Cnxbcvsparel2, &c.Cnxbcvsparel3, &c.Cnxbcvnewprovide, &c.Cnxbcvaddserv, &c.Cnxbcvss20, &c.Cnxbcvtype, &c.Cnxbcvinstaltime, &c.Cnxbcvengvisit, &c.Cnxbcvcontactno, &c.Cnxbcvcategory, &c.Cnxbcvalk, &c.Cnxbcvvaliddate, &c.Cnxbcvvalidby, &c.Cnxbcvcampaign, &c.Cnxbcvported, &c.Cnxbcvexactdate, &c.Cnxbcvcancelrid, &c.Cnxbcvgainingrid, &c.Cnxbcvcpwnref, &c.Cnxbcvlorn, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxbcvByEquinoxLrn retrieves a row from 'equinox.cnxbcv' as a Cnxbcv.
 //
 // Generated from index 'cnxbcv_pkey'.

@@ -12,6 +12,37 @@ type OEventsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllOEventsBlb(db XODB, callback func(x OEventsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.o_events_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		oeb := OEventsBlb{}
+
+		// scan
+		err = q.Scan(&oeb.BlbLrn, &oeb.BlbData, &oeb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(oeb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OEventsBlbByBlbLrn retrieves a row from 'equinox.o_events_blb' as a OEventsBlb.
 //
 // Generated from index 'o_events_blb_pkey'.

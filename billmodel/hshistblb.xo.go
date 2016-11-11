@@ -12,6 +12,37 @@ type HsHistBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllHsHistBlb(db XODB, callback func(x HsHistBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.hs_hist_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hhb := HsHistBlb{}
+
+		// scan
+		err = q.Scan(&hhb.BlbLrn, &hhb.BlbData, &hhb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(hhb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HsHistBlbByBlbLrn retrieves a row from 'equinox.hs_hist_blb' as a HsHistBlb.
 //
 // Generated from index 'hs_hist_blb_pkey'.

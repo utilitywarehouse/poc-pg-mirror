@@ -12,6 +12,37 @@ type MpmaBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllMpmaBlb(db XODB, callback func(x MpmaBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.mpma_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		mb := MpmaBlb{}
+
+		// scan
+		err = q.Scan(&mb.BlbLrn, &mb.BlbData, &mb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(mb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MpmaBlbByBlbLrn retrieves a row from 'equinox.mpma_blb' as a MpmaBlb.
 //
 // Generated from index 'mpma_blb_pkey'.

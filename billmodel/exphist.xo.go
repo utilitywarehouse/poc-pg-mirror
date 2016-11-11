@@ -25,6 +25,37 @@ type Exphist struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllExphist(db XODB, callback func(x Exphist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`eph_promoname, eph_qualifying, eph_date, eph_notes, eph_periodcount, eph_periodstart, eph_periodend, eph_status, eph_time, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exphist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exphist{}
+
+		// scan
+		err = q.Scan(&e.EphPromoname, &e.EphQualifying, &e.EphDate, &e.EphNotes, &e.EphPeriodcount, &e.EphPeriodstart, &e.EphPeriodend, &e.EphStatus, &e.EphTime, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExphistByEquinoxLrn retrieves a row from 'equinox.exphist' as a Exphist.
 //
 // Generated from index 'exphist_pkey'.

@@ -12,6 +12,37 @@ type SmartappBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllSmartappBlb(db XODB, callback func(x SmartappBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.smartapp_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		sb := SmartappBlb{}
+
+		// scan
+		err = q.Scan(&sb.BlbLrn, &sb.BlbData, &sb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(sb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartappBlbByBlbLrn retrieves a row from 'equinox.smartapp_blb' as a SmartappBlb.
 //
 // Generated from index 'smartapp_blb_pkey'.

@@ -12,6 +12,37 @@ type DeladdrBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllDeladdrBlb(db XODB, callback func(x DeladdrBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.deladdr_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		dbVal := DeladdrBlb{}
+
+		// scan
+		err = q.Scan(&dbVal.BlbLrn, &dbVal.BlbData, &dbVal.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(dbVal) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // DeladdrBlbByBlbLrn retrieves a row from 'equinox.deladdr_blb' as a DeladdrBlb.
 //
 // Generated from index 'deladdr_blb_pkey'.

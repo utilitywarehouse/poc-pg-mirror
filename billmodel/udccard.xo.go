@@ -32,6 +32,37 @@ type Udccard struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllUdccard(db XODB, callback func(x Udccard) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`udccenteredon, udccenteredby, udcccardtype, udcccardnumber, udcccardname, udccshopperref, udccpostcode, udccvalid, udccexpiry, udcccardissue, udccdigits, udccaddress, udcccardunisys, udccfirstpayment, udccfirstpaydate, udccchangetime, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.udccard `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Udccard{}
+
+		// scan
+		err = q.Scan(&u.Udccenteredon, &u.Udccenteredby, &u.Udcccardtype, &u.Udcccardnumber, &u.Udcccardname, &u.Udccshopperref, &u.Udccpostcode, &u.Udccvalid, &u.Udccexpiry, &u.Udcccardissue, &u.Udccdigits, &u.Udccaddress, &u.Udcccardunisys, &u.Udccfirstpayment, &u.Udccfirstpaydate, &u.Udccchangetime, &u.EquinoxPrn, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UdccardByEquinoxLrn retrieves a row from 'equinox.udccard' as a Udccard.
 //
 // Generated from index 'udccard_pkey'.

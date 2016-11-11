@@ -12,6 +12,37 @@ type VolumeBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllVolumeBlb(db XODB, callback func(x VolumeBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.volume_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		vb := VolumeBlb{}
+
+		// scan
+		err = q.Scan(&vb.BlbLrn, &vb.BlbData, &vb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(vb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VolumeBlbByBlbLrn retrieves a row from 'equinox.volume_blb' as a VolumeBlb.
 //
 // Generated from index 'volume_blb_pkey'.

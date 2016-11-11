@@ -45,6 +45,37 @@ type Exitem struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExitem(db XODB, callback func(x Exitem) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exitemprodcode, exitemdesc, exitemlineqty, exitemlineeach, exitemlinevat, exitemlinetotal, exitemdiscrate, exitemdiscval, exitemcontra, exitempromocode, exitemprinted, exitemrpc, exitemsms, exitemgprs, exitemmms, exitemlocal, exitemintl, exitemterm, exitemnettariff, exitemsubtariff, exitemport, exitemtype, exitemconndate, exitemrefunddate, exitemrefundqty, exitemrefundsel, exitemssparec1, exitemssparen1, exitemsspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exitems `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exitem{}
+
+		// scan
+		err = q.Scan(&e.Exitemprodcode, &e.Exitemdesc, &e.Exitemlineqty, &e.Exitemlineeach, &e.Exitemlinevat, &e.Exitemlinetotal, &e.Exitemdiscrate, &e.Exitemdiscval, &e.Exitemcontra, &e.Exitempromocode, &e.Exitemprinted, &e.Exitemrpc, &e.Exitemsms, &e.Exitemgprs, &e.Exitemmms, &e.Exitemlocal, &e.Exitemintl, &e.Exitemterm, &e.Exitemnettariff, &e.Exitemsubtariff, &e.Exitemport, &e.Exitemtype, &e.Exitemconndate, &e.Exitemrefunddate, &e.Exitemrefundqty, &e.Exitemrefundsel, &e.Exitemssparec1, &e.Exitemssparen1, &e.Exitemsspared1, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExitemByEquinoxLrn retrieves a row from 'equinox.exitems' as a Exitem.
 //
 // Generated from index 'exitems_pkey'.

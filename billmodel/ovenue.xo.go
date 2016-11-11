@@ -20,6 +20,37 @@ type OVenue struct {
 	EquinoxSec  sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllOVenue(db XODB, callback func(x OVenue) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ov_venueid, ov_venuename, ov_address1, ov_address2, ov_address3, ov_address4, ov_address5, ov_postcode, ov_vancode, equinox_lrn, equinox_sec ` +
+		`FROM equinox.o_venues `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ov := OVenue{}
+
+		// scan
+		err = q.Scan(&ov.OvVenueid, &ov.OvVenuename, &ov.OvAddress1, &ov.OvAddress2, &ov.OvAddress3, &ov.OvAddress4, &ov.OvAddress5, &ov.OvPostcode, &ov.OvVancode, &ov.EquinoxLrn, &ov.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(ov) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OVenueByEquinoxLrn retrieves a row from 'equinox.o_venues' as a OVenue.
 //
 // Generated from index 'o_venues_pkey'.

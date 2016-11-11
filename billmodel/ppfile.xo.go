@@ -24,6 +24,37 @@ type Ppfile struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllPpfile(db XODB, callback func(x Ppfile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ppfilename, ppfiletype, ppfiledate, ppfilenopays, ppfilesupplier, ppfiletotal, ppfilecashrec, ppfilelastupd, ppfilelastusr, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ppfiles `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Ppfile{}
+
+		// scan
+		err = q.Scan(&p.Ppfilename, &p.Ppfiletype, &p.Ppfiledate, &p.Ppfilenopays, &p.Ppfilesupplier, &p.Ppfiletotal, &p.Ppfilecashrec, &p.Ppfilelastupd, &p.Ppfilelastusr, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PpfileByEquinoxLrn retrieves a row from 'equinox.ppfiles' as a Ppfile.
 //
 // Generated from index 'ppfiles_pkey'.

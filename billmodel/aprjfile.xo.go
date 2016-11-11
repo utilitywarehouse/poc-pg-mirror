@@ -21,6 +21,37 @@ type Aprjfile struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllAprjfile(db XODB, callback func(x Aprjfile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gaprjtranstype, gaprjrejreason, gaprjfileread, gaprjdateread, gaprjtimeread, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.aprjfile `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Aprjfile{}
+
+		// scan
+		err = q.Scan(&a.Gaprjtranstype, &a.Gaprjrejreason, &a.Gaprjfileread, &a.Gaprjdateread, &a.Gaprjtimeread, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AprjfileByEquinoxLrn retrieves a row from 'equinox.aprjfile' as a Aprjfile.
 //
 // Generated from index 'aprjfile_pkey'.

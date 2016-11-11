@@ -12,6 +12,37 @@ type ReccardBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllReccardBlb(db XODB, callback func(x ReccardBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.reccard_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		rb := ReccardBlb{}
+
+		// scan
+		err = q.Scan(&rb.BlbLrn, &rb.BlbData, &rb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(rb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ReccardBlbByBlbLrn retrieves a row from 'equinox.reccard_blb' as a ReccardBlb.
 //
 // Generated from index 'reccard_blb_pkey'.

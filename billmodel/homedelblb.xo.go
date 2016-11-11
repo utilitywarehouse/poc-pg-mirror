@@ -12,6 +12,37 @@ type HomedelBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllHomedelBlb(db XODB, callback func(x HomedelBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.homedel_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hb := HomedelBlb{}
+
+		// scan
+		err = q.Scan(&hb.BlbLrn, &hb.BlbData, &hb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(hb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HomedelBlbByBlbLrn retrieves a row from 'equinox.homedel_blb' as a HomedelBlb.
 //
 // Generated from index 'homedel_blb_pkey'.

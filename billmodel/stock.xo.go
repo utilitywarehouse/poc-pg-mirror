@@ -21,6 +21,37 @@ type Stock struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllStock(db XODB, callback func(x Stock) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`stockcode, stockdesc, stocklevel, stockunitprice, stockvatrate, stockuplinecomm, stockamount, stockvatrate2, stockamount2, stockcriticallev, equinox_lrn, equinox_sec ` +
+		`FROM equinox.stock `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Stock{}
+
+		// scan
+		err = q.Scan(&s.Stockcode, &s.Stockdesc, &s.Stocklevel, &s.Stockunitprice, &s.Stockvatrate, &s.Stockuplinecomm, &s.Stockamount, &s.Stockvatrate2, &s.Stockamount2, &s.Stockcriticallev, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // StockByEquinoxLrn retrieves a row from 'equinox.stock' as a Stock.
 //
 // Generated from index 'stock_pkey'.

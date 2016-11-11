@@ -20,6 +20,37 @@ type Oshist struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllOshist(db XODB, callback func(x Oshist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`oshdateout, oshtimeout, oshaccountno, oshlocation, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.oshist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		o := Oshist{}
+
+		// scan
+		err = q.Scan(&o.Oshdateout, &o.Oshtimeout, &o.Oshaccountno, &o.Oshlocation, &o.EquinoxPrn, &o.EquinoxLrn, &o.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(o) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OshistByEquinoxLrn retrieves a row from 'equinox.oshist' as a Oshist.
 //
 // Generated from index 'oshist_pkey'.

@@ -21,6 +21,37 @@ type Mport struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllMport(db XODB, callback func(x Mport) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mptppmipid, mptcomments, mptactionreq, mptfirstpay, mptlastpay, mptresolved, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mport `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mport{}
+
+		// scan
+		err = q.Scan(&m.Mptppmipid, &m.Mptcomments, &m.Mptactionreq, &m.Mptfirstpay, &m.Mptlastpay, &m.Mptresolved, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MportByEquinoxLrn retrieves a row from 'equinox.mport' as a Mport.
 //
 // Generated from index 'mport_pkey'.

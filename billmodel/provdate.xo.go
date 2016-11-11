@@ -23,6 +23,37 @@ type Provdate struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllProvdate(db XODB, callback func(x Provdate) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`provdate, provreqdate, provcreateddt, provcreatedtm, provcreatedby, provediteddt, proveditedtm, proveditedby, equinox_lrn, equinox_sec ` +
+		`FROM equinox.provdate `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Provdate{}
+
+		// scan
+		err = q.Scan(&p.Provdate, &p.Provreqdate, &p.Provcreateddt, &p.Provcreatedtm, &p.Provcreatedby, &p.Provediteddt, &p.Proveditedtm, &p.Proveditedby, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ProvdateByEquinoxLrn retrieves a row from 'equinox.provdate' as a Provdate.
 //
 // Generated from index 'provdate_pkey'.

@@ -31,6 +31,37 @@ type Crcarbon struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCrcarbon(db XODB, callback func(x Crcarbon) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crcarbonusid, crcbexecid, crcbrepayment, crcbrepaymentfee, crcbbonuseligibl, crcbbonusamount, crcbcommitted, crcbnotes, crcbscheme, crcbsparec2, crcbbalance, crcbsparenum1, crcbsparenum2, crcbsparedate1, crcbsparedate2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.crcarbon `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Crcarbon{}
+
+		// scan
+		err = q.Scan(&c.Crcarbonusid, &c.Crcbexecid, &c.Crcbrepayment, &c.Crcbrepaymentfee, &c.Crcbbonuseligibl, &c.Crcbbonusamount, &c.Crcbcommitted, &c.Crcbnotes, &c.Crcbscheme, &c.Crcbsparec2, &c.Crcbbalance, &c.Crcbsparenum1, &c.Crcbsparenum2, &c.Crcbsparedate1, &c.Crcbsparedate2, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrcarbonByEquinoxLrn retrieves a row from 'equinox.crcarbon' as a Crcarbon.
 //
 // Generated from index 'crcarbon_pkey'.

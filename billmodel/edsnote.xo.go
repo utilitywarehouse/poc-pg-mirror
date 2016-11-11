@@ -22,6 +22,37 @@ type Edsnote struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllEdsnote(db XODB, callback func(x Edsnote) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`edsnnotes, edsnentereddate, edsnenteredtime, edsnenteredby, edsndatereminder, edsndiarise, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.edsnotes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Edsnote{}
+
+		// scan
+		err = q.Scan(&e.Edsnnotes, &e.Edsnentereddate, &e.Edsnenteredtime, &e.Edsnenteredby, &e.Edsndatereminder, &e.Edsndiarise, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EdsnoteByEquinoxLrn retrieves a row from 'equinox.edsnotes' as a Edsnote.
 //
 // Generated from index 'edsnotes_pkey'.

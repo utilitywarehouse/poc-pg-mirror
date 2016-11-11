@@ -20,6 +20,37 @@ type Custlog struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCustlog(db XODB, callback func(x Custlog) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`clogcustaccountn, clogcustexecid, clogcustvirtexec, clogchangedate, clogpersonalcust, equinox_lrn, equinox_sec ` +
+		`FROM equinox.custlog `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Custlog{}
+
+		// scan
+		err = q.Scan(&c.Clogcustaccountn, &c.Clogcustexecid, &c.Clogcustvirtexec, &c.Clogchangedate, &c.Clogpersonalcust, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CustlogByEquinoxLrn retrieves a row from 'equinox.custlog' as a Custlog.
 //
 // Generated from index 'custlog_pkey'.

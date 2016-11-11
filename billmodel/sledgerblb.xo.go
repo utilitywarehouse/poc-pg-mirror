@@ -12,6 +12,37 @@ type SledgerBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllSledgerBlb(db XODB, callback func(x SledgerBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.sledger_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		sb := SledgerBlb{}
+
+		// scan
+		err = q.Scan(&sb.BlbLrn, &sb.BlbData, &sb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(sb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SledgerBlbByBlbLrn retrieves a row from 'equinox.sledger_blb' as a SledgerBlb.
 //
 // Generated from index 'sledger_blb_pkey'.

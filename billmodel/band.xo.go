@@ -77,6 +77,37 @@ type Band struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllBand(db XODB, callback func(x Band) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`banduniquesys, bandid, bandchrgopt, bandfixed, bandrebate, bandfreemins, bandvatrate, bandvol1type1, bandvol1type2, bandvol1type3, bandvol1type4, bandvol1type5, bandvol2type1, bandvol2type2, bandvol2type3, bandvol2type4, bandvol2type5, bandvol3type1, bandvol3type2, bandvol3type3, bandvol3type4, bandvol3type5, bandvol4type1, bandvol4type2, bandvol4type3, bandvol4type4, bandvol4type5, bandvol5type1, bandvol5type2, bandvol5type3, bandvol5type4, bandvol5type5, bandvol6type1, bandvol6type2, bandvol6type3, bandvol6type4, bandvol6type5, bandvol7type1, bandvol7type2, bandvol7type3, bandvol7type4, bandvol7type5, bandvol8type1, bandvol8type2, bandvol8type3, bandvol8type4, bandvol8type5, bandvol9type1, bandvol9type2, bandvol9type3, bandvol9type4, bandvol9type5, bandvol10type1, bandvol10type2, bandvol10type3, bandvol10type4, bandvol10type5, bandinclfreemins, banincindiscount, bandbasetype1, bandbasetype2, bandbasetype3, bandbasetype4, bandbasetype5, bandmarkup, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.band `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Band{}
+
+		// scan
+		err = q.Scan(&b.Banduniquesys, &b.Bandid, &b.Bandchrgopt, &b.Bandfixed, &b.Bandrebate, &b.Bandfreemins, &b.Bandvatrate, &b.Bandvol1type1, &b.Bandvol1type2, &b.Bandvol1type3, &b.Bandvol1type4, &b.Bandvol1type5, &b.Bandvol2type1, &b.Bandvol2type2, &b.Bandvol2type3, &b.Bandvol2type4, &b.Bandvol2type5, &b.Bandvol3type1, &b.Bandvol3type2, &b.Bandvol3type3, &b.Bandvol3type4, &b.Bandvol3type5, &b.Bandvol4type1, &b.Bandvol4type2, &b.Bandvol4type3, &b.Bandvol4type4, &b.Bandvol4type5, &b.Bandvol5type1, &b.Bandvol5type2, &b.Bandvol5type3, &b.Bandvol5type4, &b.Bandvol5type5, &b.Bandvol6type1, &b.Bandvol6type2, &b.Bandvol6type3, &b.Bandvol6type4, &b.Bandvol6type5, &b.Bandvol7type1, &b.Bandvol7type2, &b.Bandvol7type3, &b.Bandvol7type4, &b.Bandvol7type5, &b.Bandvol8type1, &b.Bandvol8type2, &b.Bandvol8type3, &b.Bandvol8type4, &b.Bandvol8type5, &b.Bandvol9type1, &b.Bandvol9type2, &b.Bandvol9type3, &b.Bandvol9type4, &b.Bandvol9type5, &b.Bandvol10type1, &b.Bandvol10type2, &b.Bandvol10type3, &b.Bandvol10type4, &b.Bandvol10type5, &b.Bandinclfreemins, &b.Banincindiscount, &b.Bandbasetype1, &b.Bandbasetype2, &b.Bandbasetype3, &b.Bandbasetype4, &b.Bandbasetype5, &b.Bandmarkup, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BandByEquinoxLrn retrieves a row from 'equinox.band' as a Band.
 //
 // Generated from index 'band_pkey'.

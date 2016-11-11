@@ -32,6 +32,37 @@ type Usercon struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllUsercon(db XODB, callback func(x Usercon) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`userconsid, userconslogin, userconsname, userconsintime, userconsindate, userconsouttime, userconsoutdate, userconsclient, userconsdeptid, userconsdeptname, userconsapp, userconsaddition, userconsmachine, userconsclientdr, userconsusrgrp, userconsspared1, userconssparec1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.usercons `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Usercon{}
+
+		// scan
+		err = q.Scan(&u.Userconsid, &u.Userconslogin, &u.Userconsname, &u.Userconsintime, &u.Userconsindate, &u.Userconsouttime, &u.Userconsoutdate, &u.Userconsclient, &u.Userconsdeptid, &u.Userconsdeptname, &u.Userconsapp, &u.Userconsaddition, &u.Userconsmachine, &u.Userconsclientdr, &u.Userconsusrgrp, &u.Userconsspared1, &u.Userconssparec1, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UserconByEquinoxLrn retrieves a row from 'equinox.usercons' as a Usercon.
 //
 // Generated from index 'usercons_pkey'.

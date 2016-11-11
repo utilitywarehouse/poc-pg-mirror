@@ -12,6 +12,37 @@ type VcheaderBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllVcheaderBlb(db XODB, callback func(x VcheaderBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.vcheader_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		vb := VcheaderBlb{}
+
+		// scan
+		err = q.Scan(&vb.BlbLrn, &vb.BlbData, &vb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(vb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VcheaderBlbByBlbLrn retrieves a row from 'equinox.vcheader_blb' as a VcheaderBlb.
 //
 // Generated from index 'vcheader_blb_pkey'.

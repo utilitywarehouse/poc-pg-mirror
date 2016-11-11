@@ -34,6 +34,37 @@ type Exrental struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExrental(db XODB, callback func(x Exrental) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exrvenueid, exreventdate, exreventid, exrreceiveddate, exrtrainerid, exrprtnrverified, exrmacaddress, exrserialnumber, exrcontractterm, exrownership, exrownrshpchngd, exripreslastused, exrpaymentamount, exrpaymentcount, exrprovpaymencnt, exrtotalpaid, exrprovtotalpaid, exrlastpaiddate, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exrental `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exrental{}
+
+		// scan
+		err = q.Scan(&e.Exrvenueid, &e.Exreventdate, &e.Exreventid, &e.Exrreceiveddate, &e.Exrtrainerid, &e.Exrprtnrverified, &e.Exrmacaddress, &e.Exrserialnumber, &e.Exrcontractterm, &e.Exrownership, &e.Exrownrshpchngd, &e.Exripreslastused, &e.Exrpaymentamount, &e.Exrpaymentcount, &e.Exrprovpaymencnt, &e.Exrtotalpaid, &e.Exrprovtotalpaid, &e.Exrlastpaiddate, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExrentalByEquinoxLrn retrieves a row from 'equinox.exrental' as a Exrental.
 //
 // Generated from index 'exrental_pkey'.

@@ -19,6 +19,37 @@ type Sp struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllSp(db XODB, callback func(x Sp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`spname, spref, spenquirefax, spenquire, spesccontact, spesctel, spescfax, spescemail, equinox_lrn, equinox_sec ` +
+		`FROM equinox.sp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Sp{}
+
+		// scan
+		err = q.Scan(&s.Spname, &s.Spref, &s.Spenquirefax, &s.Spenquire, &s.Spesccontact, &s.Spesctel, &s.Spescfax, &s.Spescemail, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SpByEquinoxLrn retrieves a row from 'equinox.sp' as a Sp.
 //
 // Generated from index 'sp_pkey'.

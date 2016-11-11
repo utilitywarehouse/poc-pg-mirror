@@ -12,6 +12,37 @@ type PbsubbatBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllPbsubbatBlb(db XODB, callback func(x PbsubbatBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.pbsubbat_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := PbsubbatBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbsubbatBlbByBlbLrn retrieves a row from 'equinox.pbsubbat_blb' as a PbsubbatBlb.
 //
 // Generated from index 'pbsubbat_blb_pkey'.

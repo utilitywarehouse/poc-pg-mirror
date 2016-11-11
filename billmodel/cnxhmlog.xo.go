@@ -27,6 +27,37 @@ type Cnxhmlog struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxhmlog(db XODB, callback func(x Cnxhmlog) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxhmlogdate, cnxhmlogtime, cnxhmloguser, cnxhmlogcode, cnxhmlogdescrip, cnxhmlogcli, cnxhmlogservtype, cnxhmlogrecname, cnxhmlogsparec1, cnxhmlogsparen1, cnxhmlogspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxhmlog `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxhmlog{}
+
+		// scan
+		err = q.Scan(&c.Cnxhmlogdate, &c.Cnxhmlogtime, &c.Cnxhmloguser, &c.Cnxhmlogcode, &c.Cnxhmlogdescrip, &c.Cnxhmlogcli, &c.Cnxhmlogservtype, &c.Cnxhmlogrecname, &c.Cnxhmlogsparec1, &c.Cnxhmlogsparen1, &c.Cnxhmlogspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxhmlogByEquinoxLrn retrieves a row from 'equinox.cnxhmlog' as a Cnxhmlog.
 //
 // Generated from index 'cnxhmlog_pkey'.

@@ -73,6 +73,37 @@ type TempCnx struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllTempCnx(db XODB, callback func(x TempCnx) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`temp_refno, temp_reward, temp_custpostcod, temp_custadd1, temp_custadd2, temp_custadd3, temp_custadd4, temp_custadd5, temp_custni, temp_custver, temp_custinvadd, temp_title, temp_surname, temp_firstname, temp_accname, temp_ownertenant, temp_tenenddate, temp_tenclubleve, temp_dob, temp_homeno, temp_mobile, temp_email, temp_bankaccname, temp_banksortc, temp_bankaccno, temp_cardtype, temp_cardno, temp_startdate, temp_expdate, temp_issue, temp_emailbills, temp_nomarketing, temp_enteredby, temp_entereddate, temp_enteredtime, temp_status, temp_custaccno, temp_sparec2, temp_sparec3, temp_spared1, temp_spared2, temp_spared3, temp_nli, temp_callback, temp_sparel3, temp_sparec1, temp_noofserv, temp_bc, temp_hp, temp_fp, temp_mob, temp_int, temp_gas, temp_elec, temp_ip, temp_reason, temp_sparel4, temp_sparel5, equinox_lrn, equinox_sec ` +
+		`FROM equinox.temp_cnx `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		tc := TempCnx{}
+
+		// scan
+		err = q.Scan(&tc.TempRefno, &tc.TempReward, &tc.TempCustpostcod, &tc.TempCustadd1, &tc.TempCustadd2, &tc.TempCustadd3, &tc.TempCustadd4, &tc.TempCustadd5, &tc.TempCustni, &tc.TempCustver, &tc.TempCustinvadd, &tc.TempTitle, &tc.TempSurname, &tc.TempFirstname, &tc.TempAccname, &tc.TempOwnertenant, &tc.TempTenenddate, &tc.TempTenclubleve, &tc.TempDob, &tc.TempHomeno, &tc.TempMobile, &tc.TempEmail, &tc.TempBankaccname, &tc.TempBanksortc, &tc.TempBankaccno, &tc.TempCardtype, &tc.TempCardno, &tc.TempStartdate, &tc.TempExpdate, &tc.TempIssue, &tc.TempEmailbills, &tc.TempNomarketing, &tc.TempEnteredby, &tc.TempEntereddate, &tc.TempEnteredtime, &tc.TempStatus, &tc.TempCustaccno, &tc.TempSparec2, &tc.TempSparec3, &tc.TempSpared1, &tc.TempSpared2, &tc.TempSpared3, &tc.TempNli, &tc.TempCallback, &tc.TempSparel3, &tc.TempSparec1, &tc.TempNoofserv, &tc.TempBc, &tc.TempHp, &tc.TempFp, &tc.TempMob, &tc.TempInt, &tc.TempGas, &tc.TempElec, &tc.TempIP, &tc.TempReason, &tc.TempSparel4, &tc.TempSparel5, &tc.EquinoxLrn, &tc.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(tc) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TempCnxByEquinoxLrn retrieves a row from 'equinox.temp_cnx' as a TempCnx.
 //
 // Generated from index 'temp_cnx_pkey'.

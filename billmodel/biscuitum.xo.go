@@ -62,6 +62,37 @@ type Biscuitum struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllBiscuitum(db XODB, callback func(x Biscuitum) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bisref, biscli, bisinitid, bisinitdept, bisrecipientid, bisrecdeptid, bisothercontact, bisflow, bisname, bishousenumber, bisstreetname, bisaddress, bispostcode, bistransferdate, bistranscoread, bistranscoae, biscriteria, bisproposedread, bisproposedae, bisroot, bisstatus, bisfilesend, bisanum1, bisanum2, bissendaread, bissendmstatus, bisdatetotransco, bismetastatus, bismpr, bissendtotransco, bisreadagreed, biscomplete, bistempmemo, bisac3, bisac4, bissendrejection, bistoescalate, bisrefid, bisrejcode, bisescalations, bissentproposal, bisad8, bisad9, bisdatecreated, bisourstatus, bislastchangeby, bislastchange, equinox_lrn, equinox_sec ` +
+		`FROM equinox.biscuita `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Biscuitum{}
+
+		// scan
+		err = q.Scan(&b.Bisref, &b.Biscli, &b.Bisinitid, &b.Bisinitdept, &b.Bisrecipientid, &b.Bisrecdeptid, &b.Bisothercontact, &b.Bisflow, &b.Bisname, &b.Bishousenumber, &b.Bisstreetname, &b.Bisaddress, &b.Bispostcode, &b.Bistransferdate, &b.Bistranscoread, &b.Bistranscoae, &b.Biscriteria, &b.Bisproposedread, &b.Bisproposedae, &b.Bisroot, &b.Bisstatus, &b.Bisfilesend, &b.Bisanum1, &b.Bisanum2, &b.Bissendaread, &b.Bissendmstatus, &b.Bisdatetotransco, &b.Bismetastatus, &b.Bismpr, &b.Bissendtotransco, &b.Bisreadagreed, &b.Biscomplete, &b.Bistempmemo, &b.Bisac3, &b.Bisac4, &b.Bissendrejection, &b.Bistoescalate, &b.Bisrefid, &b.Bisrejcode, &b.Bisescalations, &b.Bissentproposal, &b.Bisad8, &b.Bisad9, &b.Bisdatecreated, &b.Bisourstatus, &b.Bislastchangeby, &b.Bislastchange, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BiscuitumByEquinoxLrn retrieves a row from 'equinox.biscuita' as a Biscuitum.
 //
 // Generated from index 'biscuita_pkey'.

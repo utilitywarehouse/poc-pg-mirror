@@ -12,6 +12,37 @@ type WlrcodesBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllWlrcodesBlb(db XODB, callback func(x WlrcodesBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.wlrcodes_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		wb := WlrcodesBlb{}
+
+		// scan
+		err = q.Scan(&wb.BlbLrn, &wb.BlbData, &wb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(wb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // WlrcodesBlbByBlbLrn retrieves a row from 'equinox.wlrcodes_blb' as a WlrcodesBlb.
 //
 // Generated from index 'wlrcodes_blb_pkey'.

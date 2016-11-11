@@ -19,6 +19,37 @@ type Gmorrej struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllGmorrej(db XODB, callback func(x Gmorrej) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gmorrejcode, gmorrejreason, gmorrejdate, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gmorrej `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gmorrej{}
+
+		// scan
+		err = q.Scan(&g.Gmorrejcode, &g.Gmorrejreason, &g.Gmorrejdate, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GmorrejByEquinoxLrn retrieves a row from 'equinox.gmorrej' as a Gmorrej.
 //
 // Generated from index 'gmorrej_pkey'.

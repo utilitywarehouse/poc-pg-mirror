@@ -26,6 +26,37 @@ type Trfcross struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllTrfcross(db XODB, callback func(x Trfcross) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`trfcregion, trfcdatefrom, trfcl_s_gas, trfcs_h_gas, trfcl_s_elec, trfcs_h_elec, trfc_l_s_eco7, trfc_s_h_eco7, trfsparechar, trfsparenum, trfcenddate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.trfcross `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Trfcross{}
+
+		// scan
+		err = q.Scan(&t.Trfcregion, &t.Trfcdatefrom, &t.TrfclSGas, &t.TrfcsHGas, &t.TrfclSElec, &t.TrfcsHElec, &t.TrfcLSEco7, &t.TrfcSHEco7, &t.Trfsparechar, &t.Trfsparenum, &t.Trfcenddate, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TrfcrossByEquinoxLrn retrieves a row from 'equinox.trfcross' as a Trfcross.
 //
 // Generated from index 'trfcross_pkey'.

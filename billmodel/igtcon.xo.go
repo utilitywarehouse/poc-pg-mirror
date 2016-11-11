@@ -16,6 +16,37 @@ type Igtcon struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllIgtcon(db XODB, callback func(x Igtcon) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`igtconsuffix, igtconemail, igtconpassword, igtcontypeid, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.igtcon `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		i := Igtcon{}
+
+		// scan
+		err = q.Scan(&i.Igtconsuffix, &i.Igtconemail, &i.Igtconpassword, &i.Igtcontypeid, &i.EquinoxPrn, &i.EquinoxLrn, &i.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(i) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // IgtconByEquinoxLrn retrieves a row from 'equinox.igtcon' as a Igtcon.
 //
 // Generated from index 'igtcon_pkey'.

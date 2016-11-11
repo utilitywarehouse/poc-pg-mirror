@@ -65,6 +65,37 @@ type Comhead struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllComhead(db XODB, callback func(x Comhead) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`chperiod, chdealer, chcrnumber, chinvoiceno, chpicture, chpaid, chpaymethod, chpaidby, chnotes, chsent, chsentby, chtotfixcall, chtotmobcall, chtotdatacall, chtotfixconnect, chtotmobconnect, chtotdataconnect, chtotcreditdebit, chtotbonuses, chtotresign, chtotnett, chtotvat, chtotgross, chtotaled, chdowns, chdowne, chlevel, chstatus, chtitle, chpersonalcusts, chgroupcustomers, chcustlastmonth, chqcustlastmonth, chcustinquarter, chqiregistered, chqiachieved, chcvcrateplan, chcvcrateplancod, chformationflags, chsparenum1, chsparenum2, chsparenum3, chsparenum4, chsponsorid, chexectype, chspared1, chexecenddate, chsparen1, chsparen2, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.comhead `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Comhead{}
+
+		// scan
+		err = q.Scan(&c.Chperiod, &c.Chdealer, &c.Chcrnumber, &c.Chinvoiceno, &c.Chpicture, &c.Chpaid, &c.Chpaymethod, &c.Chpaidby, &c.Chnotes, &c.Chsent, &c.Chsentby, &c.Chtotfixcall, &c.Chtotmobcall, &c.Chtotdatacall, &c.Chtotfixconnect, &c.Chtotmobconnect, &c.Chtotdataconnect, &c.Chtotcreditdebit, &c.Chtotbonuses, &c.Chtotresign, &c.Chtotnett, &c.Chtotvat, &c.Chtotgross, &c.Chtotaled, &c.Chdowns, &c.Chdowne, &c.Chlevel, &c.Chstatus, &c.Chtitle, &c.Chpersonalcusts, &c.Chgroupcustomers, &c.Chcustlastmonth, &c.Chqcustlastmonth, &c.Chcustinquarter, &c.Chqiregistered, &c.Chqiachieved, &c.Chcvcrateplan, &c.Chcvcrateplancod, &c.Chformationflags, &c.Chsparenum1, &c.Chsparenum2, &c.Chsparenum3, &c.Chsparenum4, &c.Chsponsorid, &c.Chexectype, &c.Chspared1, &c.Chexecenddate, &c.Chsparen1, &c.Chsparen2, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ComheadByEquinoxLrn retrieves a row from 'equinox.comhead' as a Comhead.
 //
 // Generated from index 'comhead_pkey'.

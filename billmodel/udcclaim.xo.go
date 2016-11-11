@@ -26,6 +26,37 @@ type Udcclaim struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllUdcclaim(db XODB, callback func(x Udcclaim) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`udccissuedate, udccclaimno, udccrequestdate, udcccomment, udccuniquesys, udcchearingdate, udcchearingtype, udccclaimperiod, udccclaimamount, udcccourtfee, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.udcclaim `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		u := Udcclaim{}
+
+		// scan
+		err = q.Scan(&u.Udccissuedate, &u.Udccclaimno, &u.Udccrequestdate, &u.Udcccomment, &u.Udccuniquesys, &u.Udcchearingdate, &u.Udcchearingtype, &u.Udccclaimperiod, &u.Udccclaimamount, &u.Udcccourtfee, &u.EquinoxPrn, &u.EquinoxLrn, &u.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(u) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UdcclaimByEquinoxLrn retrieves a row from 'equinox.udcclaim' as a Udcclaim.
 //
 // Generated from index 'udcclaim_pkey'.

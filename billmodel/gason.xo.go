@@ -29,6 +29,37 @@ type Gason struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllGason(db XODB, callback func(x Gason) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gonmpr, gonmprlocc, gonmprlocw, gonmprlocnotes, gonmpraccess, gonc1, gonc2, gonc3, gonn1, gonn2, gonn3, gond1, gond2, gond3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gason `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gason{}
+
+		// scan
+		err = q.Scan(&g.Gonmpr, &g.Gonmprlocc, &g.Gonmprlocw, &g.Gonmprlocnotes, &g.Gonmpraccess, &g.Gonc1, &g.Gonc2, &g.Gonc3, &g.Gonn1, &g.Gonn2, &g.Gonn3, &g.Gond1, &g.Gond2, &g.Gond3, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GasonByEquinoxLrn retrieves a row from 'equinox.gason' as a Gason.
 //
 // Generated from index 'gason_pkey'.

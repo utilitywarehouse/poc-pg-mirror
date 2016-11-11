@@ -14,6 +14,37 @@ type Vcheader struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllVcheader(db XODB, callback func(x Vcheader) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`vchdealer, vchclawbackbal, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.vcheader `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		v := Vcheader{}
+
+		// scan
+		err = q.Scan(&v.Vchdealer, &v.Vchclawbackbal, &v.EquinoxPrn, &v.EquinoxLrn, &v.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(v) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VcheaderByEquinoxLrn retrieves a row from 'equinox.vcheader' as a Vcheader.
 //
 // Generated from index 'vcheader_pkey'.

@@ -28,6 +28,37 @@ type Ctperiod struct {
 	EquinoxSec    sql.NullInt64 `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllCtperiod(db XODB, callback func(x Ctperiod) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ctdate, ctlgasofgem, ctsgasofgem, cthgasofgem, ctlelecofgem, ctselecofgem, cthelecofgem, ctle7ofgem, ctse7ofgem, cthe7ofgem, ctuwgofftake, ctuweofftake, ctuwe7offtake, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ctperiod `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Ctperiod{}
+
+		// scan
+		err = q.Scan(&c.Ctdate, &c.Ctlgasofgem, &c.Ctsgasofgem, &c.Cthgasofgem, &c.Ctlelecofgem, &c.Ctselecofgem, &c.Cthelecofgem, &c.Ctle7ofgem, &c.Ctse7ofgem, &c.Cthe7ofgem, &c.Ctuwgofftake, &c.Ctuweofftake, &c.Ctuwe7offtake, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CtperiodByEquinoxLrn retrieves a row from 'equinox.ctperiod' as a Ctperiod.
 //
 // Generated from index 'ctperiod_pkey'.

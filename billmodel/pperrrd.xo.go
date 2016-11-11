@@ -26,6 +26,37 @@ type Pperrrd struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPperrrd(db XODB, callback func(x Pperrrd) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pperrrdreading, pperrrddate, pperrrdtariff, pperrrdtrfdt, pperrrdreg, pperrrdadded, pperrrdallocated, pperrrdallocto, pperrrdsrc, pperrrdorigref, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pperrrd `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pperrrd{}
+
+		// scan
+		err = q.Scan(&p.Pperrrdreading, &p.Pperrrddate, &p.Pperrrdtariff, &p.Pperrrdtrfdt, &p.Pperrrdreg, &p.Pperrrdadded, &p.Pperrrdallocated, &p.Pperrrdallocto, &p.Pperrrdsrc, &p.Pperrrdorigref, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PperrrdByEquinoxLrn retrieves a row from 'equinox.pperrrd' as a Pperrrd.
 //
 // Generated from index 'pperrrd_pkey'.

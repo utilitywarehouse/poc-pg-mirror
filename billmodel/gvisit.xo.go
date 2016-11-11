@@ -23,6 +23,37 @@ type Gvisit struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGvisit(db XODB, callback func(x Gvisit) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gvisitdate, gvisitoutcome, gvisitnotes, gvisitreading, gvisitreadtype, gvisitfilename, gvisitimportdate, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gvisit `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gvisit{}
+
+		// scan
+		err = q.Scan(&g.Gvisitdate, &g.Gvisitoutcome, &g.Gvisitnotes, &g.Gvisitreading, &g.Gvisitreadtype, &g.Gvisitfilename, &g.Gvisitimportdate, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GvisitByEquinoxLrn retrieves a row from 'equinox.gvisit' as a Gvisit.
 //
 // Generated from index 'gvisit_pkey'.

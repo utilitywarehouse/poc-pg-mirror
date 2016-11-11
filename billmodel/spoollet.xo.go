@@ -41,6 +41,37 @@ type Spoollet struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllSpoollet(db XODB, callback func(x Spoollet) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`spooledletterid, spfile, spcommentcode, spprinterid, spaccountno, spaccountnotype, spbillinggroup, spnameaddress, sptofiledate, sptofiletime, spspoolfileid, spcategory, spgrouping, sporder, spparamfile, spmachinename, spuserlogin, spcreateddate, spcreatedtime, spprinteddate, spprintedtime, spsparenum1, spsparenum2, spsparec1, spsparec2, spspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.spoollet `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Spoollet{}
+
+		// scan
+		err = q.Scan(&s.Spooledletterid, &s.Spfile, &s.Spcommentcode, &s.Spprinterid, &s.Spaccountno, &s.Spaccountnotype, &s.Spbillinggroup, &s.Spnameaddress, &s.Sptofiledate, &s.Sptofiletime, &s.Spspoolfileid, &s.Spcategory, &s.Spgrouping, &s.Sporder, &s.Spparamfile, &s.Spmachinename, &s.Spuserlogin, &s.Spcreateddate, &s.Spcreatedtime, &s.Spprinteddate, &s.Spprintedtime, &s.Spsparenum1, &s.Spsparenum2, &s.Spsparec1, &s.Spsparec2, &s.Spspared1, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SpoolletByEquinoxLrn retrieves a row from 'equinox.spoollet' as a Spoollet.
 //
 // Generated from index 'spoollet_pkey'.

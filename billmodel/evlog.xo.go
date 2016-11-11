@@ -34,6 +34,37 @@ type Evlog struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllEvlog(db XODB, callback func(x Evlog) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`eventlogid, evlchildid, evldate, evltime, evlstartdate, evlstarttime, evlenddate, evlendtime, evlmessage, evldetails, evltype, evlcategory, evlraisedby, evlmachine, evladditional1, evladditional2, evladditional3, evladditional4, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.evlog `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Evlog{}
+
+		// scan
+		err = q.Scan(&e.Eventlogid, &e.Evlchildid, &e.Evldate, &e.Evltime, &e.Evlstartdate, &e.Evlstarttime, &e.Evlenddate, &e.Evlendtime, &e.Evlmessage, &e.Evldetails, &e.Evltype, &e.Evlcategory, &e.Evlraisedby, &e.Evlmachine, &e.Evladditional1, &e.Evladditional2, &e.Evladditional3, &e.Evladditional4, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EvlogByEquinoxLrn retrieves a row from 'equinox.evlog' as a Evlog.
 //
 // Generated from index 'evlog_pkey'.

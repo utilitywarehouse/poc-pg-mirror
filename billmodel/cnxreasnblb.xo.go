@@ -12,6 +12,37 @@ type CnxreasnBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllCnxreasnBlb(db XODB, callback func(x CnxreasnBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.cnxreasn_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := CnxreasnBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxreasnBlbByBlbLrn retrieves a row from 'equinox.cnxreasn_blb' as a CnxreasnBlb.
 //
 // Generated from index 'cnxreasn_blb_pkey'.

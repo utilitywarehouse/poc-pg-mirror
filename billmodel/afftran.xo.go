@@ -36,6 +36,37 @@ type Afftran struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllAfftran(db XODB, callback func(x Afftran) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`affttransactid, afftdate, afftdescription, afftvalue, afftcommis, afftsaving, afftbillno, afftafftype, afftaffid, afftafftranref, affturlaccount, afftaffmerid, afftsparec1, afftsparec2, afftspared1, afftspared2, afftspared3, afftsparen1, afftsparen2, afftsparen3, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.afftrans `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Afftran{}
+
+		// scan
+		err = q.Scan(&a.Affttransactid, &a.Afftdate, &a.Afftdescription, &a.Afftvalue, &a.Afftcommis, &a.Afftsaving, &a.Afftbillno, &a.Afftafftype, &a.Afftaffid, &a.Afftafftranref, &a.Affturlaccount, &a.Afftaffmerid, &a.Afftsparec1, &a.Afftsparec2, &a.Afftspared1, &a.Afftspared2, &a.Afftspared3, &a.Afftsparen1, &a.Afftsparen2, &a.Afftsparen3, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AfftranByEquinoxLrn retrieves a row from 'equinox.afftrans' as a Afftran.
 //
 // Generated from index 'afftrans_pkey'.

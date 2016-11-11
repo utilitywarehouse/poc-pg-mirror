@@ -25,6 +25,37 @@ type Mpmm struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllMpmm(db XODB, callback func(x Mpmm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mpmmpancore, mpmmeterid, mpmpaydate, mpmecoes1, mpmecoes2, mpmecoes3, mpmactionreq, mpmresolved, mpmfilename, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mpmm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mpmm{}
+
+		// scan
+		err = q.Scan(&m.Mpmmpancore, &m.Mpmmeterid, &m.Mpmpaydate, &m.Mpmecoes1, &m.Mpmecoes2, &m.Mpmecoes3, &m.Mpmactionreq, &m.Mpmresolved, &m.Mpmfilename, &m.EquinoxPrn, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MpmmByEquinoxLrn retrieves a row from 'equinox.mpmm' as a Mpmm.
 //
 // Generated from index 'mpmm_pkey'.

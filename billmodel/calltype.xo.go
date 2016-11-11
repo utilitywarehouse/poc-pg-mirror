@@ -20,6 +20,37 @@ type Calltype struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCalltype(db XODB, callback func(x Calltype) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`calltypeid, ctdescription, ctoldcalltypeid, ctcommissionable, cttextdescriptio, ctsparenum1, ctsparenum2, crsparechar1, crsparechar2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.calltype `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Calltype{}
+
+		// scan
+		err = q.Scan(&c.Calltypeid, &c.Ctdescription, &c.Ctoldcalltypeid, &c.Ctcommissionable, &c.Cttextdescriptio, &c.Ctsparenum1, &c.Ctsparenum2, &c.Crsparechar1, &c.Crsparechar2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CalltypeByEquinoxLrn retrieves a row from 'equinox.calltype' as a Calltype.
 //
 // Generated from index 'calltype_pkey'.

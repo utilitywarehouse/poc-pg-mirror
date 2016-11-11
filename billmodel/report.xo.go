@@ -22,6 +22,37 @@ type Report struct {
 	EquinoxSec  sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllReport(db XODB, callback func(x Report) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`report_name, report_desc, report_start, report_end, report_date, report_by, report_freq, equinox_lrn, equinox_sec ` +
+		`FROM equinox.reports `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Report{}
+
+		// scan
+		err = q.Scan(&r.ReportName, &r.ReportDesc, &r.ReportStart, &r.ReportEnd, &r.ReportDate, &r.ReportBy, &r.ReportFreq, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ReportByEquinoxLrn retrieves a row from 'equinox.reports' as a Report.
 //
 // Generated from index 'reports_pkey'.

@@ -14,6 +14,37 @@ type Holexec struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllHolexec(db XODB, callback func(x Holexec) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`holexecmonth, holexecpartnerid, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.holexec `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		h := Holexec{}
+
+		// scan
+		err = q.Scan(&h.Holexecmonth, &h.Holexecpartnerid, &h.EquinoxPrn, &h.EquinoxLrn, &h.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(h) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HolexecByEquinoxLrn retrieves a row from 'equinox.holexec' as a Holexec.
 //
 // Generated from index 'holexec_pkey'.

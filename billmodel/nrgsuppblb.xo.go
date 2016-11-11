@@ -12,6 +12,37 @@ type NrgsuppBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllNrgsuppBlb(db XODB, callback func(x NrgsuppBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.nrgsupp_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		nb := NrgsuppBlb{}
+
+		// scan
+		err = q.Scan(&nb.BlbLrn, &nb.BlbData, &nb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(nb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // NrgsuppBlbByBlbLrn retrieves a row from 'equinox.nrgsupp_blb' as a NrgsuppBlb.
 //
 // Generated from index 'nrgsupp_blb_pkey'.

@@ -28,6 +28,37 @@ type Brmonth struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllBrmonth(db XODB, callback func(x Brmonth) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`brmcode, brmmonth, brmdate, brmmonthlyid, brmqty, brmamount, brmvat, brmvat2, brmnet, brmcredit, brmcreditvat, brmcreditnet, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.brmonth `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Brmonth{}
+
+		// scan
+		err = q.Scan(&b.Brmcode, &b.Brmmonth, &b.Brmdate, &b.Brmmonthlyid, &b.Brmqty, &b.Brmamount, &b.Brmvat, &b.Brmvat2, &b.Brmnet, &b.Brmcredit, &b.Brmcreditvat, &b.Brmcreditnet, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BrmonthByEquinoxLrn retrieves a row from 'equinox.brmonth' as a Brmonth.
 //
 // Generated from index 'brmonth_pkey'.

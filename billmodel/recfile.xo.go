@@ -70,6 +70,37 @@ type Recfile struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllRecfile(db XODB, callback func(x Recfile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`grectranstype, grecrchseqno, grecmprn, grecmsn, grecctpcode, grecmtrrdrefno, grecamount, grecstatus, grecconfirmref, grecvariancersn, greccurrchrgeind, grecldz, grecinvnumber, grecnominref, grecstartrddate, grecendrddate, grecstartmetrrdg, grecendmeterrdg, grecvolconsumed, grecdmdallocvol, grecdmdallocengy, grectotactenergy, grecunmtrdcons, grecrveactenrgy, grecrvestartdate, grecorigmtrread, grecstartrdreasn, grecendrdreason, grecshipperref, grecendreadtype, grecrveenddate, grecmmoname, greccrmname, grecmmodials, greccrmdials, grecmpocorrfactr, greccrrcorrfactr, grecmmordfactor, greccrmrdfactor, grecmeterpntaq, grecsupplypntaq, greceucnumber, grecstrtcorrrdng, grecendcorrrdng, greccorrrdngflag, grecprevinvno, grecprevamount, grecprevmtrrdref, grecoriginvno, grecoriginalamnt, grecreconqatity, grecmeterttzcnt, grecfilename, grecimporteddate, grecimportedtime, equinox_lrn, equinox_sec ` +
+		`FROM equinox.recfiles `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Recfile{}
+
+		// scan
+		err = q.Scan(&r.Grectranstype, &r.Grecrchseqno, &r.Grecmprn, &r.Grecmsn, &r.Grecctpcode, &r.Grecmtrrdrefno, &r.Grecamount, &r.Grecstatus, &r.Grecconfirmref, &r.Grecvariancersn, &r.Greccurrchrgeind, &r.Grecldz, &r.Grecinvnumber, &r.Grecnominref, &r.Grecstartrddate, &r.Grecendrddate, &r.Grecstartmetrrdg, &r.Grecendmeterrdg, &r.Grecvolconsumed, &r.Grecdmdallocvol, &r.Grecdmdallocengy, &r.Grectotactenergy, &r.Grecunmtrdcons, &r.Grecrveactenrgy, &r.Grecrvestartdate, &r.Grecorigmtrread, &r.Grecstartrdreasn, &r.Grecendrdreason, &r.Grecshipperref, &r.Grecendreadtype, &r.Grecrveenddate, &r.Grecmmoname, &r.Greccrmname, &r.Grecmmodials, &r.Greccrmdials, &r.Grecmpocorrfactr, &r.Greccrrcorrfactr, &r.Grecmmordfactor, &r.Greccrmrdfactor, &r.Grecmeterpntaq, &r.Grecsupplypntaq, &r.Greceucnumber, &r.Grecstrtcorrrdng, &r.Grecendcorrrdng, &r.Greccorrrdngflag, &r.Grecprevinvno, &r.Grecprevamount, &r.Grecprevmtrrdref, &r.Grecoriginvno, &r.Grecoriginalamnt, &r.Grecreconqatity, &r.Grecmeterttzcnt, &r.Grecfilename, &r.Grecimporteddate, &r.Grecimportedtime, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RecfileByEquinoxLrn retrieves a row from 'equinox.recfiles' as a Recfile.
 //
 // Generated from index 'recfiles_pkey'.

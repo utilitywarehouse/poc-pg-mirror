@@ -58,6 +58,37 @@ type Cnxpay struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxpay(db XODB, callback func(x Cnxpay) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxpaydate, cnxpaycctype, cnxpayccno, cnxpayccexp, cnxpayccstart, cnxpayccissue, cnxpayamount, cnxpaychequeno, cnxpaytransaccod, cnxpayreffield, cnxpayexportflag, cnxpayauthorised, cnxpayauthamount, cnxpayauthdate, cnxpayauthtext, cnxpayenteredby, cnxpaycommentcod, cnxpayadvance, cnxpayconncharge, cnxpaypprice, cnxpayprepay2bil, cnxpayweborder, cnxmppuniquesys, cnxprosaccountno, cnxpaycv2, cnxpaypostcode, cnxpaycbcappfee, cnxpayspared1, cnxpaybanked, cnxpaypmm, cnxpayrefund, cnxpaytime, cnxpaysparen1, cnxpayvaliddate, cnxpayvalidby, cnxpaymarked, cnxpaylastchange, cnxpaypsp, cnxpayref, cnxpayshopref, cnxpaycontract, cnxpayrecuniqsys, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxpay `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxpay{}
+
+		// scan
+		err = q.Scan(&c.Cnxpaydate, &c.Cnxpaycctype, &c.Cnxpayccno, &c.Cnxpayccexp, &c.Cnxpayccstart, &c.Cnxpayccissue, &c.Cnxpayamount, &c.Cnxpaychequeno, &c.Cnxpaytransaccod, &c.Cnxpayreffield, &c.Cnxpayexportflag, &c.Cnxpayauthorised, &c.Cnxpayauthamount, &c.Cnxpayauthdate, &c.Cnxpayauthtext, &c.Cnxpayenteredby, &c.Cnxpaycommentcod, &c.Cnxpayadvance, &c.Cnxpayconncharge, &c.Cnxpaypprice, &c.Cnxpayprepay2bil, &c.Cnxpayweborder, &c.Cnxmppuniquesys, &c.Cnxprosaccountno, &c.Cnxpaycv2, &c.Cnxpaypostcode, &c.Cnxpaycbcappfee, &c.Cnxpayspared1, &c.Cnxpaybanked, &c.Cnxpaypmm, &c.Cnxpayrefund, &c.Cnxpaytime, &c.Cnxpaysparen1, &c.Cnxpayvaliddate, &c.Cnxpayvalidby, &c.Cnxpaymarked, &c.Cnxpaylastchange, &c.Cnxpaypsp, &c.Cnxpayref, &c.Cnxpayshopref, &c.Cnxpaycontract, &c.Cnxpayrecuniqsys, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxpayByEquinoxLrn retrieves a row from 'equinox.cnxpay' as a Cnxpay.
 //
 // Generated from index 'cnxpay_pkey'.

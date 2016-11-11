@@ -59,6 +59,37 @@ type Prospero struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllProspero(db XODB, callback func(x Prospero) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`prosaccnumber, proscustaccount, prosaccactive, prosnameoncard, prosdob, prosissued, prosnameoncard2, prosdob2, prosissued2, prosnectarcard, prosmainsupermkt, prosminbalance, prostopupvalue, prosfixedmonthly, prosdebitno, prosdebitstart, prosdebitexpiry, prosdebitissue, prosdebitcv2, prosdebitcardtyp, prosinitialload, proslatestbalanc, prossavingmtd, prossavingytd, prosmobilenumber, prosopeningbal, prosclosingbal, proscardtype, proscardstatus, proscardstatus2, proslastsains, proslimit, proslocation, prosexecid, prosappformno, prosdontpay, prosbpaid, prosbpaid2, prospromo, prosexissued, prosexissued2, prosshopperref, proscard1statmis, proscard2statmis, equinox_lrn, equinox_sec ` +
+		`FROM equinox.prospero `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Prospero{}
+
+		// scan
+		err = q.Scan(&p.Prosaccnumber, &p.Proscustaccount, &p.Prosaccactive, &p.Prosnameoncard, &p.Prosdob, &p.Prosissued, &p.Prosnameoncard2, &p.Prosdob2, &p.Prosissued2, &p.Prosnectarcard, &p.Prosmainsupermkt, &p.Prosminbalance, &p.Prostopupvalue, &p.Prosfixedmonthly, &p.Prosdebitno, &p.Prosdebitstart, &p.Prosdebitexpiry, &p.Prosdebitissue, &p.Prosdebitcv2, &p.Prosdebitcardtyp, &p.Prosinitialload, &p.Proslatestbalanc, &p.Prossavingmtd, &p.Prossavingytd, &p.Prosmobilenumber, &p.Prosopeningbal, &p.Prosclosingbal, &p.Proscardtype, &p.Proscardstatus, &p.Proscardstatus2, &p.Proslastsains, &p.Proslimit, &p.Proslocation, &p.Prosexecid, &p.Prosappformno, &p.Prosdontpay, &p.Prosbpaid, &p.Prosbpaid2, &p.Prospromo, &p.Prosexissued, &p.Prosexissued2, &p.Prosshopperref, &p.Proscard1statmis, &p.Proscard2statmis, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ProsperoByEquinoxLrn retrieves a row from 'equinox.prospero' as a Prospero.
 //
 // Generated from index 'prospero_pkey'.

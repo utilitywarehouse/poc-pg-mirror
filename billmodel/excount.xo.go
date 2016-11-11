@@ -21,6 +21,37 @@ type Excount struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllExcount(db XODB, callback func(x Excount) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`excntmonth, excntcusts0svs, excntcusts1svs, excntcusts2svs, excntcusts3svs, excntcusts4svs, excntcusts5svs, excntpartners, excntholpoints, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.excount `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Excount{}
+
+		// scan
+		err = q.Scan(&e.Excntmonth, &e.Excntcusts0svs, &e.Excntcusts1svs, &e.Excntcusts2svs, &e.Excntcusts3svs, &e.Excntcusts4svs, &e.Excntcusts5svs, &e.Excntpartners, &e.Excntholpoints, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExcountByEquinoxLrn retrieves a row from 'equinox.excount' as a Excount.
 //
 // Generated from index 'excount_pkey'.

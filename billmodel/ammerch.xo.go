@@ -20,6 +20,37 @@ type Ammerch struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllAmmerch(db XODB, callback func(x Ammerch) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ammercid, ammercname, ammercdatefrom, ammercdateto, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ammerch `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Ammerch{}
+
+		// scan
+		err = q.Scan(&a.Ammercid, &a.Ammercname, &a.Ammercdatefrom, &a.Ammercdateto, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AmmerchByEquinoxLrn retrieves a row from 'equinox.ammerch' as a Ammerch.
 //
 // Generated from index 'ammerch_pkey'.

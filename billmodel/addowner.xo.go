@@ -29,6 +29,37 @@ type Addowner struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllAddowner(db XODB, callback func(x Addowner) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`addoname, addostartdate, addoenddate, addopostcode, addocontactno, addoemail, addoaddress, addoletagent, addoletacontact, addoletpostcode, addoletphone, addocustaccount, addoenterredby, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.addowner `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Addowner{}
+
+		// scan
+		err = q.Scan(&a.Addoname, &a.Addostartdate, &a.Addoenddate, &a.Addopostcode, &a.Addocontactno, &a.Addoemail, &a.Addoaddress, &a.Addoletagent, &a.Addoletacontact, &a.Addoletpostcode, &a.Addoletphone, &a.Addocustaccount, &a.Addoenterredby, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AddownerByEquinoxLrn retrieves a row from 'equinox.addowner' as a Addowner.
 //
 // Generated from index 'addowner_pkey'.

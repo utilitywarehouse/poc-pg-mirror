@@ -23,6 +23,37 @@ type Event struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllEvent(db XODB, callback func(x Event) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`eventid, evname, evfrequency, evstart, evend, evtimeofday, evdayofweek, evdayofmonth, equinox_lrn, equinox_sec ` +
+		`FROM equinox.events `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Event{}
+
+		// scan
+		err = q.Scan(&e.Eventid, &e.Evname, &e.Evfrequency, &e.Evstart, &e.Evend, &e.Evtimeofday, &e.Evdayofweek, &e.Evdayofmonth, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EventByEquinoxLrn retrieves a row from 'equinox.events' as a Event.
 //
 // Generated from index 'events_pkey'.

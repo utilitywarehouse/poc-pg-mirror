@@ -31,6 +31,37 @@ type Expcall struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllExpcall(db XODB, callback func(x Expcall) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`expdate, exptime, expdestination, expdestnumber, expratingperiod, expdurationsecs, expband, expwholesale, exptypeofexecpt, expcli, expfileid, expbillno, expcarrier, expsparec1, expsparen1, expspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.expcalls `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Expcall{}
+
+		// scan
+		err = q.Scan(&e.Expdate, &e.Exptime, &e.Expdestination, &e.Expdestnumber, &e.Expratingperiod, &e.Expdurationsecs, &e.Expband, &e.Expwholesale, &e.Exptypeofexecpt, &e.Expcli, &e.Expfileid, &e.Expbillno, &e.Expcarrier, &e.Expsparec1, &e.Expsparen1, &e.Expspared1, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExpcallByEquinoxLrn retrieves a row from 'equinox.expcalls' as a Expcall.
 //
 // Generated from index 'expcalls_pkey'.

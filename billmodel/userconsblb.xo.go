@@ -12,6 +12,37 @@ type UserconsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllUserconsBlb(db XODB, callback func(x UserconsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.usercons_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ub := UserconsBlb{}
+
+		// scan
+		err = q.Scan(&ub.BlbLrn, &ub.BlbData, &ub.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(ub) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // UserconsBlbByBlbLrn retrieves a row from 'equinox.usercons_blb' as a UserconsBlb.
 //
 // Generated from index 'usercons_blb_pkey'.

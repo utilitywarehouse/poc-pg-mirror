@@ -12,6 +12,37 @@ type TrasBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllTrasBlb(db XODB, callback func(x TrasBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.tras_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		tb := TrasBlb{}
+
+		// scan
+		err = q.Scan(&tb.BlbLrn, &tb.BlbData, &tb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(tb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TrasBlbByBlbLrn retrieves a row from 'equinox.tras_blb' as a TrasBlb.
 //
 // Generated from index 'tras_blb_pkey'.

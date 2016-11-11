@@ -27,6 +27,37 @@ type Avtran struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllAvtran(db XODB, callback func(x Avtran) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`avtuniquesys, avtdate, avtcode, avtdescription, avtawarded, avtbillno, avtsenttoavios, avtwriteoff, avtaviosno, avttransactno, avtrejectcode, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.avtrans `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Avtran{}
+
+		// scan
+		err = q.Scan(&a.Avtuniquesys, &a.Avtdate, &a.Avtcode, &a.Avtdescription, &a.Avtawarded, &a.Avtbillno, &a.Avtsenttoavios, &a.Avtwriteoff, &a.Avtaviosno, &a.Avttransactno, &a.Avtrejectcode, &a.EquinoxPrn, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AvtranByEquinoxLrn retrieves a row from 'equinox.avtrans' as a Avtran.
 //
 // Generated from index 'avtrans_pkey'.

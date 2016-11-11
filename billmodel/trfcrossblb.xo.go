@@ -12,6 +12,37 @@ type TrfcrossBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllTrfcrossBlb(db XODB, callback func(x TrfcrossBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.trfcross_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		tb := TrfcrossBlb{}
+
+		// scan
+		err = q.Scan(&tb.BlbLrn, &tb.BlbData, &tb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(tb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TrfcrossBlbByBlbLrn retrieves a row from 'equinox.trfcross_blb' as a TrfcrossBlb.
 //
 // Generated from index 'trfcross_blb_pkey'.

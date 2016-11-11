@@ -20,6 +20,37 @@ type Actcode struct {
 	EquinoxSec sql.NullInt64   `json:"equinox_sec"` // equinox_sec
 }
 
+func AllActcode(db XODB, callback func(x Actcode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`actcode, actdesc, actsparec1, actsparen1, actspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.actcodes `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Actcode{}
+
+		// scan
+		err = q.Scan(&a.Actcode, &a.Actdesc, &a.Actsparec1, &a.Actsparen1, &a.Actspared1, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ActcodeByEquinoxLrn retrieves a row from 'equinox.actcodes' as a Actcode.
 //
 // Generated from index 'actcodes_pkey'.

@@ -33,6 +33,37 @@ type Training struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllTraining(db XODB, callback func(x Training) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`truniqueid, trvenueid, trtrainerid, trtrainerid2, trdate, trstarttime, trtime, trcapacity, trsparec2, trcoelevel, trstatus, trtrainername, trtrainername2, trsentsms, trspacen1, trsparec1, troldexecspaces, trnewexecspaces, equinox_lrn, equinox_sec ` +
+		`FROM equinox.training `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Training{}
+
+		// scan
+		err = q.Scan(&t.Truniqueid, &t.Trvenueid, &t.Trtrainerid, &t.Trtrainerid2, &t.Trdate, &t.Trstarttime, &t.Trtime, &t.Trcapacity, &t.Trsparec2, &t.Trcoelevel, &t.Trstatus, &t.Trtrainername, &t.Trtrainername2, &t.Trsentsms, &t.Trspacen1, &t.Trsparec1, &t.Troldexecspaces, &t.Trnewexecspaces, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TrainingByEquinoxLrn retrieves a row from 'equinox.training' as a Training.
 //
 // Generated from index 'training_pkey'.

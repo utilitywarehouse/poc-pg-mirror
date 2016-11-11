@@ -47,6 +47,37 @@ type Bill struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllBill(db XODB, callback func(x Bill) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`billnumber, billdate, billtotretail, billtotretail2, billtotwhole, billtotmnth, billtotmnthw, billtotoneoff, billgreendeal, billdebitos, billcreditstd, billcreditgood, billdebitstd, billsurcharge, billdiscount, billtotal, billvattp, billvatgp, billvatep, billnettp, billnetgp, billnetep, billcomplete, billperiod, billddchange, billcgadisc, billcardcashbak, billaffcashbak, billclubfee, billclubdisc, billcommispaid, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.bills `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Bill{}
+
+		// scan
+		err = q.Scan(&b.Billnumber, &b.Billdate, &b.Billtotretail, &b.Billtotretail2, &b.Billtotwhole, &b.Billtotmnth, &b.Billtotmnthw, &b.Billtotoneoff, &b.Billgreendeal, &b.Billdebitos, &b.Billcreditstd, &b.Billcreditgood, &b.Billdebitstd, &b.Billsurcharge, &b.Billdiscount, &b.Billtotal, &b.Billvattp, &b.Billvatgp, &b.Billvatep, &b.Billnettp, &b.Billnetgp, &b.Billnetep, &b.Billcomplete, &b.Billperiod, &b.Billddchange, &b.Billcgadisc, &b.Billcardcashbak, &b.Billaffcashbak, &b.Billclubfee, &b.Billclubdisc, &b.Billcommispaid, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BillByEquinoxLrn retrieves a row from 'equinox.bills' as a Bill.
 //
 // Generated from index 'bills_pkey'.

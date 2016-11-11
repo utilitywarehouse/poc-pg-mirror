@@ -45,6 +45,37 @@ type Handset struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllHandset(db XODB, callback func(x Handset) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`hs_id, hs_make, hs_model, hs_feature_1, hs_feature_2, hs_feature_3, hs_feature_4, hs_weight, hs_talktime, hs_standby, hs_suspend, hs_band, hs_wifi, hs_email, hs_mms, hs_bluetooth, hs_memorycard, hs_internetbrows, hs_mp3player, hs_fmradio, hs_camera, hs_gps, hs_smartphone, hs_spare_c1, hs_spare_d1, hs_spare_n1, hs_allow_imei, hs_simtype, hs_idrestrict, hs_staffrestrict, equinox_lrn, equinox_sec ` +
+		`FROM equinox.handset `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		h := Handset{}
+
+		// scan
+		err = q.Scan(&h.HsID, &h.HsMake, &h.HsModel, &h.HsFeature1, &h.HsFeature2, &h.HsFeature3, &h.HsFeature4, &h.HsWeight, &h.HsTalktime, &h.HsStandby, &h.HsSuspend, &h.HsBand, &h.HsWifi, &h.HsEmail, &h.HsMms, &h.HsBluetooth, &h.HsMemorycard, &h.HsInternetbrows, &h.HsMp3player, &h.HsFmradio, &h.HsCamera, &h.HsGps, &h.HsSmartphone, &h.HsSpareC1, &h.HsSpareD1, &h.HsSpareN1, &h.HsAllowImei, &h.HsSimtype, &h.HsIdrestrict, &h.HsStaffrestrict, &h.EquinoxLrn, &h.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(h) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HandsetByEquinoxLrn retrieves a row from 'equinox.handset' as a Handset.
 //
 // Generated from index 'handset_pkey'.

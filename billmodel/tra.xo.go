@@ -125,6 +125,37 @@ type Tra struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllTra(db XODB, callback func(x Tra) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tr_custaccountno, tr_clinumber, tr_importdate, tr_fuel_type, tr_supplier_ref, tr_account_name, tr_supply_add1, tr_supply_add2, tr_supply_add3, tr_supply_add4, tr_supply_add5, tr_supply_pcode, tr_payment_meth, tr_arrears_flag, tr_long_term_vac, tr_mpan_mprn, tr_meterserialno, tr_meter_type, tr_meter_install, tr_meter_inspect, tr_meterlocation, tr_meter_status, tr_annualcons_d, tr_annualcons_n, tr_sc3_score, tr_sc3_index, tr_reason_tab01, tr_reason_tab02, tr_reason_tab03, tr_reason_tab04, tr_reason_tab05, tr_reason_tab06, tr_reason_tab07, tr_reason_tab08, tr_reason_tab09, tr_reason_tab10, tr_reason_tab11, tr_reason_tab12, tr_reason_tab13, tr_reason_tab14, tr_reason_tab15, tr_reason_tab16, tr_reason_tab17, tr_reason_tab18, tr_reason_tab19, tr_reason_tab20, tr_reason_tab21, tr_reason_tab22, tr_reason_tab23, tr_reason_tab24, tr_reason_tab25, tr_reason_tab26, tr_reason_tab27, tr_reason_tab28, tr_reason_tab29, tr_reason_tab30, tr_sup_invest_id, tr_lead_source, tr_curinvestcode, tr_tamp_rep_d, tr_invest_start, tr_visit_1, tr_visit_2, tr_visit_3, tr_court_date, tr_warrant_d, tr_warrant_a, tr_warrant_r, tr_d0239_rec, tr_tamp_code, tr_tamp_source, tr_theft_type, tr_outcome, tr_vulnerable, tr_crime_refno, tr_sec_devs_fit, tr_date_closed, tr_date_rep_in, tr_cont_refno, tr_theft_typecms, tr_tog_investout, tr_total_costs, tr_cust_charged, tr_charge_exvat, tr_charge_vat, tr_charge_incvat, tr_rev_recovered, tr_theft_started, tr_theft_ended, tr_assessed_loss, tr_day_un_reckwh, tr_night_ureckwh, tr_day_rate, tr_night_rate, tr_sent_to_dc, tr_aa_updated, tr_consump_exvat, tr_consumpnrgvat, tr_consumpstdvat, tr_consump_total, tr_unitrate, tr_lastchange_d, tr_lastchange_t, tr_lastchange_u, tr_sent_back, tr_statuschanged, tr_sparec1, tr_sparen1, tr_sparem1, tr_spared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tras `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tra{}
+
+		// scan
+		err = q.Scan(&t.TrCustaccountno, &t.TrClinumber, &t.TrImportdate, &t.TrFuelType, &t.TrSupplierRef, &t.TrAccountName, &t.TrSupplyAdd1, &t.TrSupplyAdd2, &t.TrSupplyAdd3, &t.TrSupplyAdd4, &t.TrSupplyAdd5, &t.TrSupplyPcode, &t.TrPaymentMeth, &t.TrArrearsFlag, &t.TrLongTermVac, &t.TrMpanMprn, &t.TrMeterserialno, &t.TrMeterType, &t.TrMeterInstall, &t.TrMeterInspect, &t.TrMeterlocation, &t.TrMeterStatus, &t.TrAnnualconsD, &t.TrAnnualconsN, &t.TrSc3Score, &t.TrSc3Index, &t.TrReasonTab01, &t.TrReasonTab02, &t.TrReasonTab03, &t.TrReasonTab04, &t.TrReasonTab05, &t.TrReasonTab06, &t.TrReasonTab07, &t.TrReasonTab08, &t.TrReasonTab09, &t.TrReasonTab10, &t.TrReasonTab11, &t.TrReasonTab12, &t.TrReasonTab13, &t.TrReasonTab14, &t.TrReasonTab15, &t.TrReasonTab16, &t.TrReasonTab17, &t.TrReasonTab18, &t.TrReasonTab19, &t.TrReasonTab20, &t.TrReasonTab21, &t.TrReasonTab22, &t.TrReasonTab23, &t.TrReasonTab24, &t.TrReasonTab25, &t.TrReasonTab26, &t.TrReasonTab27, &t.TrReasonTab28, &t.TrReasonTab29, &t.TrReasonTab30, &t.TrSupInvestID, &t.TrLeadSource, &t.TrCurinvestcode, &t.TrTampRepD, &t.TrInvestStart, &t.TrVisit1, &t.TrVisit2, &t.TrVisit3, &t.TrCourtDate, &t.TrWarrantD, &t.TrWarrantA, &t.TrWarrantR, &t.TrD0239Rec, &t.TrTampCode, &t.TrTampSource, &t.TrTheftType, &t.TrOutcome, &t.TrVulnerable, &t.TrCrimeRefno, &t.TrSecDevsFit, &t.TrDateClosed, &t.TrDateRepIn, &t.TrContRefno, &t.TrTheftTypecms, &t.TrTogInvestout, &t.TrTotalCosts, &t.TrCustCharged, &t.TrChargeExvat, &t.TrChargeVat, &t.TrChargeIncvat, &t.TrRevRecovered, &t.TrTheftStarted, &t.TrTheftEnded, &t.TrAssessedLoss, &t.TrDayUnReckwh, &t.TrNightUreckwh, &t.TrDayRate, &t.TrNightRate, &t.TrSentToDc, &t.TrAaUpdated, &t.TrConsumpExvat, &t.TrConsumpnrgvat, &t.TrConsumpstdvat, &t.TrConsumpTotal, &t.TrUnitrate, &t.TrLastchangeD, &t.TrLastchangeT, &t.TrLastchangeU, &t.TrSentBack, &t.TrStatuschanged, &t.TrSparec1, &t.TrSparen1, &t.TrSparem1, &t.TrSpared1, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TraByEquinoxLrn retrieves a row from 'equinox.tras' as a Tra.
 //
 // Generated from index 'tras_pkey'.

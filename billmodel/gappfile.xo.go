@@ -21,6 +21,37 @@ type Gappfile struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGappfile(db XODB, callback func(x Gappfile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gappfiledate, gappfilename, gappfileresp, gappfilerejcode, gappnn1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gappfile `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gappfile{}
+
+		// scan
+		err = q.Scan(&g.Gappfiledate, &g.Gappfilename, &g.Gappfileresp, &g.Gappfilerejcode, &g.Gappnn1, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GappfileByEquinoxLrn retrieves a row from 'equinox.gappfile' as a Gappfile.
 //
 // Generated from index 'gappfile_pkey'.

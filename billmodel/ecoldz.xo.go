@@ -31,6 +31,37 @@ type Ecoldz struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllEcoldz(db XODB, callback func(x Ecoldz) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ecoldzldz, ecoldzdate, ecoldzcv, ecoldzperaqused, ecoldzperaccum, ecoldzalp01, ecoldzalp02, ecoldzdaf01, ecoldzdaf02, ecoldzcwv, ecoldzsncwv, ecoldzwsens, ecoldzsnd, ecoldzwcf, ecoldzsf, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ecoldz `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Ecoldz{}
+
+		// scan
+		err = q.Scan(&e.Ecoldzldz, &e.Ecoldzdate, &e.Ecoldzcv, &e.Ecoldzperaqused, &e.Ecoldzperaccum, &e.Ecoldzalp01, &e.Ecoldzalp02, &e.Ecoldzdaf01, &e.Ecoldzdaf02, &e.Ecoldzcwv, &e.Ecoldzsncwv, &e.Ecoldzwsens, &e.Ecoldzsnd, &e.Ecoldzwcf, &e.Ecoldzsf, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EcoldzByEquinoxLrn retrieves a row from 'equinox.ecoldz' as a Ecoldz.
 //
 // Generated from index 'ecoldz_pkey'.

@@ -34,6 +34,37 @@ type Smartsvr struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllSmartsvr(db XODB, callback func(x Smartsvr) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ssvrid, ssvrdtadded, ssvrdtprocessed, ssvrfilename, ssvrsource, ssvraccount, ssvrmpxn, ssvrdata1, ssvrdata2, ssvrdata3, ssvrdata4, ssvrdata5, ssvrdata6, ssvrdata7, ssvrdata8, ssvrdata9, ssvrdata10, ssvrdata11, ssvrdata12, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartsvr `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartsvr{}
+
+		// scan
+		err = q.Scan(&s.Ssvrid, &s.Ssvrdtadded, &s.Ssvrdtprocessed, &s.Ssvrfilename, &s.Ssvrsource, &s.Ssvraccount, &s.Ssvrmpxn, &s.Ssvrdata1, &s.Ssvrdata2, &s.Ssvrdata3, &s.Ssvrdata4, &s.Ssvrdata5, &s.Ssvrdata6, &s.Ssvrdata7, &s.Ssvrdata8, &s.Ssvrdata9, &s.Ssvrdata10, &s.Ssvrdata11, &s.Ssvrdata12, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartsvrByEquinoxLrn retrieves a row from 'equinox.smartsvr' as a Smartsvr.
 //
 // Generated from index 'smartsvr_pkey'.

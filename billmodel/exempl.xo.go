@@ -17,6 +17,37 @@ type Exempl struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllExempl(db XODB, callback func(x Exempl) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exempid, exempname, exempnrgdecl, exempidcard, exemptrained, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exempl `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exempl{}
+
+		// scan
+		err = q.Scan(&e.Exempid, &e.Exempname, &e.Exempnrgdecl, &e.Exempidcard, &e.Exemptrained, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExemplByEquinoxLrn retrieves a row from 'equinox.exempl' as a Exempl.
 //
 // Generated from index 'exempl_pkey'.

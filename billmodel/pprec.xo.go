@@ -42,6 +42,37 @@ type Pprec struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPprec(db XODB, callback func(x Pprec) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pprref, pprperiod, pprstartreadreg1, pprstrdreg1tp, pprendreadreg1, ppredrdreg1tp, pprstartreadreg2, pprstrdreg2tp, pprendreadreg2, ppredrdreg2tp, pprusage, pprstdcharge, pprtariff, pprpayments, pprmeterstartbal, pprmeterendbal, pprexcode, pprcv, pprbilltype, pprkwh, pprspared1, pprmx, ppradjust, pprdebtlanded, pprdebtbalance, pprimpormetric, pprinitcredit, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pprec `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pprec{}
+
+		// scan
+		err = q.Scan(&p.Pprref, &p.Pprperiod, &p.Pprstartreadreg1, &p.Pprstrdreg1tp, &p.Pprendreadreg1, &p.Ppredrdreg1tp, &p.Pprstartreadreg2, &p.Pprstrdreg2tp, &p.Pprendreadreg2, &p.Ppredrdreg2tp, &p.Pprusage, &p.Pprstdcharge, &p.Pprtariff, &p.Pprpayments, &p.Pprmeterstartbal, &p.Pprmeterendbal, &p.Pprexcode, &p.Pprcv, &p.Pprbilltype, &p.Pprkwh, &p.Pprspared1, &p.Pprmx, &p.Ppradjust, &p.Pprdebtlanded, &p.Pprdebtbalance, &p.Pprimpormetric, &p.Pprinitcredit, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PprecByEquinoxLrn retrieves a row from 'equinox.pprec' as a Pprec.
 //
 // Generated from index 'pprec_pkey'.

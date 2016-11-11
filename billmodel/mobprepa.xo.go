@@ -32,6 +32,37 @@ type Mobprepa struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllMobprepa(db XODB, callback func(x Mobprepa) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mppcliuniquesys, mppcli, mppsim, mppaccountno, mppminbalance, mppmaxbalance, mppdebitno, mppdebitstart, mppdebitexpiry, mppdebitissue, mppdebitcv2, mpptopuppin, mpplivedate, mppenddate, mpptexttopup, mppccunique, mppshopperref, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mobprepa `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mobprepa{}
+
+		// scan
+		err = q.Scan(&m.Mppcliuniquesys, &m.Mppcli, &m.Mppsim, &m.Mppaccountno, &m.Mppminbalance, &m.Mppmaxbalance, &m.Mppdebitno, &m.Mppdebitstart, &m.Mppdebitexpiry, &m.Mppdebitissue, &m.Mppdebitcv2, &m.Mpptopuppin, &m.Mpplivedate, &m.Mppenddate, &m.Mpptexttopup, &m.Mppccunique, &m.Mppshopperref, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MobprepaByEquinoxLrn retrieves a row from 'equinox.mobprepa' as a Mobprepa.
 //
 // Generated from index 'mobprepa_pkey'.

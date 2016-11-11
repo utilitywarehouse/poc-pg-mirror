@@ -26,6 +26,37 @@ type Pbatch struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllPbatch(db XODB, callback func(x Pbatch) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pbbatchnumber, pbbatchdate, pbbatchcode, pbcommitdate, pbcommittime, pbbatchtotal, pbinputtotal, pbinputrecords, pbnotes, pbpaymentdate, pbbatchgroup, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pbatches `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pbatch{}
+
+		// scan
+		err = q.Scan(&p.Pbbatchnumber, &p.Pbbatchdate, &p.Pbbatchcode, &p.Pbcommitdate, &p.Pbcommittime, &p.Pbbatchtotal, &p.Pbinputtotal, &p.Pbinputrecords, &p.Pbnotes, &p.Pbpaymentdate, &p.Pbbatchgroup, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbatchByEquinoxLrn retrieves a row from 'equinox.pbatches' as a Pbatch.
 //
 // Generated from index 'pbatches_pkey'.

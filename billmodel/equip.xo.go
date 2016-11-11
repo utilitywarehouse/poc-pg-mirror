@@ -27,6 +27,37 @@ type Equip struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllEquip(db XODB, callback func(x Equip) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`equipsysnumber, equipmanufacture, equipmodel, equipserialno, equiptype, equipname, equipmanagement, equipinstalldate, equipengineer, equipservicecall, equiporiunsubpri, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.equip `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Equip{}
+
+		// scan
+		err = q.Scan(&e.Equipsysnumber, &e.Equipmanufacture, &e.Equipmodel, &e.Equipserialno, &e.Equiptype, &e.Equipname, &e.Equipmanagement, &e.Equipinstalldate, &e.Equipengineer, &e.Equipservicecall, &e.Equiporiunsubpri, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EquipByEquinoxLrn retrieves a row from 'equinox.equip' as a Equip.
 //
 // Generated from index 'equip_pkey'.

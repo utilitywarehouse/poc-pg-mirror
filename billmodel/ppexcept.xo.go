@@ -13,6 +13,37 @@ type Ppexcept struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllPpexcept(db XODB, callback func(x Ppexcept) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ppexcode, ppexdescript, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ppexcept `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Ppexcept{}
+
+		// scan
+		err = q.Scan(&p.Ppexcode, &p.Ppexdescript, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PpexceptByEquinoxLrn retrieves a row from 'equinox.ppexcept' as a Ppexcept.
 //
 // Generated from index 'ppexcept_pkey'.

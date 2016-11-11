@@ -34,6 +34,37 @@ type Cnxcomm struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxcomm(db XODB, callback func(x Cnxcomm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxcomdate, cnxcomtime, cnxcomuser, cnxcomcomment, cnxcomreceived, cnxcomreasoncode, cnxcomactioncode, cnxcomsupervisor, cnxcomlastaction, cnxcomresolved, cnxcomdead, cnxcomdropped, cnxcomserial, cnxcomservice, cnxcomapptype, cnxcomsparec1, cnxcomdueaction, cnxcomspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxcomm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxcomm{}
+
+		// scan
+		err = q.Scan(&c.Cnxcomdate, &c.Cnxcomtime, &c.Cnxcomuser, &c.Cnxcomcomment, &c.Cnxcomreceived, &c.Cnxcomreasoncode, &c.Cnxcomactioncode, &c.Cnxcomsupervisor, &c.Cnxcomlastaction, &c.Cnxcomresolved, &c.Cnxcomdead, &c.Cnxcomdropped, &c.Cnxcomserial, &c.Cnxcomservice, &c.Cnxcomapptype, &c.Cnxcomsparec1, &c.Cnxcomdueaction, &c.Cnxcomspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxcommByEquinoxLrn retrieves a row from 'equinox.cnxcomm' as a Cnxcomm.
 //
 // Generated from index 'cnxcomm_pkey'.

@@ -32,6 +32,37 @@ type Billcomm struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllBillcomm(db XODB, callback func(x Billcomm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bcbillnumber, bcbillperiod, bccustaccountno, bcbillinggroup, bccommispaiddate, bccommisinvoice, bccommpaidperiod, bccommispaidamnt, bccrnumber, bcdealerid, bcclawcrnum, bcclawrepaycrnum, bcsparec1, bcsparec2, bcsparen1, bcsparen2, bsspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.billcomm `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Billcomm{}
+
+		// scan
+		err = q.Scan(&b.Bcbillnumber, &b.Bcbillperiod, &b.Bccustaccountno, &b.Bcbillinggroup, &b.Bccommispaiddate, &b.Bccommisinvoice, &b.Bccommpaidperiod, &b.Bccommispaidamnt, &b.Bccrnumber, &b.Bcdealerid, &b.Bcclawcrnum, &b.Bcclawrepaycrnum, &b.Bcsparec1, &b.Bcsparec2, &b.Bcsparen1, &b.Bcsparen2, &b.Bsspared1, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BillcommByEquinoxLrn retrieves a row from 'equinox.billcomm' as a Billcomm.
 //
 // Generated from index 'billcomm_pkey'.

@@ -62,6 +62,37 @@ type Billrun struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllBillrun(db XODB, callback func(x Billrun) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`brnumber, brperiod, brtype, brtypetxt, brrundate, brrunstarttime, brrunenddate, brrunendtime, brrunby, brcomplete, brcloseddate, brclosedby, brlastbilldate, brmonthstobill, brlowestbillno, brhighestbillno, brnoofbills, brprevos, brwholesale, brretail, brretail2, broneoff, brgreendeal, brmonthly, brmonthlyw, brcreditall, brcreditunits, brdebitall, brvattp, brvatgp, brvatep, brnettp, brnetgp, brnetep, brdiscount, brsurcharge, brclubfee, brclubdisc, brtotal, brcgadiscount, brchgecallcount, brchgecallsecs, brnoofcreditnote, brcardcashbak, braffcashbak, brbydd, brbydd1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.billruns `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Billrun{}
+
+		// scan
+		err = q.Scan(&b.Brnumber, &b.Brperiod, &b.Brtype, &b.Brtypetxt, &b.Brrundate, &b.Brrunstarttime, &b.Brrunenddate, &b.Brrunendtime, &b.Brrunby, &b.Brcomplete, &b.Brcloseddate, &b.Brclosedby, &b.Brlastbilldate, &b.Brmonthstobill, &b.Brlowestbillno, &b.Brhighestbillno, &b.Brnoofbills, &b.Brprevos, &b.Brwholesale, &b.Brretail, &b.Brretail2, &b.Broneoff, &b.Brgreendeal, &b.Brmonthly, &b.Brmonthlyw, &b.Brcreditall, &b.Brcreditunits, &b.Brdebitall, &b.Brvattp, &b.Brvatgp, &b.Brvatep, &b.Brnettp, &b.Brnetgp, &b.Brnetep, &b.Brdiscount, &b.Brsurcharge, &b.Brclubfee, &b.Brclubdisc, &b.Brtotal, &b.Brcgadiscount, &b.Brchgecallcount, &b.Brchgecallsecs, &b.Brnoofcreditnote, &b.Brcardcashbak, &b.Braffcashbak, &b.Brbydd, &b.Brbydd1, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BillrunByEquinoxLrn retrieves a row from 'equinox.billruns' as a Billrun.
 //
 // Generated from index 'billruns_pkey'.

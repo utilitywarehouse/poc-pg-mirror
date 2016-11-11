@@ -12,6 +12,37 @@ type TcgbsvsBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllTcgbsvsBlb(db XODB, callback func(x TcgbsvsBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.tcgbsvs_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		tb := TcgbsvsBlb{}
+
+		// scan
+		err = q.Scan(&tb.BlbLrn, &tb.BlbData, &tb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(tb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TcgbsvsBlbByBlbLrn retrieves a row from 'equinox.tcgbsvs_blb' as a TcgbsvsBlb.
 //
 // Generated from index 'tcgbsvs_blb_pkey'.

@@ -41,6 +41,37 @@ type Crprob struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCrprob(db XODB, callback func(x Crprob) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crpid, crpdate, crpfrom, crpexecid, crpcustaccountno, crpamount, crpcomcodeid, crptype, crperrormonth, crpcompmonth, crpdetails, crpaesresponse, crpcompleted, crpcompleteddate, crpstatementtext, crpshortresponse, crpsparec2, crpsparec3, crpsparec4, crpsparec5, crpsparec6, crperroramt, crpsparenum2, crpsparenum3, crpsparenum4, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.crprobs `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Crprob{}
+
+		// scan
+		err = q.Scan(&c.Crpid, &c.Crpdate, &c.Crpfrom, &c.Crpexecid, &c.Crpcustaccountno, &c.Crpamount, &c.Crpcomcodeid, &c.Crptype, &c.Crperrormonth, &c.Crpcompmonth, &c.Crpdetails, &c.Crpaesresponse, &c.Crpcompleted, &c.Crpcompleteddate, &c.Crpstatementtext, &c.Crpshortresponse, &c.Crpsparec2, &c.Crpsparec3, &c.Crpsparec4, &c.Crpsparec5, &c.Crpsparec6, &c.Crperroramt, &c.Crpsparenum2, &c.Crpsparenum3, &c.Crpsparenum4, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrprobByEquinoxLrn retrieves a row from 'equinox.crprobs' as a Crprob.
 //
 // Generated from index 'crprobs_pkey'.

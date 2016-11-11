@@ -19,6 +19,37 @@ type Caci struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCaci(db XODB, callback func(x Caci) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`caci_uniquedpr, caci_addresskey, caci_address_1, caci_address_2, caci_address_3, caci_postcode, caci_acorntype, caci_postcodenew, equinox_lrn, equinox_sec ` +
+		`FROM equinox.caci `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Caci{}
+
+		// scan
+		err = q.Scan(&c.CaciUniquedpr, &c.CaciAddresskey, &c.CaciAddress1, &c.CaciAddress2, &c.CaciAddress3, &c.CaciPostcode, &c.CaciAcorntype, &c.CaciPostcodenew, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CaciByEquinoxLrn retrieves a row from 'equinox.caci' as a Caci.
 //
 // Generated from index 'caci_pkey'.

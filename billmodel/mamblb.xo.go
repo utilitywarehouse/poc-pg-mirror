@@ -12,6 +12,37 @@ type MamBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllMamBlb(db XODB, callback func(x MamBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.mam_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		mb := MamBlb{}
+
+		// scan
+		err = q.Scan(&mb.BlbLrn, &mb.BlbData, &mb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(mb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MamBlbByBlbLrn retrieves a row from 'equinox.mam_blb' as a MamBlb.
 //
 // Generated from index 'mam_blb_pkey'.

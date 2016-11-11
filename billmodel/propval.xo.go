@@ -21,6 +21,37 @@ type Propval struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllPropval(db XODB, callback func(x Propval) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pvuniquesys, pvpropertyid, pvuniqueid, pvvalue, pvdescription, pvbeforesave, pvaftersave, pvbeforefield, pvafterfield, pvadditional, equinox_lrn, equinox_sec ` +
+		`FROM equinox.propval `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Propval{}
+
+		// scan
+		err = q.Scan(&p.Pvuniquesys, &p.Pvpropertyid, &p.Pvuniqueid, &p.Pvvalue, &p.Pvdescription, &p.Pvbeforesave, &p.Pvaftersave, &p.Pvbeforefield, &p.Pvafterfield, &p.Pvadditional, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PropvalByEquinoxLrn retrieves a row from 'equinox.propval' as a Propval.
 //
 // Generated from index 'propval_pkey'.

@@ -21,6 +21,37 @@ type Lookout struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllLookout(db XODB, callback func(x Lookout) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`lookout_postcode, lookout_name, lookout_date, lookout_notes, lookout_req_by, lookout_app_no, equinox_lrn, equinox_sec ` +
+		`FROM equinox.lookout `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		l := Lookout{}
+
+		// scan
+		err = q.Scan(&l.LookoutPostcode, &l.LookoutName, &l.LookoutDate, &l.LookoutNotes, &l.LookoutReqBy, &l.LookoutAppNo, &l.EquinoxLrn, &l.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(l) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LookoutByEquinoxLrn retrieves a row from 'equinox.lookout' as a Lookout.
 //
 // Generated from index 'lookout_pkey'.

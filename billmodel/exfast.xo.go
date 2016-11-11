@@ -26,6 +26,37 @@ type Exfast struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllExfast(db XODB, callback func(x Exfast) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exfspromo, exfsstartdate, exfsenddate, exfslivedate, exfscompleted, exfsgscustsgath, exfsgscustslive, exfscustsgath, exfscustslive, exfspaid, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exfast `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exfast{}
+
+		// scan
+		err = q.Scan(&e.Exfspromo, &e.Exfsstartdate, &e.Exfsenddate, &e.Exfslivedate, &e.Exfscompleted, &e.Exfsgscustsgath, &e.Exfsgscustslive, &e.Exfscustsgath, &e.Exfscustslive, &e.Exfspaid, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExfastByEquinoxLrn retrieves a row from 'equinox.exfast' as a Exfast.
 //
 // Generated from index 'exfast_pkey'.

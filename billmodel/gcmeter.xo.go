@@ -29,6 +29,37 @@ type Gcmeter struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGcmeter(db XODB, callback func(x Gcmeter) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcintmeterregid, gcmetertpr, gcmeterserialid, gcmeterregid, gcmeterdials, gcregtype, gcregeac, gcinstalldate, gcstartdate, gcsparen1, gcmpan, gcefffrom, gcmetertype, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gcmeter `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gcmeter{}
+
+		// scan
+		err = q.Scan(&g.Gcintmeterregid, &g.Gcmetertpr, &g.Gcmeterserialid, &g.Gcmeterregid, &g.Gcmeterdials, &g.Gcregtype, &g.Gcregeac, &g.Gcinstalldate, &g.Gcstartdate, &g.Gcsparen1, &g.Gcmpan, &g.Gcefffrom, &g.Gcmetertype, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GcmeterByEquinoxLrn retrieves a row from 'equinox.gcmeter' as a Gcmeter.
 //
 // Generated from index 'gcmeter_pkey'.

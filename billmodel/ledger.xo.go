@@ -46,6 +46,37 @@ type Ledger struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllLedger(db XODB, callback func(x Ledger) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`leduniquesys, leddate, ledtime, ledposteddate, ledtype, ledprobcode, lednettp, ledvattp, lednetgp, ledvatgp, lednetep, ledvatep, ledvattotal, lednettotal, ledtotal, leduserid, ledourref, ledcustref, ledbillno, ledcomuniquesys, ledcomment, ledwriteoffdate, ledwriteoffnettp, ledwriteoffvattp, ledwriteoffnetgp, ledwriteoffvatgp, ledwriteoffnetep, ledwriteoffvatep, ledflag, ledtoos, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ledger `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		l := Ledger{}
+
+		// scan
+		err = q.Scan(&l.Leduniquesys, &l.Leddate, &l.Ledtime, &l.Ledposteddate, &l.Ledtype, &l.Ledprobcode, &l.Lednettp, &l.Ledvattp, &l.Lednetgp, &l.Ledvatgp, &l.Lednetep, &l.Ledvatep, &l.Ledvattotal, &l.Lednettotal, &l.Ledtotal, &l.Leduserid, &l.Ledourref, &l.Ledcustref, &l.Ledbillno, &l.Ledcomuniquesys, &l.Ledcomment, &l.Ledwriteoffdate, &l.Ledwriteoffnettp, &l.Ledwriteoffvattp, &l.Ledwriteoffnetgp, &l.Ledwriteoffvatgp, &l.Ledwriteoffnetep, &l.Ledwriteoffvatep, &l.Ledflag, &l.Ledtoos, &l.EquinoxPrn, &l.EquinoxLrn, &l.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(l) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LedgerByEquinoxLrn retrieves a row from 'equinox.ledger' as a Ledger.
 //
 // Generated from index 'ledger_pkey'.

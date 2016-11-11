@@ -40,6 +40,37 @@ type Comentry struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllComentry(db XODB, callback func(x Comentry) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ceperiod, cecrnumber, cedealer, cecode, ceccid, cesource, ceamount, cechar1, cechar2, cechar3, cechar4, cenum1, cenum2, cenum3, cenum4, cedate1, cedisplay1, cedisplay2, cedisplay3, cedisplay4, ceflags, comentrysparec1, cenum5, comentryspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.comentry `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Comentry{}
+
+		// scan
+		err = q.Scan(&c.Ceperiod, &c.Cecrnumber, &c.Cedealer, &c.Cecode, &c.Ceccid, &c.Cesource, &c.Ceamount, &c.Cechar1, &c.Cechar2, &c.Cechar3, &c.Cechar4, &c.Cenum1, &c.Cenum2, &c.Cenum3, &c.Cenum4, &c.Cedate1, &c.Cedisplay1, &c.Cedisplay2, &c.Cedisplay3, &c.Cedisplay4, &c.Ceflags, &c.Comentrysparec1, &c.Cenum5, &c.Comentryspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ComentryByEquinoxLrn retrieves a row from 'equinox.comentry' as a Comentry.
 //
 // Generated from index 'comentry_pkey'.

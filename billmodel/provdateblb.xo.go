@@ -12,6 +12,37 @@ type ProvdateBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllProvdateBlb(db XODB, callback func(x ProvdateBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.provdate_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := ProvdateBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ProvdateBlbByBlbLrn retrieves a row from 'equinox.provdate_blb' as a ProvdateBlb.
 //
 // Generated from index 'provdate_blb_pkey'.

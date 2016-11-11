@@ -12,6 +12,37 @@ type HandsetBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllHandsetBlb(db XODB, callback func(x HandsetBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.handset_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hb := HandsetBlb{}
+
+		// scan
+		err = q.Scan(&hb.BlbLrn, &hb.BlbData, &hb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(hb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HandsetBlbByBlbLrn retrieves a row from 'equinox.handset_blb' as a HandsetBlb.
 //
 // Generated from index 'handset_blb_pkey'.

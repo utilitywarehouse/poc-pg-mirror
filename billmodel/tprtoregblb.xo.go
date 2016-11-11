@@ -12,6 +12,37 @@ type TprtoregBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllTprtoregBlb(db XODB, callback func(x TprtoregBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.tprtoreg_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		tb := TprtoregBlb{}
+
+		// scan
+		err = q.Scan(&tb.BlbLrn, &tb.BlbData, &tb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(tb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TprtoregBlbByBlbLrn retrieves a row from 'equinox.tprtoreg_blb' as a TprtoregBlb.
 //
 // Generated from index 'tprtoreg_blb_pkey'.

@@ -15,6 +15,37 @@ type OTrain struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllOTrain(db XODB, callback func(x OTrain) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ot_eventid, ot_execid, ot_name, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.o_train `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		ot := OTrain{}
+
+		// scan
+		err = q.Scan(&ot.OtEventid, &ot.OtExecid, &ot.OtName, &ot.EquinoxPrn, &ot.EquinoxLrn, &ot.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(ot) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OTrainByEquinoxLrn retrieves a row from 'equinox.o_train' as a OTrain.
 //
 // Generated from index 'o_train_pkey'.

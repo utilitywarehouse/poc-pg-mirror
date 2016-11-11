@@ -29,6 +29,37 @@ type Cash4cus struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCash4cus(db XODB, callback func(x Cash4cus) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cashexecid, cashcustaccno, cashstatus, cashinitialamoun, cashinitialcrnum, cashinitialmonth, cashbalance, cashclosedcrnum, cashloaded, cashnotes, cashsparenum1, cashsparenum2, cashsparechar1, cashsparechar2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cash4cus `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cash4cus{}
+
+		// scan
+		err = q.Scan(&c.Cashexecid, &c.Cashcustaccno, &c.Cashstatus, &c.Cashinitialamoun, &c.Cashinitialcrnum, &c.Cashinitialmonth, &c.Cashbalance, &c.Cashclosedcrnum, &c.Cashloaded, &c.Cashnotes, &c.Cashsparenum1, &c.Cashsparenum2, &c.Cashsparechar1, &c.Cashsparechar2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // Cash4cusByEquinoxLrn retrieves a row from 'equinox.cash4cus' as a Cash4cus.
 //
 // Generated from index 'cash4cus_pkey'.

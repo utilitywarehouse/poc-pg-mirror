@@ -24,6 +24,37 @@ type Regphist struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllRegphist(db XODB, callback func(x Regphist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`rph_promonamex, rph_qualifyingx, rph_datex, rph_notesx, rph_periodcountx, rph_periodstartx, rph_periodendx, rph_statusx, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.regphist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Regphist{}
+
+		// scan
+		err = q.Scan(&r.RphPromonamex, &r.RphQualifyingx, &r.RphDatex, &r.RphNotesx, &r.RphPeriodcountx, &r.RphPeriodstartx, &r.RphPeriodendx, &r.RphStatusx, &r.EquinoxPrn, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RegphistByEquinoxLrn retrieves a row from 'equinox.regphist' as a Regphist.
 //
 // Generated from index 'regphist_pkey'.

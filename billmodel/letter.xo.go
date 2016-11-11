@@ -24,6 +24,37 @@ type Letter struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllLetter(db XODB, callback func(x Letter) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`letterfilename, letcategory, letothercategory, letsimplexduplex, letsuspend, letsuspendreason, letsuspendreaso2, letcatstrategy, letsparechar2, letpending, letsparenum1, letsparenum2, letdescription, equinox_lrn, equinox_sec ` +
+		`FROM equinox.letters `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		l := Letter{}
+
+		// scan
+		err = q.Scan(&l.Letterfilename, &l.Letcategory, &l.Letothercategory, &l.Letsimplexduplex, &l.Letsuspend, &l.Letsuspendreason, &l.Letsuspendreaso2, &l.Letcatstrategy, &l.Letsparechar2, &l.Letpending, &l.Letsparenum1, &l.Letsparenum2, &l.Letdescription, &l.EquinoxLrn, &l.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(l) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LetterByEquinoxLrn retrieves a row from 'equinox.letters' as a Letter.
 //
 // Generated from index 'letters_pkey'.

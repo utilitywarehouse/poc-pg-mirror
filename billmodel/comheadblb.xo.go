@@ -12,6 +12,37 @@ type ComheadBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllComheadBlb(db XODB, callback func(x ComheadBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.comhead_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		cb := ComheadBlb{}
+
+		// scan
+		err = q.Scan(&cb.BlbLrn, &cb.BlbData, &cb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(cb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ComheadBlbByBlbLrn retrieves a row from 'equinox.comhead_blb' as a ComheadBlb.
 //
 // Generated from index 'comhead_blb_pkey'.

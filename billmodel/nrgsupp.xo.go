@@ -17,6 +17,37 @@ type Nrgsupp struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllNrgsupp(db XODB, callback func(x Nrgsupp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`nrg_suppliercode, nrg_suppliername, nrg_defunct, nrg_marketagent, nrg_pre_pay, nrg_businesssupp, equinox_lrn, equinox_sec ` +
+		`FROM equinox.nrgsupp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		n := Nrgsupp{}
+
+		// scan
+		err = q.Scan(&n.NrgSuppliercode, &n.NrgSuppliername, &n.NrgDefunct, &n.NrgMarketagent, &n.NrgPrePay, &n.NrgBusinesssupp, &n.EquinoxLrn, &n.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(n) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // NrgsuppByEquinoxLrn retrieves a row from 'equinox.nrgsupp' as a Nrgsupp.
 //
 // Generated from index 'nrgsupp_pkey'.

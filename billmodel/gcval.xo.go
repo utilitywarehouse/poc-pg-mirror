@@ -36,6 +36,37 @@ type Gcval struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGcval(db XODB, callback func(x Gcval) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gcvalread, gcvalreaddate, gcvalsource, gcvalreason, gcvaltype, gcvalentereddate, gcvalstatus, gcvaldispute, gcvalcomplete, gcmemo, gcvalsiteenddate, gcregtypec1, gcvalsparec2, gcvalsparec3, gcvalspared1, gcvalspared2, gcvalspared3, gcvalsparen1, gcvalsparen2, gcvalsparen3, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gcval `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gcval{}
+
+		// scan
+		err = q.Scan(&g.Gcvalread, &g.Gcvalreaddate, &g.Gcvalsource, &g.Gcvalreason, &g.Gcvaltype, &g.Gcvalentereddate, &g.Gcvalstatus, &g.Gcvaldispute, &g.Gcvalcomplete, &g.Gcmemo, &g.Gcvalsiteenddate, &g.Gcregtypec1, &g.Gcvalsparec2, &g.Gcvalsparec3, &g.Gcvalspared1, &g.Gcvalspared2, &g.Gcvalspared3, &g.Gcvalsparen1, &g.Gcvalsparen2, &g.Gcvalsparen3, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GcvalByEquinoxLrn retrieves a row from 'equinox.gcval' as a Gcval.
 //
 // Generated from index 'gcval_pkey'.

@@ -40,6 +40,37 @@ type Pbaccnt struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllPbaccnt(db XODB, callback func(x Pbaccnt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pbaaccountno, pbaamount, pbapaydate, pbapaytype, pbacommentcode, pbaadditional1, pbaadditional2, pbaadditional3, pbaadditional4, pbaadditional5, pbaadditional6, pbaadditional7, pbaadditional8, pbaadditional9, pbaadditional10, pbalastmodifiedd, pbalastmodifiedt, pbalastmodifiedb, pbadetails, pbauniquesys, pbacomuniquesys, pbasubbatch, pbacliservice, pbacliuniquesys, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pbaccnt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pbaccnt{}
+
+		// scan
+		err = q.Scan(&p.Pbaaccountno, &p.Pbaamount, &p.Pbapaydate, &p.Pbapaytype, &p.Pbacommentcode, &p.Pbaadditional1, &p.Pbaadditional2, &p.Pbaadditional3, &p.Pbaadditional4, &p.Pbaadditional5, &p.Pbaadditional6, &p.Pbaadditional7, &p.Pbaadditional8, &p.Pbaadditional9, &p.Pbaadditional10, &p.Pbalastmodifiedd, &p.Pbalastmodifiedt, &p.Pbalastmodifiedb, &p.Pbadetails, &p.Pbauniquesys, &p.Pbacomuniquesys, &p.Pbasubbatch, &p.Pbacliservice, &p.Pbacliuniquesys, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PbaccntByEquinoxLrn retrieves a row from 'equinox.pbaccnt' as a Pbaccnt.
 //
 // Generated from index 'pbaccnt_pkey'.

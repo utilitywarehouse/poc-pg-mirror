@@ -45,6 +45,37 @@ type Parcelf struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllParcelf(db XODB, callback func(x Parcelf) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pf_uniqueid, pf_address1, pf_address2, pf_address3, pf_address4, pf_postcode, pf_buildingname, pf_buildingno, pf_street, pf_locale, pf_posttown, pf_county, pf_packs, pf_name, pf_accountname, pf_accountno, pf_printed, pf_entereddate, pf_source, pf_createfile, pf_sparec1, pf_sparec2, pf_spared1, pf_spared2, pf_sparen1, pf_sparen2, pf_sparel1, pf_sparel2, pf_consignid, pf_deliverytype, equinox_lrn, equinox_sec ` +
+		`FROM equinox.parcelf `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Parcelf{}
+
+		// scan
+		err = q.Scan(&p.PfUniqueid, &p.PfAddress1, &p.PfAddress2, &p.PfAddress3, &p.PfAddress4, &p.PfPostcode, &p.PfBuildingname, &p.PfBuildingno, &p.PfStreet, &p.PfLocale, &p.PfPosttown, &p.PfCounty, &p.PfPacks, &p.PfName, &p.PfAccountname, &p.PfAccountno, &p.PfPrinted, &p.PfEntereddate, &p.PfSource, &p.PfCreatefile, &p.PfSparec1, &p.PfSparec2, &p.PfSpared1, &p.PfSpared2, &p.PfSparen1, &p.PfSparen2, &p.PfSparel1, &p.PfSparel2, &p.PfConsignid, &p.PfDeliverytype, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ParcelfByEquinoxLrn retrieves a row from 'equinox.parcelf' as a Parcelf.
 //
 // Generated from index 'parcelf_pkey'.

@@ -20,6 +20,37 @@ type Tabrtrn struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllTabrtrn(db XODB, callback func(x Tabrtrn) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tbreventid, tbrtrainerid, tbrpartnerid, tbrdatereturned, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tabrtrns `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tabrtrn{}
+
+		// scan
+		err = q.Scan(&t.Tbreventid, &t.Tbrtrainerid, &t.Tbrpartnerid, &t.Tbrdatereturned, &t.EquinoxPrn, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TabrtrnByEquinoxLrn retrieves a row from 'equinox.tabrtrns' as a Tabrtrn.
 //
 // Generated from index 'tabrtrns_pkey'.

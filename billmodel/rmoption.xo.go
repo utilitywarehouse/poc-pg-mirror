@@ -34,6 +34,37 @@ type Rmoption struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllRmoption(db XODB, callback func(x Rmoption) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`rmoptid, rmscreendesc, rmbilldesc, rmoneoffdesc, rmcomments, rmsetup, rmmonthly, rmdaily, rmmonthorday, rmfreemins, rmproratastart, rmprorataend, rmmonthsadv, rmcommissionrate, rmcomcodeid, rmpaytpcommis, rmvalidfrom, rmvalidto, rmcommisadjust, equinox_lrn, equinox_sec ` +
+		`FROM equinox.rmoption `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Rmoption{}
+
+		// scan
+		err = q.Scan(&r.Rmoptid, &r.Rmscreendesc, &r.Rmbilldesc, &r.Rmoneoffdesc, &r.Rmcomments, &r.Rmsetup, &r.Rmmonthly, &r.Rmdaily, &r.Rmmonthorday, &r.Rmfreemins, &r.Rmproratastart, &r.Rmprorataend, &r.Rmmonthsadv, &r.Rmcommissionrate, &r.Rmcomcodeid, &r.Rmpaytpcommis, &r.Rmvalidfrom, &r.Rmvalidto, &r.Rmcommisadjust, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RmoptionByEquinoxLrn retrieves a row from 'equinox.rmoption' as a Rmoption.
 //
 // Generated from index 'rmoption_pkey'.

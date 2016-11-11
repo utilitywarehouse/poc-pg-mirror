@@ -12,6 +12,37 @@ type FilesinBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllFilesinBlb(db XODB, callback func(x FilesinBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.filesin_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		fb := FilesinBlb{}
+
+		// scan
+		err = q.Scan(&fb.BlbLrn, &fb.BlbData, &fb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(fb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FilesinBlbByBlbLrn retrieves a row from 'equinox.filesin_blb' as a FilesinBlb.
 //
 // Generated from index 'filesin_blb_pkey'.

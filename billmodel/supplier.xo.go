@@ -30,6 +30,37 @@ type Supplier struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllSupplier(db XODB, callback func(x Supplier) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`suppid, suppdescrip, supptimeopt, supppicklist, suppaccountno, supppath, suppspared1, suppspared2, suppspared3, suppsparec1, suppsparec2, suppsparec3, suppsparen1, suppsparen2, suppsparen3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.supplier `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Supplier{}
+
+		// scan
+		err = q.Scan(&s.Suppid, &s.Suppdescrip, &s.Supptimeopt, &s.Supppicklist, &s.Suppaccountno, &s.Supppath, &s.Suppspared1, &s.Suppspared2, &s.Suppspared3, &s.Suppsparec1, &s.Suppsparec2, &s.Suppsparec3, &s.Suppsparen1, &s.Suppsparen2, &s.Suppsparen3, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SupplierByEquinoxLrn retrieves a row from 'equinox.supplier' as a Supplier.
 //
 // Generated from index 'supplier_pkey'.

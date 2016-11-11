@@ -19,6 +19,37 @@ type Gdual struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGdual(db XODB, callback func(x Gdual) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gduallinkedref, gduallinkeddate, gduallinkended, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gdual `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gdual{}
+
+		// scan
+		err = q.Scan(&g.Gduallinkedref, &g.Gduallinkeddate, &g.Gduallinkended, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GdualByEquinoxLrn retrieves a row from 'equinox.gdual' as a Gdual.
 //
 // Generated from index 'gdual_pkey'.

@@ -29,6 +29,37 @@ type OAttend struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllOAttend(db XODB, callback func(x OAttend) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`oa_event_id, oa_exec_id, oa_spaces, oa_commcode, oa_notifyby, oa_notified, oa_noshow, oa_level, oa_completed, oa_dateadded, oa_tablet_req, oa_tablet_given, oa_verified, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.o_attend `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		oa := OAttend{}
+
+		// scan
+		err = q.Scan(&oa.OaEventID, &oa.OaExecID, &oa.OaSpaces, &oa.OaCommcode, &oa.OaNotifyby, &oa.OaNotified, &oa.OaNoshow, &oa.OaLevel, &oa.OaCompleted, &oa.OaDateadded, &oa.OaTabletReq, &oa.OaTabletGiven, &oa.OaVerified, &oa.EquinoxPrn, &oa.EquinoxLrn, &oa.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(oa) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OAttendByEquinoxLrn retrieves a row from 'equinox.o_attend' as a OAttend.
 //
 // Generated from index 'o_attend_pkey'.

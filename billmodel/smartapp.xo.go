@@ -25,6 +25,37 @@ type Smartapp struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllSmartapp(db XODB, callback func(x Smartapp) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`smadate, smatimeslot, smabookingref, smacancelled, smacancelledby, smacancelreason, smadeemed, smabookedby, smanotes, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartapp `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartapp{}
+
+		// scan
+		err = q.Scan(&s.Smadate, &s.Smatimeslot, &s.Smabookingref, &s.Smacancelled, &s.Smacancelledby, &s.Smacancelreason, &s.Smadeemed, &s.Smabookedby, &s.Smanotes, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartappByEquinoxLrn retrieves a row from 'equinox.smartapp' as a Smartapp.
 //
 // Generated from index 'smartapp_pkey'.

@@ -31,6 +31,37 @@ type Ecofftak struct {
 	EquinoxSec sql.NullInt64   `json:"equinox_sec"` // equinox_sec
 }
 
+func AllEcofftak(db XODB, callback func(x Ecofftak) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ecodate, ecoea10, ecoem11, econe12, econo13, econt14, econw15, ecosc16, ecose17, ecoso18, ecosw19, ecowm20, ecown21, ecows22, ecoun23, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ecofftak `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Ecofftak{}
+
+		// scan
+		err = q.Scan(&e.Ecodate, &e.Ecoea10, &e.Ecoem11, &e.Econe12, &e.Econo13, &e.Econt14, &e.Econw15, &e.Ecosc16, &e.Ecose17, &e.Ecoso18, &e.Ecosw19, &e.Ecowm20, &e.Ecown21, &e.Ecows22, &e.Ecoun23, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EcofftakByEquinoxLrn retrieves a row from 'equinox.ecofftak' as a Ecofftak.
 //
 // Generated from index 'ecofftak_pkey'.

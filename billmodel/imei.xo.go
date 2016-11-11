@@ -30,6 +30,37 @@ type Imei struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllImei(db XODB, callback func(x Imei) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`imei_iemi, imei_make, imei_model, imei_replacecost, imei_rpc, imei_mp_none, imei_mp_1, imei_mp_2, imei_mp_3, imei_rpc_code, imei_sub_level, imei_sparen1, imei_dateentered, imei_supplier, imei_upc, equinox_lrn, equinox_sec ` +
+		`FROM equinox.imei `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		i := Imei{}
+
+		// scan
+		err = q.Scan(&i.ImeiIemi, &i.ImeiMake, &i.ImeiModel, &i.ImeiReplacecost, &i.ImeiRPC, &i.ImeiMpNone, &i.ImeiMp1, &i.ImeiMp2, &i.ImeiMp3, &i.ImeiRPCCode, &i.ImeiSubLevel, &i.ImeiSparen1, &i.ImeiDateentered, &i.ImeiSupplier, &i.ImeiUpc, &i.EquinoxLrn, &i.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(i) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ImeiByEquinoxLrn retrieves a row from 'equinox.imei' as a Imei.
 //
 // Generated from index 'imei_pkey'.

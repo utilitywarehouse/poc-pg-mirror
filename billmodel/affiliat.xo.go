@@ -28,6 +28,37 @@ type Affiliat struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllAffiliat(db XODB, callback func(x Affiliat) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`affcustaccountno, affsavingytd, affsavingmtd, affchangedate, affsparec1, affsparec2, affsparec3, affspared1, affspared2, affspared3, affsparen1, affsparen2, affsparen3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.affiliat `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Affiliat{}
+
+		// scan
+		err = q.Scan(&a.Affcustaccountno, &a.Affsavingytd, &a.Affsavingmtd, &a.Affchangedate, &a.Affsparec1, &a.Affsparec2, &a.Affsparec3, &a.Affspared1, &a.Affspared2, &a.Affspared3, &a.Affsparen1, &a.Affsparen2, &a.Affsparen3, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AffiliatByEquinoxLrn retrieves a row from 'equinox.affiliat' as a Affiliat.
 //
 // Generated from index 'affiliat_pkey'.

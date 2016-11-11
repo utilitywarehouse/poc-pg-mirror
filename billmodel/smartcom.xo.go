@@ -20,6 +20,37 @@ type Smartcom struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllSmartcom(db XODB, callback func(x Smartcom) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`smcid, smcdate, smcsentby, smctype, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartcom `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartcom{}
+
+		// scan
+		err = q.Scan(&s.Smcid, &s.Smcdate, &s.Smcsentby, &s.Smctype, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartcomByEquinoxLrn retrieves a row from 'equinox.smartcom' as a Smartcom.
 //
 // Generated from index 'smartcom_pkey'.

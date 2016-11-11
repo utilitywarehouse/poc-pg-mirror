@@ -33,6 +33,37 @@ type OEvent struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllOEvent(db XODB, callback func(x OEvent) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`oe_event_id, oe_venue_id, oe_trainer_id, oe_trainer2_id, oe_event_date, oe_start_time, oe_reg_time, oe_capacity, oe_booked, oe_event_level, oe_event_status, oe_tablets_req, oe_tabs_toreturn, oe_tabs_returned, oe_tabs_accntfor, oe_startpks_req, oe_startpks_disp, oe_duration, equinox_lrn, equinox_sec ` +
+		`FROM equinox.o_events `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		oe := OEvent{}
+
+		// scan
+		err = q.Scan(&oe.OeEventID, &oe.OeVenueID, &oe.OeTrainerID, &oe.OeTrainer2ID, &oe.OeEventDate, &oe.OeStartTime, &oe.OeRegTime, &oe.OeCapacity, &oe.OeBooked, &oe.OeEventLevel, &oe.OeEventStatus, &oe.OeTabletsReq, &oe.OeTabsToreturn, &oe.OeTabsReturned, &oe.OeTabsAccntfor, &oe.OeStartpksReq, &oe.OeStartpksDisp, &oe.OeDuration, &oe.EquinoxLrn, &oe.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(oe) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // OEventByEquinoxLrn retrieves a row from 'equinox.o_events' as a OEvent.
 //
 // Generated from index 'o_events_pkey'.

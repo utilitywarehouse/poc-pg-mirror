@@ -16,6 +16,37 @@ type Crmsblok struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCrmsblok(db XODB, callback func(x Crmsblok) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crmsblkno, crmsblkdesc, crmsblkstartok, crmsblkstpproc, crmsblkdepends, equinox_lrn, equinox_sec ` +
+		`FROM equinox.crmsblok `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Crmsblok{}
+
+		// scan
+		err = q.Scan(&c.Crmsblkno, &c.Crmsblkdesc, &c.Crmsblkstartok, &c.Crmsblkstpproc, &c.Crmsblkdepends, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrmsblokByEquinoxLrn retrieves a row from 'equinox.crmsblok' as a Crmsblok.
 //
 // Generated from index 'crmsblok_pkey'.

@@ -59,6 +59,37 @@ type Express struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExpress(db XODB, callback func(x Express) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exprs_id, exprs_issue, exprs_status, exprs_ticktssent, exprs_execid, exprs_orderno, exprs_forename, exprs_surname, exprs_guests, exprs_email, exprs_regd, exprs_regtime, exprs_badge_code, exprs_memo, exprs_date, exprs_pay_mthd, exprs_ccno, exprs_expdate, exprs_startdate, exprs_issueno, exprs_chqno, exprs_total, exprs_vat, expr_disc, expr_ticketcode, expr_nooftickets, expr_vatrecpt, expr_additional, expr_grpatickets, expr_grpbtickets, expr_grpctickets, expr_grpdtickets, expr_seminar, expr_block, expr_sparec1, expr_sparec2, expr_s1tickets, expr_s2tickets, expr_s3tickets, expr_s4tickets, expr_mainref, expr_s5tickets, expr_eventday, exprs_displaynam, equinox_lrn, equinox_sec ` +
+		`FROM equinox.express `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Express{}
+
+		// scan
+		err = q.Scan(&e.ExprsID, &e.ExprsIssue, &e.ExprsStatus, &e.ExprsTicktssent, &e.ExprsExecid, &e.ExprsOrderno, &e.ExprsForename, &e.ExprsSurname, &e.ExprsGuests, &e.ExprsEmail, &e.ExprsRegd, &e.ExprsRegtime, &e.ExprsBadgeCode, &e.ExprsMemo, &e.ExprsDate, &e.ExprsPayMthd, &e.ExprsCcno, &e.ExprsExpdate, &e.ExprsStartdate, &e.ExprsIssueno, &e.ExprsChqno, &e.ExprsTotal, &e.ExprsVat, &e.ExprDisc, &e.ExprTicketcode, &e.ExprNooftickets, &e.ExprVatrecpt, &e.ExprAdditional, &e.ExprGrpatickets, &e.ExprGrpbtickets, &e.ExprGrpctickets, &e.ExprGrpdtickets, &e.ExprSeminar, &e.ExprBlock, &e.ExprSparec1, &e.ExprSparec2, &e.ExprS1tickets, &e.ExprS2tickets, &e.ExprS3tickets, &e.ExprS4tickets, &e.ExprMainref, &e.ExprS5tickets, &e.ExprEventday, &e.ExprsDisplaynam, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExpressByEquinoxLrn retrieves a row from 'equinox.express' as a Express.
 //
 // Generated from index 'express_pkey'.

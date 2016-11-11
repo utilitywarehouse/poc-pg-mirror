@@ -19,6 +19,37 @@ type Deladdr struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllDeladdr(db XODB, callback func(x Deladdr) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`del_ref, del_recipient, del_add1, del_add2, del_add3, del_add4, del_county, del_pcode, equinox_lrn, equinox_sec ` +
+		`FROM equinox.deladdr `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		d := Deladdr{}
+
+		// scan
+		err = q.Scan(&d.DelRef, &d.DelRecipient, &d.DelAdd1, &d.DelAdd2, &d.DelAdd3, &d.DelAdd4, &d.DelCounty, &d.DelPcode, &d.EquinoxLrn, &d.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(d) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // DeladdrByEquinoxLrn retrieves a row from 'equinox.deladdr' as a Deladdr.
 //
 // Generated from index 'deladdr_pkey'.

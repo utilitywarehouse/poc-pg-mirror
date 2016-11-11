@@ -21,6 +21,37 @@ type Chrgcall struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllChrgcall(db XODB, callback func(x Chrgcall) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`chrgcode, chrgmincostpence, chrgcallunits, chrgminduration, chrgroundingpenc, chrgcallsetup, chrgaccesspence, chrgroundup, chrgdescrip, chrgmaxcostpence, equinox_lrn, equinox_sec ` +
+		`FROM equinox.chrgcall `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Chrgcall{}
+
+		// scan
+		err = q.Scan(&c.Chrgcode, &c.Chrgmincostpence, &c.Chrgcallunits, &c.Chrgminduration, &c.Chrgroundingpenc, &c.Chrgcallsetup, &c.Chrgaccesspence, &c.Chrgroundup, &c.Chrgdescrip, &c.Chrgmaxcostpence, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ChrgcallByEquinoxLrn retrieves a row from 'equinox.chrgcall' as a Chrgcall.
 //
 // Generated from index 'chrgcall_pkey'.

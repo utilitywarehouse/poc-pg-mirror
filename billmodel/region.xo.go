@@ -26,6 +26,37 @@ type Region struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllRegion(db XODB, callback func(x Region) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`regstd, reglocalexchange, regitvregion, regarea, regmobcoverage, regcwinterconnec, reggeogregion, reglocallist, regsparec1, regsparen1, regspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.regions `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Region{}
+
+		// scan
+		err = q.Scan(&r.Regstd, &r.Reglocalexchange, &r.Regitvregion, &r.Regarea, &r.Regmobcoverage, &r.Regcwinterconnec, &r.Reggeogregion, &r.Reglocallist, &r.Regsparec1, &r.Regsparen1, &r.Regspared1, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RegionByEquinoxLrn retrieves a row from 'equinox.regions' as a Region.
 //
 // Generated from index 'regions_pkey'.

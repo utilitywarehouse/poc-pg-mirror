@@ -12,6 +12,37 @@ type FsecureBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllFsecureBlb(db XODB, callback func(x FsecureBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.fsecure_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		fb := FsecureBlb{}
+
+		// scan
+		err = q.Scan(&fb.BlbLrn, &fb.BlbData, &fb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(fb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FsecureBlbByBlbLrn retrieves a row from 'equinox.fsecure_blb' as a FsecureBlb.
 //
 // Generated from index 'fsecure_blb_pkey'.

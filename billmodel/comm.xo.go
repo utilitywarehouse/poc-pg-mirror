@@ -50,6 +50,37 @@ type Comm struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllComm(db XODB, callback func(x Comm) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`comuniquesys, comdate, comtime, comprobcode, comdetails, comenteredby, comcliservice, comadditional1, comadditional2, comadditional3, comadditional4, comadditional5, comadditional6, comadditional7, comadditional8, comadditional9, comadditional10, compriority, comstatus, comtaskto, comcompletedate, comcompleteby, comhistoric, comactiondate, comactiontime, comdip, comdeptid, comlastchange, comletterpath, comadddata, comcliuniquesys, comcompletetime, comadduniqueid, comarchcounter, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.comms `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Comm{}
+
+		// scan
+		err = q.Scan(&c.Comuniquesys, &c.Comdate, &c.Comtime, &c.Comprobcode, &c.Comdetails, &c.Comenteredby, &c.Comcliservice, &c.Comadditional1, &c.Comadditional2, &c.Comadditional3, &c.Comadditional4, &c.Comadditional5, &c.Comadditional6, &c.Comadditional7, &c.Comadditional8, &c.Comadditional9, &c.Comadditional10, &c.Compriority, &c.Comstatus, &c.Comtaskto, &c.Comcompletedate, &c.Comcompleteby, &c.Comhistoric, &c.Comactiondate, &c.Comactiontime, &c.Comdip, &c.Comdeptid, &c.Comlastchange, &c.Comletterpath, &c.Comadddata, &c.Comcliuniquesys, &c.Comcompletetime, &c.Comadduniqueid, &c.Comarchcounter, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CommByEquinoxLrn retrieves a row from 'equinox.comms' as a Comm.
 //
 // Generated from index 'comms_pkey'.

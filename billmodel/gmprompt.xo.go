@@ -20,6 +20,37 @@ type Gmprompt struct {
 	EquinoxSec       sql.NullInt64 `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGmprompt(db XODB, callback func(x Gmprompt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gmpfrequency, gmplastactiond, gmplastaction, gmpfreqsetbycust, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gmprompt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gmprompt{}
+
+		// scan
+		err = q.Scan(&g.Gmpfrequency, &g.Gmplastactiond, &g.Gmplastaction, &g.Gmpfreqsetbycust, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GmpromptByEquinoxLrn retrieves a row from 'equinox.gmprompt' as a Gmprompt.
 //
 // Generated from index 'gmprompt_pkey'.

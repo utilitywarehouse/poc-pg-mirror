@@ -24,6 +24,37 @@ type Gappmet struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGappmet(db XODB, callback func(x Gappmet) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gammsn, gaminstalldate, gamremovedate, gamcf, gamiorm, gamrf, gamreadingunits, gamdials, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gappmet `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gappmet{}
+
+		// scan
+		err = q.Scan(&g.Gammsn, &g.Gaminstalldate, &g.Gamremovedate, &g.Gamcf, &g.Gamiorm, &g.Gamrf, &g.Gamreadingunits, &g.Gamdials, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GappmetByEquinoxLrn retrieves a row from 'equinox.gappmet' as a Gappmet.
 //
 // Generated from index 'gappmet_pkey'.

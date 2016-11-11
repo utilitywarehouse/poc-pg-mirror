@@ -35,6 +35,37 @@ type Cnxhmpo struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCnxhmpo(db XODB, callback func(x Cnxhmpo) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxhmpoforename, cnxhmposurname, cnxhmpocontname, cnxhmpoconame, cnxhmpollpcode, cnxhmpolladdr1, cnxhmpolladdr2, cnxhmpolladdr3, cnxhmpolladdr4, cnxhmpollcounty, cnxhmpolapcode, cnxhmpolaaddr1, cnxhmpolaaddr2, cnxhmpolaaddr3, cnxhmpolaaddr4, cnxhmpolacounty, cnxhmpollmobile, cnxhmpollemail, cnxhmpolltel, cnxhmpolamobile, cnxhmpolaemail, cnxhmpolatel, cnxhmpounique, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxhmpo `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxhmpo{}
+
+		// scan
+		err = q.Scan(&c.Cnxhmpoforename, &c.Cnxhmposurname, &c.Cnxhmpocontname, &c.Cnxhmpoconame, &c.Cnxhmpollpcode, &c.Cnxhmpolladdr1, &c.Cnxhmpolladdr2, &c.Cnxhmpolladdr3, &c.Cnxhmpolladdr4, &c.Cnxhmpollcounty, &c.Cnxhmpolapcode, &c.Cnxhmpolaaddr1, &c.Cnxhmpolaaddr2, &c.Cnxhmpolaaddr3, &c.Cnxhmpolaaddr4, &c.Cnxhmpolacounty, &c.Cnxhmpollmobile, &c.Cnxhmpollemail, &c.Cnxhmpolltel, &c.Cnxhmpolamobile, &c.Cnxhmpolaemail, &c.Cnxhmpolatel, &c.Cnxhmpounique, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxhmpoByEquinoxLrn retrieves a row from 'equinox.cnxhmpo' as a Cnxhmpo.
 //
 // Generated from index 'cnxhmpo_pkey'.

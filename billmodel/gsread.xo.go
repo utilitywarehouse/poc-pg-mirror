@@ -27,6 +27,37 @@ type Gsread struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGsread(db XODB, callback func(x Gsread) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gsraccountno, gsrreference, gsrmeterref, gsrreaddate, gsrreading, gsrtype, gsrcode, gsrcodearb, gsrguduniquesys, gsrlastmoddate, gsrlastmodtime, gsrupdatedfrom, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gsread `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gsread{}
+
+		// scan
+		err = q.Scan(&g.Gsraccountno, &g.Gsrreference, &g.Gsrmeterref, &g.Gsrreaddate, &g.Gsrreading, &g.Gsrtype, &g.Gsrcode, &g.Gsrcodearb, &g.Gsrguduniquesys, &g.Gsrlastmoddate, &g.Gsrlastmodtime, &g.Gsrupdatedfrom, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GsreadByEquinoxLrn retrieves a row from 'equinox.gsread' as a Gsread.
 //
 // Generated from index 'gsread_pkey'.

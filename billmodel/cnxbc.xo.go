@@ -126,6 +126,37 @@ type Cnxbc struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxbc(db XODB, callback func(x Cnxbc) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxbccli, cnxbcfeature, cnxbcni, cnxbcservicelvl, cnxbcdatetocsgp, cnxbcdatetocssp, cnxbcdatefromgp, cnxbcdatefromsp, cnxbcdatetoopt, cnxbcdatefromopt, cnxbcserialnum, cnxbcdateentered, cnxbcweborder, cnxbcdatetobill, cnxbcdateletter, cnxbcenteredby, cnxbcpackageno, cnxbccpspostcode, cnxbcdatecps, cnxbccpsreqd, cnxbccpsstrikes, cnxbcdstrike1, cnxbcdstrike2, cnxbcdstrike3, cnxbccpscarrier, cnxbcwlrtype, cnxbccpscancel, cnxbcmaccode, cnxbcsparen1, cnxbccontterm, cnxbccsigndate, cnxbcholddate, cnxbcdiscountllx, cnxbcholduntil, cnxbcbtaccountno, cnxbcdeladdr, cnxbcdeladdref, cnxbcexdir, cnxbcnumwithheld, cnxbcplus, cnxbcequip, cnxbcnousbadap, cnxbctps, cnxbcss07, cnxbcss01, cnxbcss1a, cnxbcss08, cnxbcss06, cnxbcss09, cnxbcss02, cnxbcss05, cnxbcss14, cnxbcreqdate, cnxbcdatechecked, cnxbcexcd, cnxbcexname, cnxbcstatus, cnxbcorderid, cnxbccommandid, cnxbccurrentsup, cnxbcoptordnum, cnxbcstate, cnxbcstatedate, cnxbcpassword, cnxbcagreeddate, cnxbclluauto, cnxbcdonoracc, cnxbcrejcode, cnxbcmoretalk, cnxbcfibre, cnxbcbuscontend, cnxbcspared2, cnxbctermnum, cnxbchmdate, cnxbcsubtariff, cnxbctariff, cnxbcnetwork, cnxbcmobsaver, cnxbcspared1, cnxbcaddserv, cnxbccallbundle, cnxbcmysecurepc, cnxbcss20, cnxbcnewprovide, cnxbctype, cnxbcinstalltime, cnxbcengvisit, cnxbccontactno, cnxbccategory, cnxbc50254sent, cnxbceconomysave, cnxbcalk, cnxbcvaliddate, cnxbcvalidby, cnxbcfilters, cnxbcttmig, cnxbcllucheck, cnxbccampaign, cnxbcllxtype, cnxbcacclineid, cnxbcported, cnxbcexactdate, cnxbccancelrid, cnxbcgainingrid, cnxbccpwnref, cnxbclorn, cnxbcsimprovord, cnxbcsimordertyp, cnxbcngaprodcode, cnxbcsrccliref, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxbc `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxbc{}
+
+		// scan
+		err = q.Scan(&c.Cnxbccli, &c.Cnxbcfeature, &c.Cnxbcni, &c.Cnxbcservicelvl, &c.Cnxbcdatetocsgp, &c.Cnxbcdatetocssp, &c.Cnxbcdatefromgp, &c.Cnxbcdatefromsp, &c.Cnxbcdatetoopt, &c.Cnxbcdatefromopt, &c.Cnxbcserialnum, &c.Cnxbcdateentered, &c.Cnxbcweborder, &c.Cnxbcdatetobill, &c.Cnxbcdateletter, &c.Cnxbcenteredby, &c.Cnxbcpackageno, &c.Cnxbccpspostcode, &c.Cnxbcdatecps, &c.Cnxbccpsreqd, &c.Cnxbccpsstrikes, &c.Cnxbcdstrike1, &c.Cnxbcdstrike2, &c.Cnxbcdstrike3, &c.Cnxbccpscarrier, &c.Cnxbcwlrtype, &c.Cnxbccpscancel, &c.Cnxbcmaccode, &c.Cnxbcsparen1, &c.Cnxbccontterm, &c.Cnxbccsigndate, &c.Cnxbcholddate, &c.Cnxbcdiscountllx, &c.Cnxbcholduntil, &c.Cnxbcbtaccountno, &c.Cnxbcdeladdr, &c.Cnxbcdeladdref, &c.Cnxbcexdir, &c.Cnxbcnumwithheld, &c.Cnxbcplus, &c.Cnxbcequip, &c.Cnxbcnousbadap, &c.Cnxbctps, &c.Cnxbcss07, &c.Cnxbcss01, &c.Cnxbcss1a, &c.Cnxbcss08, &c.Cnxbcss06, &c.Cnxbcss09, &c.Cnxbcss02, &c.Cnxbcss05, &c.Cnxbcss14, &c.Cnxbcreqdate, &c.Cnxbcdatechecked, &c.Cnxbcexcd, &c.Cnxbcexname, &c.Cnxbcstatus, &c.Cnxbcorderid, &c.Cnxbccommandid, &c.Cnxbccurrentsup, &c.Cnxbcoptordnum, &c.Cnxbcstate, &c.Cnxbcstatedate, &c.Cnxbcpassword, &c.Cnxbcagreeddate, &c.Cnxbclluauto, &c.Cnxbcdonoracc, &c.Cnxbcrejcode, &c.Cnxbcmoretalk, &c.Cnxbcfibre, &c.Cnxbcbuscontend, &c.Cnxbcspared2, &c.Cnxbctermnum, &c.Cnxbchmdate, &c.Cnxbcsubtariff, &c.Cnxbctariff, &c.Cnxbcnetwork, &c.Cnxbcmobsaver, &c.Cnxbcspared1, &c.Cnxbcaddserv, &c.Cnxbccallbundle, &c.Cnxbcmysecurepc, &c.Cnxbcss20, &c.Cnxbcnewprovide, &c.Cnxbctype, &c.Cnxbcinstalltime, &c.Cnxbcengvisit, &c.Cnxbccontactno, &c.Cnxbccategory, &c.Cnxbc50254sent, &c.Cnxbceconomysave, &c.Cnxbcalk, &c.Cnxbcvaliddate, &c.Cnxbcvalidby, &c.Cnxbcfilters, &c.Cnxbcttmig, &c.Cnxbcllucheck, &c.Cnxbccampaign, &c.Cnxbcllxtype, &c.Cnxbcacclineid, &c.Cnxbcported, &c.Cnxbcexactdate, &c.Cnxbccancelrid, &c.Cnxbcgainingrid, &c.Cnxbccpwnref, &c.Cnxbclorn, &c.Cnxbcsimprovord, &c.Cnxbcsimordertyp, &c.Cnxbcngaprodcode, &c.Cnxbcsrccliref, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxbcByEquinoxLrn retrieves a row from 'equinox.cnxbc' as a Cnxbc.
 //
 // Generated from index 'cnxbc_pkey'.

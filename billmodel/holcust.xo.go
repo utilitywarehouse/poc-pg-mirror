@@ -19,6 +19,37 @@ type Holcust struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllHolcust(db XODB, callback func(x Holcust) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`holcustmonth, holcustcustaccno, holcustinitsvs, holcustlivesvs1, holcustlivesvs2, holcustdebt, holcustrevenue, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.holcust `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		h := Holcust{}
+
+		// scan
+		err = q.Scan(&h.Holcustmonth, &h.Holcustcustaccno, &h.Holcustinitsvs, &h.Holcustlivesvs1, &h.Holcustlivesvs2, &h.Holcustdebt, &h.Holcustrevenue, &h.EquinoxPrn, &h.EquinoxLrn, &h.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(h) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HolcustByEquinoxLrn retrieves a row from 'equinox.holcust' as a Holcust.
 //
 // Generated from index 'holcust_pkey'.

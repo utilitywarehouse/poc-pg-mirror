@@ -56,6 +56,37 @@ type Cnxcard struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCnxcard(db XODB, callback func(x Cnxcard) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxcdateentered, cnxcenteredby, cnxcaccno, cnxcnameoncard, cnxcdob, cnxcdateissued, cnxcnameoncard2, cnxcdob2, cnxcloyaltycard, cnxcmainsupermkt, cnxcminbalance, cnxctopupamount, cnxcfixedmonthly, cnxcdatetopmm, cnxcdatefrompmm, cnxcdatetobill, cnxcdateletter, cnxccardtype, cnxcordtype, cnxcweborder, cnxcdebitno, cnxcdebitstart, cnxcdebitexpiry, cnxcdebitissue, cnxcdebitcv2, cnxcdebitcardtyp, cnxcshopperref, cnxcsparec2, cnxcsparec3, cnxcsparen1, cnxcsparen2, cnxcsparen3, cnxcspared1, cnxcspared2, cnxcspared3, cnxcaddserv, cnxcvaliddate, cnxcvalidby, cnxccampaign, cnxcpostcode, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxcard `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxcard{}
+
+		// scan
+		err = q.Scan(&c.Cnxcdateentered, &c.Cnxcenteredby, &c.Cnxcaccno, &c.Cnxcnameoncard, &c.Cnxcdob, &c.Cnxcdateissued, &c.Cnxcnameoncard2, &c.Cnxcdob2, &c.Cnxcloyaltycard, &c.Cnxcmainsupermkt, &c.Cnxcminbalance, &c.Cnxctopupamount, &c.Cnxcfixedmonthly, &c.Cnxcdatetopmm, &c.Cnxcdatefrompmm, &c.Cnxcdatetobill, &c.Cnxcdateletter, &c.Cnxccardtype, &c.Cnxcordtype, &c.Cnxcweborder, &c.Cnxcdebitno, &c.Cnxcdebitstart, &c.Cnxcdebitexpiry, &c.Cnxcdebitissue, &c.Cnxcdebitcv2, &c.Cnxcdebitcardtyp, &c.Cnxcshopperref, &c.Cnxcsparec2, &c.Cnxcsparec3, &c.Cnxcsparen1, &c.Cnxcsparen2, &c.Cnxcsparen3, &c.Cnxcspared1, &c.Cnxcspared2, &c.Cnxcspared3, &c.Cnxcaddserv, &c.Cnxcvaliddate, &c.Cnxcvalidby, &c.Cnxccampaign, &c.Cnxcpostcode, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxcardByEquinoxLrn retrieves a row from 'equinox.cnxcard' as a Cnxcard.
 //
 // Generated from index 'cnxcard_pkey'.

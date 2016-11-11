@@ -78,6 +78,37 @@ type Ctour struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCtour(db XODB, callback func(x Ctour) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ctoursuser, ctoursscgd, ctoursgdrate, ctourssce7, ctourse7rate1, ctourse7rate2, ctoursscgas, ctoursgasrate, ctourannualg, ctourannuale, ctourgdratemin, ctourgdratemax, ctoure7rate1min, ctoure7rate1max, ctourgasratemin, ctourgasratemax, ctourannuale7, ctourannualdgd, ctourannualde7, ctouruwdcbc, ctourgaspoint1, ctourgaspoint2, ctourelecpoint1, ctourelecpoint2, ctoure7point1, ctoure7point2, ctournum1, ctournum2, ctournum3, ctourc1, ctourc2, ctourd1, ctourd2, ctourlp1, ctourlp2, ctouroptgas, ctouroptelec, ctourerev, ctourgrev, ctoure7rev, ctourgaq, ctourgnum, ctourgppaq, ctourgppnum, ctourgcaaq, ctourgcanum, ctoureeac, ctourenum, ctoureppeac, ctoureppnum, ctourecaeac, ctourecanum, ctoure7eac, ctoure7neac, ctoure7num, ctoure7ppeac, ctoure7ppneac, ctoure7ppnum, ctoure7caeac, ctoure7caneac, ctoure7canum, ctouropte7, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ctours `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Ctour{}
+
+		// scan
+		err = q.Scan(&c.Ctoursuser, &c.Ctoursscgd, &c.Ctoursgdrate, &c.Ctourssce7, &c.Ctourse7rate1, &c.Ctourse7rate2, &c.Ctoursscgas, &c.Ctoursgasrate, &c.Ctourannualg, &c.Ctourannuale, &c.Ctourgdratemin, &c.Ctourgdratemax, &c.Ctoure7rate1min, &c.Ctoure7rate1max, &c.Ctourgasratemin, &c.Ctourgasratemax, &c.Ctourannuale7, &c.Ctourannualdgd, &c.Ctourannualde7, &c.Ctouruwdcbc, &c.Ctourgaspoint1, &c.Ctourgaspoint2, &c.Ctourelecpoint1, &c.Ctourelecpoint2, &c.Ctoure7point1, &c.Ctoure7point2, &c.Ctournum1, &c.Ctournum2, &c.Ctournum3, &c.Ctourc1, &c.Ctourc2, &c.Ctourd1, &c.Ctourd2, &c.Ctourlp1, &c.Ctourlp2, &c.Ctouroptgas, &c.Ctouroptelec, &c.Ctourerev, &c.Ctourgrev, &c.Ctoure7rev, &c.Ctourgaq, &c.Ctourgnum, &c.Ctourgppaq, &c.Ctourgppnum, &c.Ctourgcaaq, &c.Ctourgcanum, &c.Ctoureeac, &c.Ctourenum, &c.Ctoureppeac, &c.Ctoureppnum, &c.Ctourecaeac, &c.Ctourecanum, &c.Ctoure7eac, &c.Ctoure7neac, &c.Ctoure7num, &c.Ctoure7ppeac, &c.Ctoure7ppneac, &c.Ctoure7ppnum, &c.Ctoure7caeac, &c.Ctoure7caneac, &c.Ctoure7canum, &c.Ctouropte7, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CtourByEquinoxLrn retrieves a row from 'equinox.ctours' as a Ctour.
 //
 // Generated from index 'ctours_pkey'.

@@ -40,6 +40,37 @@ type Gasout struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGasout(db XODB, callback func(x Gasout) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gasoutmpr, gasoutaquilaref, gasoutreceived, gasoutced, gasoutobjected, gasoutstatus, gasoutcustacnt, gasouttocli, gasoutdcrequest, gasoutcli, gasoutdcr, gasoutdebt, gasoutaqold, gasoutobjresp, gasoutobjrespc, gasoutet, gasobjcan, gasobjcansent, gasobjcanresp, gasobjcanac, gasoutchoften, gasoutschar, gasoutsnum, gasoutsdate, gasoutslog, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gasout `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gasout{}
+
+		// scan
+		err = q.Scan(&g.Gasoutmpr, &g.Gasoutaquilaref, &g.Gasoutreceived, &g.Gasoutced, &g.Gasoutobjected, &g.Gasoutstatus, &g.Gasoutcustacnt, &g.Gasouttocli, &g.Gasoutdcrequest, &g.Gasoutcli, &g.Gasoutdcr, &g.Gasoutdebt, &g.Gasoutaqold, &g.Gasoutobjresp, &g.Gasoutobjrespc, &g.Gasoutet, &g.Gasobjcan, &g.Gasobjcansent, &g.Gasobjcanresp, &g.Gasobjcanac, &g.Gasoutchoften, &g.Gasoutschar, &g.Gasoutsnum, &g.Gasoutsdate, &g.Gasoutslog, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GasoutByEquinoxLrn retrieves a row from 'equinox.gasout' as a Gasout.
 //
 // Generated from index 'gasout_pkey'.

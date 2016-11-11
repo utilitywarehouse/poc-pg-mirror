@@ -18,6 +18,37 @@ type Exregpro struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllExregpro(db XODB, callback func(x Exregpro) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`erp_promoname, erp_startdate, erp_enddate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exregpro `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exregpro{}
+
+		// scan
+		err = q.Scan(&e.ErpPromoname, &e.ErpStartdate, &e.ErpEnddate, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExregproByEquinoxLrn retrieves a row from 'equinox.exregpro' as a Exregpro.
 //
 // Generated from index 'exregpro_pkey'.

@@ -12,6 +12,37 @@ type Hol2014o struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllHol2014o(db XODB, callback func(x Hol2014o) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`hol14opartnerid, equinox_lrn, equinox_sec ` +
+		`FROM equinox.hol2014o `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		h := Hol2014o{}
+
+		// scan
+		err = q.Scan(&h.Hol14opartnerid, &h.EquinoxLrn, &h.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(h) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // Hol2014oByEquinoxLrn retrieves a row from 'equinox.hol2014o' as a Hol2014o.
 //
 // Generated from index 'hol2014o_pkey'.

@@ -21,6 +21,37 @@ type Cgbpcli struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCgbpcli(db XODB, callback func(x Cgbpcli) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cgbpclinumber, cgbppayable, cgbpcustenddate, cgbpcustdebt, cgbpclienddate, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cgbpcli `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cgbpcli{}
+
+		// scan
+		err = q.Scan(&c.Cgbpclinumber, &c.Cgbppayable, &c.Cgbpcustenddate, &c.Cgbpcustdebt, &c.Cgbpclienddate, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CgbpcliByEquinoxLrn retrieves a row from 'equinox.cgbpcli' as a Cgbpcli.
 //
 // Generated from index 'cgbpcli_pkey'.

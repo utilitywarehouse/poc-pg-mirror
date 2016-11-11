@@ -38,6 +38,37 @@ type Credcard struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCredcard(db XODB, callback func(x Credcard) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`carduniquesys, cardaccounttype, cardelementid, cardnumber, cardstartdate, cardexpirydate, cardissuenumber, cardtypecord, cardpostcode, cardverified, cardsource, cardvalid, cardusedebt, cardholder, carddateentered, cardenteredby, cardnotes, cardcv2, cardholdername, cardsparen1, cardsparen2, cardspared1, cardspared2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.credcard `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Credcard{}
+
+		// scan
+		err = q.Scan(&c.Carduniquesys, &c.Cardaccounttype, &c.Cardelementid, &c.Cardnumber, &c.Cardstartdate, &c.Cardexpirydate, &c.Cardissuenumber, &c.Cardtypecord, &c.Cardpostcode, &c.Cardverified, &c.Cardsource, &c.Cardvalid, &c.Cardusedebt, &c.Cardholder, &c.Carddateentered, &c.Cardenteredby, &c.Cardnotes, &c.Cardcv2, &c.Cardholdername, &c.Cardsparen1, &c.Cardsparen2, &c.Cardspared1, &c.Cardspared2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CredcardByEquinoxLrn retrieves a row from 'equinox.credcard' as a Credcard.
 //
 // Generated from index 'credcard_pkey'.

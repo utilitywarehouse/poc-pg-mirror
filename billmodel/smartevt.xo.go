@@ -30,6 +30,37 @@ type Smartevt struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllSmartevt(db XODB, callback func(x Smartevt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`smeid, smedate, smetime, smereceived, smecustom1, smecustom2, smecustom3, smecustom4, smecustom5, smecustom6, smenotes, smeprocessed, smegasonlyevent, smeeleconlyevent, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartevt `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartevt{}
+
+		// scan
+		err = q.Scan(&s.Smeid, &s.Smedate, &s.Smetime, &s.Smereceived, &s.Smecustom1, &s.Smecustom2, &s.Smecustom3, &s.Smecustom4, &s.Smecustom5, &s.Smecustom6, &s.Smenotes, &s.Smeprocessed, &s.Smegasonlyevent, &s.Smeeleconlyevent, &s.EquinoxPrn, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartevtByEquinoxLrn retrieves a row from 'equinox.smartevt' as a Smartevt.
 //
 // Generated from index 'smartevt_pkey'.

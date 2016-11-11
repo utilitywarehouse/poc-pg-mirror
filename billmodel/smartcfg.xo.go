@@ -34,6 +34,37 @@ type Smartcfg struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllSmartcfg(db XODB, callback func(x Smartcfg) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`scfgid, scfgname, scfgprov, scfgfileprefix, scfgmaindir, scfgspooldir, scfgsenddir, scfglogdir, scfglive, scfgmon, scfgtue, scfgwed, scfgthu, scfgfri, scfgsat, scfgsun, scfglastdate, scfglasttime, scfgrunonce, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartcfg `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartcfg{}
+
+		// scan
+		err = q.Scan(&s.Scfgid, &s.Scfgname, &s.Scfgprov, &s.Scfgfileprefix, &s.Scfgmaindir, &s.Scfgspooldir, &s.Scfgsenddir, &s.Scfglogdir, &s.Scfglive, &s.Scfgmon, &s.Scfgtue, &s.Scfgwed, &s.Scfgthu, &s.Scfgfri, &s.Scfgsat, &s.Scfgsun, &s.Scfglastdate, &s.Scfglasttime, &s.Scfgrunonce, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartcfgByEquinoxLrn retrieves a row from 'equinox.smartcfg' as a Smartcfg.
 //
 // Generated from index 'smartcfg_pkey'.

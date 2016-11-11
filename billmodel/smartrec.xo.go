@@ -34,6 +34,37 @@ type Smartrec struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllSmartrec(db XODB, callback func(x Smartrec) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`smaccno, smmpan, smmprn, smemsn, smgmsn, smtype, smgtype, sminststatus, sminststatusdate, smmopref, smmop, sminstalldate, smwithdrawaldate, smselectedinstal, smihd, smhanlive, smwanlive, smdataconsent, smsmicop, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartrec `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartrec{}
+
+		// scan
+		err = q.Scan(&s.Smaccno, &s.Smmpan, &s.Smmprn, &s.Smemsn, &s.Smgmsn, &s.Smtype, &s.Smgtype, &s.Sminststatus, &s.Sminststatusdate, &s.Smmopref, &s.Smmop, &s.Sminstalldate, &s.Smwithdrawaldate, &s.Smselectedinstal, &s.Smihd, &s.Smhanlive, &s.Smwanlive, &s.Smdataconsent, &s.Smsmicop, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartrecByEquinoxLrn retrieves a row from 'equinox.smartrec' as a Smartrec.
 //
 // Generated from index 'smartrec_pkey'.

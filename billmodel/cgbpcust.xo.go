@@ -15,6 +15,37 @@ type Cgbpcust struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCgbpcust(db XODB, callback func(x Cgbpcust) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cgbpcustaccno, cgbpexid, cgbcashbackamt, cgbpclawback, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cgbpcust `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cgbpcust{}
+
+		// scan
+		err = q.Scan(&c.Cgbpcustaccno, &c.Cgbpexid, &c.Cgbcashbackamt, &c.Cgbpclawback, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CgbpcustByEquinoxLrn retrieves a row from 'equinox.cgbpcust' as a Cgbpcust.
 //
 // Generated from index 'cgbpcust_pkey'.

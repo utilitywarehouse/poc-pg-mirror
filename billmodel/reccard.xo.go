@@ -34,6 +34,37 @@ type Reccard struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllReccard(db XODB, callback func(x Reccard) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`recuniquesys, recaccounttype, reccustidentity, recshopperref, rectypecord, recverified, recvalid, recrecurring, reconeclick, recdateentered, recenteredby, recnotes, recusage, recusagebar, reccardno, recsparen1, recsparen2, recspared1, recspared2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.reccard `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Reccard{}
+
+		// scan
+		err = q.Scan(&r.Recuniquesys, &r.Recaccounttype, &r.Reccustidentity, &r.Recshopperref, &r.Rectypecord, &r.Recverified, &r.Recvalid, &r.Recrecurring, &r.Reconeclick, &r.Recdateentered, &r.Recenteredby, &r.Recnotes, &r.Recusage, &r.Recusagebar, &r.Reccardno, &r.Recsparen1, &r.Recsparen2, &r.Recspared1, &r.Recspared2, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ReccardByEquinoxLrn retrieves a row from 'equinox.reccard' as a Reccard.
 //
 // Generated from index 'reccard_pkey'.

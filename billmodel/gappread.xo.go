@@ -24,6 +24,37 @@ type Gappread struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGappread(db XODB, callback func(x Gappread) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gappvalread, gappvalreaddate, gappvalreadsourc, gappreadtype, gappreadreason, gappreadttz, gappanomaly, gappaq, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gappread `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gappread{}
+
+		// scan
+		err = q.Scan(&g.Gappvalread, &g.Gappvalreaddate, &g.Gappvalreadsourc, &g.Gappreadtype, &g.Gappreadreason, &g.Gappreadttz, &g.Gappanomaly, &g.Gappaq, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GappreadByEquinoxLrn retrieves a row from 'equinox.gappread' as a Gappread.
 //
 // Generated from index 'gappread_pkey'.

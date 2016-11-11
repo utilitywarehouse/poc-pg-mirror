@@ -30,6 +30,37 @@ type Wlrcharg struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllWlrcharg(db XODB, callback func(x Wlrcharg) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`wlrwa, wlrw0, wlrw1, wlrw2, wlrw3, wlrw4, wlrw5, wlrw6, wlrcnf, wlrchargetype, wlrbillcnfcode, wlredrcode, wlrw0t, wlrw1t, wlrw2t, wlrw3t, wlrw4t, wlrw5t, wlrw6t, equinox_lrn, equinox_sec ` +
+		`FROM equinox.wlrcharg `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		w := Wlrcharg{}
+
+		// scan
+		err = q.Scan(&w.Wlrwa, &w.Wlrw0, &w.Wlrw1, &w.Wlrw2, &w.Wlrw3, &w.Wlrw4, &w.Wlrw5, &w.Wlrw6, &w.Wlrcnf, &w.Wlrchargetype, &w.Wlrbillcnfcode, &w.Wlredrcode, &w.Wlrw0t, &w.Wlrw1t, &w.Wlrw2t, &w.Wlrw3t, &w.Wlrw4t, &w.Wlrw5t, &w.Wlrw6t, &w.EquinoxLrn, &w.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(w) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // WlrchargByEquinoxLrn retrieves a row from 'equinox.wlrcharg' as a Wlrcharg.
 //
 // Generated from index 'wlrcharg_pkey'.

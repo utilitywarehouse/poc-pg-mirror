@@ -106,6 +106,37 @@ type Volume struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllVolume(db XODB, callback func(x Volume) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`voluniquesys, volchrgoption, volfromto, volchargetype, volminsorpounds, voldiscountorvol, volvatrate, volthresholdrat1, volthresholdrat2, volthresholdrat3, volthresholdrat4, volthresholdrat5, volthresholdrat6, volthresholdrat7, volthresholdrat8, volthresholdrat9, volthreshper1, volthreshper2, volthreshper3, volthreshper4, volthreshper5, volthreshper6, volthreshper7, volthreshper8, volthreshper9, volthreshper10, voldayopt1, voldayopt2, voldayopt3, voldayopt4, voldayopt5, voldayopt6, voldayopt7, voldayopt8, voldayopt9, voldayopt10, voldayopt11, voldayopt12, voldayopt13, voldayopt14, voldayopt15, voldayopt16, voldayopt17, voldayopt18, voldayopt19, voldayopt20, voltimeopt1, voltimeopt2, voltimeopt3, voltimeopt4, voltimeopt5, voltimeopt6, voltimeopt7, voltimeopt8, voltimeopt9, voltimeopt10, voltimeopt11, voltimeopt12, voltimeopt13, voltimeopt14, voltimeopt15, voltimeopt16, voltimeopt17, voltimeopt18, voltimeopt19, voltimeopt20, voltimestype1, voltimestype2, voltimestype3, voltimestype4, voltimestype5, voltimestype6, voltimestype7, voltimestype8, voltimestype9, voltimestype10, voltimestype11, voltimestype12, voltimestype13, voltimestype14, voltimestype15, voltimestype16, voltimestype17, voltimestype18, voltimestype19, voltimestype20, volalt, volsparec1, volsparen1, volspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.volume `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		v := Volume{}
+
+		// scan
+		err = q.Scan(&v.Voluniquesys, &v.Volchrgoption, &v.Volfromto, &v.Volchargetype, &v.Volminsorpounds, &v.Voldiscountorvol, &v.Volvatrate, &v.Volthresholdrat1, &v.Volthresholdrat2, &v.Volthresholdrat3, &v.Volthresholdrat4, &v.Volthresholdrat5, &v.Volthresholdrat6, &v.Volthresholdrat7, &v.Volthresholdrat8, &v.Volthresholdrat9, &v.Volthreshper1, &v.Volthreshper2, &v.Volthreshper3, &v.Volthreshper4, &v.Volthreshper5, &v.Volthreshper6, &v.Volthreshper7, &v.Volthreshper8, &v.Volthreshper9, &v.Volthreshper10, &v.Voldayopt1, &v.Voldayopt2, &v.Voldayopt3, &v.Voldayopt4, &v.Voldayopt5, &v.Voldayopt6, &v.Voldayopt7, &v.Voldayopt8, &v.Voldayopt9, &v.Voldayopt10, &v.Voldayopt11, &v.Voldayopt12, &v.Voldayopt13, &v.Voldayopt14, &v.Voldayopt15, &v.Voldayopt16, &v.Voldayopt17, &v.Voldayopt18, &v.Voldayopt19, &v.Voldayopt20, &v.Voltimeopt1, &v.Voltimeopt2, &v.Voltimeopt3, &v.Voltimeopt4, &v.Voltimeopt5, &v.Voltimeopt6, &v.Voltimeopt7, &v.Voltimeopt8, &v.Voltimeopt9, &v.Voltimeopt10, &v.Voltimeopt11, &v.Voltimeopt12, &v.Voltimeopt13, &v.Voltimeopt14, &v.Voltimeopt15, &v.Voltimeopt16, &v.Voltimeopt17, &v.Voltimeopt18, &v.Voltimeopt19, &v.Voltimeopt20, &v.Voltimestype1, &v.Voltimestype2, &v.Voltimestype3, &v.Voltimestype4, &v.Voltimestype5, &v.Voltimestype6, &v.Voltimestype7, &v.Voltimestype8, &v.Voltimestype9, &v.Voltimestype10, &v.Voltimestype11, &v.Voltimestype12, &v.Voltimestype13, &v.Voltimestype14, &v.Voltimestype15, &v.Voltimestype16, &v.Voltimestype17, &v.Voltimestype18, &v.Voltimestype19, &v.Voltimestype20, &v.Volalt, &v.Volsparec1, &v.Volsparen1, &v.Volspared1, &v.EquinoxPrn, &v.EquinoxLrn, &v.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(v) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // VolumeByEquinoxLrn retrieves a row from 'equinox.volume' as a Volume.
 //
 // Generated from index 'volume_pkey'.

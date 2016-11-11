@@ -18,6 +18,37 @@ type Crmsstep struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCrmsstep(db XODB, callback func(x Crmsstep) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`crmsstpno, crmsstpstartok, crmsstpdesc, crmsstpstpproc, crmsstpexec, crmsstpdepends, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.crmsstep `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Crmsstep{}
+
+		// scan
+		err = q.Scan(&c.Crmsstpno, &c.Crmsstpstartok, &c.Crmsstpdesc, &c.Crmsstpstpproc, &c.Crmsstpexec, &c.Crmsstpdepends, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CrmsstepByEquinoxLrn retrieves a row from 'equinox.crmsstep' as a Crmsstep.
 //
 // Generated from index 'crmsstep_pkey'.

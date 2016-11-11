@@ -24,6 +24,37 @@ type Gdpayer struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGdpayer(db XODB, callback func(x Gdpayer) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gdpaccno, gdpgref, gdppaiduntil, gdppaiduntilbr, gdpthisbillnett, gdpthisbillno, gdpstartdate, gdpenddate, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gdpayer `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gdpayer{}
+
+		// scan
+		err = q.Scan(&g.Gdpaccno, &g.Gdpgref, &g.Gdppaiduntil, &g.Gdppaiduntilbr, &g.Gdpthisbillnett, &g.Gdpthisbillno, &g.Gdpstartdate, &g.Gdpenddate, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GdpayerByEquinoxLrn retrieves a row from 'equinox.gdpayer' as a Gdpayer.
 //
 // Generated from index 'gdpayer_pkey'.

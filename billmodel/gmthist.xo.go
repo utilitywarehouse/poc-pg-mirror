@@ -21,6 +21,37 @@ type Gmthist struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllGmthist(db XODB, callback func(x Gmthist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gmthfiledate, gmthfilename, gmthgref, gmthdateloaded, gmthaction, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gmthist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gmthist{}
+
+		// scan
+		err = q.Scan(&g.Gmthfiledate, &g.Gmthfilename, &g.Gmthgref, &g.Gmthdateloaded, &g.Gmthaction, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GmthistByEquinoxLrn retrieves a row from 'equinox.gmthist' as a Gmthist.
 //
 // Generated from index 'gmthist_pkey'.

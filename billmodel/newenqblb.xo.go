@@ -12,6 +12,37 @@ type NewenqBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllNewenqBlb(db XODB, callback func(x NewenqBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.newenq_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		nb := NewenqBlb{}
+
+		// scan
+		err = q.Scan(&nb.BlbLrn, &nb.BlbData, &nb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(nb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // NewenqBlbByBlbLrn retrieves a row from 'equinox.newenq_blb' as a NewenqBlb.
 //
 // Generated from index 'newenq_blb_pkey'.

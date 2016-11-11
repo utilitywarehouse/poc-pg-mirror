@@ -26,6 +26,37 @@ type HsHist struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllHsHist(db XODB, callback func(x HsHist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`hs_hist_date, hs_histcost, hs_hist_rpc, hs_histcontribut, hs_histhsguide, hs_histspared1, hs_histphonetype, hs_histgoldcont, hs_hist24mcharge, hs_hist12mcharge, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.hs_hist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		hh := HsHist{}
+
+		// scan
+		err = q.Scan(&hh.HsHistDate, &hh.HsHistcost, &hh.HsHistRPC, &hh.HsHistcontribut, &hh.HsHisthsguide, &hh.HsHistspared1, &hh.HsHistphonetype, &hh.HsHistgoldcont, &hh.HsHist24mcharge, &hh.HsHist12mcharge, &hh.EquinoxPrn, &hh.EquinoxLrn, &hh.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(hh) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // HsHistByEquinoxLrn retrieves a row from 'equinox.hs_hist' as a HsHist.
 //
 // Generated from index 'hs_hist_pkey'.

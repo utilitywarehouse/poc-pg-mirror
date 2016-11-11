@@ -22,6 +22,37 @@ type Exgthdat struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllExgthdat(db XODB, callback func(x Exgthdat) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exgthdatyr, exgthdatert, exgthdatnert, exgthdatdebt, exgthdatpfact, exgthlastbilldat, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exgthdat `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exgthdat{}
+
+		// scan
+		err = q.Scan(&e.Exgthdatyr, &e.Exgthdatert, &e.Exgthdatnert, &e.Exgthdatdebt, &e.Exgthdatpfact, &e.Exgthlastbilldat, &e.EquinoxPrn, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExgthdatByEquinoxLrn retrieves a row from 'equinox.exgthdat' as a Exgthdat.
 //
 // Generated from index 'exgthdat_pkey'.

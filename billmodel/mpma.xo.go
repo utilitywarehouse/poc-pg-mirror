@@ -22,6 +22,37 @@ type Mpma struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllMpma(db XODB, callback func(x Mpma) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mpasupplierid, mpaeffsettdate, mpameterid, mpametertype, mpainstalldate, mpampanecoes, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mpma `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mpma{}
+
+		// scan
+		err = q.Scan(&m.Mpasupplierid, &m.Mpaeffsettdate, &m.Mpameterid, &m.Mpametertype, &m.Mpainstalldate, &m.Mpampanecoes, &m.EquinoxPrn, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MpmaByEquinoxLrn retrieves a row from 'equinox.mpma' as a Mpma.
 //
 // Generated from index 'mpma_pkey'.

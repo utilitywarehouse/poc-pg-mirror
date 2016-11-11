@@ -33,6 +33,37 @@ type Filesin struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllFilesin(db XODB, callback func(x Filesin) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`filesid, filesname, filesdatestamp, filestimestamp, filessizestamp, filesdatein, filestimein, filescomplete, filesfinishdate, filesfinishtime, filessummary, filestype, filesgoodcalls, filesbadcalls, filesinby, filesinsparec1, filesinsparen1, filesinspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.filesin `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		f := Filesin{}
+
+		// scan
+		err = q.Scan(&f.Filesid, &f.Filesname, &f.Filesdatestamp, &f.Filestimestamp, &f.Filessizestamp, &f.Filesdatein, &f.Filestimein, &f.Filescomplete, &f.Filesfinishdate, &f.Filesfinishtime, &f.Filessummary, &f.Filestype, &f.Filesgoodcalls, &f.Filesbadcalls, &f.Filesinby, &f.Filesinsparec1, &f.Filesinsparen1, &f.Filesinspared1, &f.EquinoxLrn, &f.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(f) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // FilesinByEquinoxLrn retrieves a row from 'equinox.filesin' as a Filesin.
 //
 // Generated from index 'filesin_pkey'.

@@ -12,6 +12,37 @@ type ParcelfBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllParcelfBlb(db XODB, callback func(x ParcelfBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.parcelf_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		pb := ParcelfBlb{}
+
+		// scan
+		err = q.Scan(&pb.BlbLrn, &pb.BlbData, &pb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(pb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ParcelfBlbByBlbLrn retrieves a row from 'equinox.parcelf_blb' as a ParcelfBlb.
 //
 // Generated from index 'parcelf_blb_pkey'.

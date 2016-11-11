@@ -12,6 +12,37 @@ type ReasnbadBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllReasnbadBlb(db XODB, callback func(x ReasnbadBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.reasnbad_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		rb := ReasnbadBlb{}
+
+		// scan
+		err = q.Scan(&rb.BlbLrn, &rb.BlbData, &rb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(rb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ReasnbadBlbByBlbLrn retrieves a row from 'equinox.reasnbad_blb' as a ReasnbadBlb.
 //
 // Generated from index 'reasnbad_blb_pkey'.

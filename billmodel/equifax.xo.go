@@ -33,6 +33,37 @@ type Equifax struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllEquifax(db XODB, callback func(x Equifax) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`equiexecid, equiappnumber, equisurname, equipostcode, equienteredby, equilasteditby, equilastediton, equidateentered, equiscore, equiregataddress, equipassorfail, equiappprocessed, equisource, equisparec1, equisparen1, equispared1, equisparem1, equisparel1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.equifax `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Equifax{}
+
+		// scan
+		err = q.Scan(&e.Equiexecid, &e.Equiappnumber, &e.Equisurname, &e.Equipostcode, &e.Equienteredby, &e.Equilasteditby, &e.Equilastediton, &e.Equidateentered, &e.Equiscore, &e.Equiregataddress, &e.Equipassorfail, &e.Equiappprocessed, &e.Equisource, &e.Equisparec1, &e.Equisparen1, &e.Equispared1, &e.Equisparem1, &e.Equisparel1, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // EquifaxByEquinoxLrn retrieves a row from 'equinox.equifax' as a Equifax.
 //
 // Generated from index 'equifax_pkey'.

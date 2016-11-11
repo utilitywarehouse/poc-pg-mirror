@@ -20,6 +20,37 @@ type Taskdest struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllTaskdest(db XODB, callback func(x Taskdest) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`taskdest_name, taskdest_manager, taskdest_howlate, taskdest_sparec1, taskdest_email, taskdest_sparen1, taskdest_noemail, taskdest_sparem1, taskdest_suspend, equinox_lrn, equinox_sec ` +
+		`FROM equinox.taskdest `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Taskdest{}
+
+		// scan
+		err = q.Scan(&t.TaskdestName, &t.TaskdestManager, &t.TaskdestHowlate, &t.TaskdestSparec1, &t.TaskdestEmail, &t.TaskdestSparen1, &t.TaskdestNoemail, &t.TaskdestSparem1, &t.TaskdestSuspend, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TaskdestByEquinoxLrn retrieves a row from 'equinox.taskdest' as a Taskdest.
 //
 // Generated from index 'taskdest_pkey'.

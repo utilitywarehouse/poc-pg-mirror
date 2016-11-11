@@ -24,6 +24,37 @@ type Gdpledge struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllGdpledge(db XODB, callback func(x Gdpledge) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gdpldate, gdpldatefrom, gdpldateto, gdpldays, gdplremprovid, gdplrate, gdpltotal, gdplbillno, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gdpledge `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gdpledge{}
+
+		// scan
+		err = q.Scan(&g.Gdpldate, &g.Gdpldatefrom, &g.Gdpldateto, &g.Gdpldays, &g.Gdplremprovid, &g.Gdplrate, &g.Gdpltotal, &g.Gdplbillno, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GdpledgeByEquinoxLrn retrieves a row from 'equinox.gdpledge' as a Gdpledge.
 //
 // Generated from index 'gdpledge_pkey'.

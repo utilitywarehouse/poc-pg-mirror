@@ -24,6 +24,37 @@ type Smartpan struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllSmartpan(db XODB, callback func(x Smartpan) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`spanpan, spanaccno, spanmpxn, spanallocated, spansource, spanspares1, spanspared1, spanspared2, spansparen1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.smartpan `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Smartpan{}
+
+		// scan
+		err = q.Scan(&s.Spanpan, &s.Spanaccno, &s.Spanmpxn, &s.Spanallocated, &s.Spansource, &s.Spanspares1, &s.Spanspared1, &s.Spanspared2, &s.Spansparen1, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SmartpanByEquinoxLrn retrieves a row from 'equinox.smartpan' as a Smartpan.
 //
 // Generated from index 'smartpan_pkey'.

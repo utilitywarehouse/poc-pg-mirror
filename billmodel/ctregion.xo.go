@@ -78,6 +78,37 @@ type Ctregion struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllCtregion(db XODB, callback func(x Ctregion) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ctregdate, ctregionname, ctregaq, ctreggdeac, ctrege7eac, ctrege7eac1, ctrege7eac2, ctregtpgas, ctregtpgd, ctregtpe7, ctregrevgas, ctregrevgasb, ctregrevgasdb, ctregrevelec, ctregrevelecb, ctregrevelecdb, ctregreve7, ctregreve7b, ctregreve7db, ctregtotalrev, ctregtotalrevb, ctregtotalrevdb, ctregaql, ctregaqb, ctregaqdb, ctregnumaql, ctregnumaqb, ctregnumaqdb, ctregaqs, ctregnumaqs, ctregaqh, ctregnumaqh, ctregeacl, ctregeacb, ctregeacdb, ctregnumeacl, ctregnumeacb, ctregnumeacdb, ctregeacs, ctregnumeacs, ctregeach, ctregnumeach, ctregeac1l, ctregeac1b, ctregeac1db, ctregeac2l, ctregeac2b, ctregeac2db, ctregnume7l, ctregnume7b, ctregnume7db, ctregeac1s, ctregeac2s, ctregnume7s, ctregeac1h, ctregeac2h, ctregnume7h, ctregn1, ctregn2, ctregchar1, ctregchar2, ctregd1, ctregd2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ctregion `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Ctregion{}
+
+		// scan
+		err = q.Scan(&c.Ctregdate, &c.Ctregionname, &c.Ctregaq, &c.Ctreggdeac, &c.Ctrege7eac, &c.Ctrege7eac1, &c.Ctrege7eac2, &c.Ctregtpgas, &c.Ctregtpgd, &c.Ctregtpe7, &c.Ctregrevgas, &c.Ctregrevgasb, &c.Ctregrevgasdb, &c.Ctregrevelec, &c.Ctregrevelecb, &c.Ctregrevelecdb, &c.Ctregreve7, &c.Ctregreve7b, &c.Ctregreve7db, &c.Ctregtotalrev, &c.Ctregtotalrevb, &c.Ctregtotalrevdb, &c.Ctregaql, &c.Ctregaqb, &c.Ctregaqdb, &c.Ctregnumaql, &c.Ctregnumaqb, &c.Ctregnumaqdb, &c.Ctregaqs, &c.Ctregnumaqs, &c.Ctregaqh, &c.Ctregnumaqh, &c.Ctregeacl, &c.Ctregeacb, &c.Ctregeacdb, &c.Ctregnumeacl, &c.Ctregnumeacb, &c.Ctregnumeacdb, &c.Ctregeacs, &c.Ctregnumeacs, &c.Ctregeach, &c.Ctregnumeach, &c.Ctregeac1l, &c.Ctregeac1b, &c.Ctregeac1db, &c.Ctregeac2l, &c.Ctregeac2b, &c.Ctregeac2db, &c.Ctregnume7l, &c.Ctregnume7b, &c.Ctregnume7db, &c.Ctregeac1s, &c.Ctregeac2s, &c.Ctregnume7s, &c.Ctregeac1h, &c.Ctregeac2h, &c.Ctregnume7h, &c.Ctregn1, &c.Ctregn2, &c.Ctregchar1, &c.Ctregchar2, &c.Ctregd1, &c.Ctregd2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CtregionByEquinoxLrn retrieves a row from 'equinox.ctregion' as a Ctregion.
 //
 // Generated from index 'ctregion_pkey'.

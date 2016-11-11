@@ -40,6 +40,37 @@ type Sledger struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllSledger(db XODB, callback func(x Sledger) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`slaccountno, sloutstanding, slonledger, slonprepay, slarchivedate, slcomments, sldebits, sldebititems, slcredits, slcredititems, sldeposits, slrecalc, slearliestitem, sllatestitem, slosinvoices, slnettp, slvattp, slnetgp, slvatgp, slnetep, slvatep, slnettotal, slvattotal, slgpover3, slepover3, equinox_lrn, equinox_sec ` +
+		`FROM equinox.sledger `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Sledger{}
+
+		// scan
+		err = q.Scan(&s.Slaccountno, &s.Sloutstanding, &s.Slonledger, &s.Slonprepay, &s.Slarchivedate, &s.Slcomments, &s.Sldebits, &s.Sldebititems, &s.Slcredits, &s.Slcredititems, &s.Sldeposits, &s.Slrecalc, &s.Slearliestitem, &s.Sllatestitem, &s.Slosinvoices, &s.Slnettp, &s.Slvattp, &s.Slnetgp, &s.Slvatgp, &s.Slnetep, &s.Slvatep, &s.Slnettotal, &s.Slvattotal, &s.Slgpover3, &s.Slepover3, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SledgerByEquinoxLrn retrieves a row from 'equinox.sledger' as a Sledger.
 //
 // Generated from index 'sledger_pkey'.

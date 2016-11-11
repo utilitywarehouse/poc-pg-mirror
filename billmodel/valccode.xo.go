@@ -31,6 +31,37 @@ type Valccode struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllValccode(db XODB, callback func(x Valccode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`valcfieldname, valcrange, valcvalue, valcdatatype, valcoperation, valcmandatory, valcfillblank, valcmacrouse, valcmacrobf, valcmacroaf, valcmacroerror, valcdatefrom, valcdateto, valcdateentered, valcenteredby, valcid, equinox_lrn, equinox_sec ` +
+		`FROM equinox.valccode `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		v := Valccode{}
+
+		// scan
+		err = q.Scan(&v.Valcfieldname, &v.Valcrange, &v.Valcvalue, &v.Valcdatatype, &v.Valcoperation, &v.Valcmandatory, &v.Valcfillblank, &v.Valcmacrouse, &v.Valcmacrobf, &v.Valcmacroaf, &v.Valcmacroerror, &v.Valcdatefrom, &v.Valcdateto, &v.Valcdateentered, &v.Valcenteredby, &v.Valcid, &v.EquinoxLrn, &v.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(v) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ValccodeByEquinoxLrn retrieves a row from 'equinox.valccode' as a Valccode.
 //
 // Generated from index 'valccode_pkey'.

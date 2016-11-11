@@ -34,6 +34,37 @@ type Sim struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllSim(db XODB, callback func(x Sim) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`simcli, simserialnumber, simpuk, simpin, simcost, simaccoutnumber, simdateallocated, simmpcstatus, simmpcstatusdate, simoriginalcli, simimsi, simsparec1, simsparen1, simspared1, simtype, simstatus, simexecid, simlocation, simappformno, equinox_lrn, equinox_sec ` +
+		`FROM equinox.sim `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		s := Sim{}
+
+		// scan
+		err = q.Scan(&s.Simcli, &s.Simserialnumber, &s.Simpuk, &s.Simpin, &s.Simcost, &s.Simaccoutnumber, &s.Simdateallocated, &s.Simmpcstatus, &s.Simmpcstatusdate, &s.Simoriginalcli, &s.Simimsi, &s.Simsparec1, &s.Simsparen1, &s.Simspared1, &s.Simtype, &s.Simstatus, &s.Simexecid, &s.Simlocation, &s.Simappformno, &s.EquinoxLrn, &s.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(s) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // SimByEquinoxLrn retrieves a row from 'equinox.sim' as a Sim.
 //
 // Generated from index 'sim_pkey'.

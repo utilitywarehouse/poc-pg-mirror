@@ -34,6 +34,37 @@ type Charge struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCharge(db XODB, callback func(x Charge) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`chguniquesys, chgdate, chgdescription, chgnet, chgvatstd, chgvatnrg, chgtotal, chgbillno, chgbillperiod, chgprobcode, chgostotal, chgosvatstd, chgosvatnrg, chgosnet, chdmemo, chgsparec1, chgsparen1, chgspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.charges `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Charge{}
+
+		// scan
+		err = q.Scan(&c.Chguniquesys, &c.Chgdate, &c.Chgdescription, &c.Chgnet, &c.Chgvatstd, &c.Chgvatnrg, &c.Chgtotal, &c.Chgbillno, &c.Chgbillperiod, &c.Chgprobcode, &c.Chgostotal, &c.Chgosvatstd, &c.Chgosvatnrg, &c.Chgosnet, &c.Chdmemo, &c.Chgsparec1, &c.Chgsparen1, &c.Chgspared1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ChargeByEquinoxLrn retrieves a row from 'equinox.charges' as a Charge.
 //
 // Generated from index 'charges_pkey'.

@@ -37,6 +37,37 @@ type Ppmtran struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllPpmtran(db XODB, callback func(x Ppmtran) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ppmtdate, ppmttime, ppmtamount, ppmtusenet, ppmtusevat, ppmtnrgdebtpay, ppmtnnrgdebypay, ppmtoutlet, ppmtreading, ppmtrtariff, ppmtrtariffdate, ppmtnrgdebt, ppmtnnrgdebt, ppmtcalog, ppmtnrgdlog, ppmtnnrgdlog, ppmtrecrate, ppmttransactid, ppmtgreference, ppmtsparen1, ppmtspared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ppmtrans `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Ppmtran{}
+
+		// scan
+		err = q.Scan(&p.Ppmtdate, &p.Ppmttime, &p.Ppmtamount, &p.Ppmtusenet, &p.Ppmtusevat, &p.Ppmtnrgdebtpay, &p.Ppmtnnrgdebypay, &p.Ppmtoutlet, &p.Ppmtreading, &p.Ppmtrtariff, &p.Ppmtrtariffdate, &p.Ppmtnrgdebt, &p.Ppmtnnrgdebt, &p.Ppmtcalog, &p.Ppmtnrgdlog, &p.Ppmtnnrgdlog, &p.Ppmtrecrate, &p.Ppmttransactid, &p.Ppmtgreference, &p.Ppmtsparen1, &p.Ppmtspared1, &p.EquinoxPrn, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PpmtranByEquinoxLrn retrieves a row from 'equinox.ppmtrans' as a Ppmtran.
 //
 // Generated from index 'ppmtrans_pkey'.

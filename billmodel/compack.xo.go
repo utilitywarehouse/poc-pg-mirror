@@ -24,6 +24,37 @@ type Compack struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCompack(db XODB, callback func(x Compack) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cpnumber, cpdescription, cptype, cpbands, cpbillinggroup, cpratingtype, cpnondddiscount, cpaccelbonus, cpsubtariffband, cpzeroothercalls, cpsparenum2, cpsparec1, cpsparec2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.compack `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Compack{}
+
+		// scan
+		err = q.Scan(&c.Cpnumber, &c.Cpdescription, &c.Cptype, &c.Cpbands, &c.Cpbillinggroup, &c.Cpratingtype, &c.Cpnondddiscount, &c.Cpaccelbonus, &c.Cpsubtariffband, &c.Cpzeroothercalls, &c.Cpsparenum2, &c.Cpsparec1, &c.Cpsparec2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CompackByEquinoxLrn retrieves a row from 'equinox.compack' as a Compack.
 //
 // Generated from index 'compack_pkey'.

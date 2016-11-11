@@ -45,6 +45,37 @@ type Gusedom struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllGusedom(db XODB, callback func(x Gusedom) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`guduniquesys, guddate, gudpercentaqused, guderead, gudaread, gudcread, gudreading, gudreadtype, gudthroughzero, gudmeterexchange, gudpercentaq, gudkwhused, gudregister, gudbilled, gudtypeimpormet, gudmeterdials, gudmeterunits, gudsparen1, gudmeterserialno, gudopusreading, gudsendtotransco, gudsend, gudsuppressread, gudppkwh, gudcv, gudnett, gudunits, gudsupreadarb, gudtariff, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gusedom `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gusedom{}
+
+		// scan
+		err = q.Scan(&g.Guduniquesys, &g.Guddate, &g.Gudpercentaqused, &g.Guderead, &g.Gudaread, &g.Gudcread, &g.Gudreading, &g.Gudreadtype, &g.Gudthroughzero, &g.Gudmeterexchange, &g.Gudpercentaq, &g.Gudkwhused, &g.Gudregister, &g.Gudbilled, &g.Gudtypeimpormet, &g.Gudmeterdials, &g.Gudmeterunits, &g.Gudsparen1, &g.Gudmeterserialno, &g.Gudopusreading, &g.Gudsendtotransco, &g.Gudsend, &g.Gudsuppressread, &g.Gudppkwh, &g.Gudcv, &g.Gudnett, &g.Gudunits, &g.Gudsupreadarb, &g.Gudtariff, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GusedomsByEquinoxPrnGuddate retrieves a row from 'equinox.gusedom' as a Gusedom.
 //
 // Generated from index 'gu_prm_guddate'.

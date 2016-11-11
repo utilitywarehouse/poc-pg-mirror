@@ -27,6 +27,37 @@ type Landreg struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllLandreg(db XODB, callback func(x Landreg) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`lr_custref, lr_surname, lr_postcode, lr_a_matchresult, lr_titleno, lr_n_matchresult, lr_date_out, lr_date_in, lr_billreference, lr_commisvalue, lr_qty, lr_memo, equinox_lrn, equinox_sec ` +
+		`FROM equinox.landreg `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		l := Landreg{}
+
+		// scan
+		err = q.Scan(&l.LrCustref, &l.LrSurname, &l.LrPostcode, &l.LrAMatchresult, &l.LrTitleno, &l.LrNMatchresult, &l.LrDateOut, &l.LrDateIn, &l.LrBillreference, &l.LrCommisvalue, &l.LrQty, &l.LrMemo, &l.EquinoxLrn, &l.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(l) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LandregByEquinoxLrn retrieves a row from 'equinox.landreg' as a Landreg.
 //
 // Generated from index 'landreg_pkey'.

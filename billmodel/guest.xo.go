@@ -19,6 +19,37 @@ type Guest struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllGuest(db XODB, callback func(x Guest) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`guest_exp_id, guest_name, guest_regd, guest_memo, guest_execid, guest_group, guest_seminar, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.guest `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Guest{}
+
+		// scan
+		err = q.Scan(&g.GuestExpID, &g.GuestName, &g.GuestRegd, &g.GuestMemo, &g.GuestExecid, &g.GuestGroup, &g.GuestSeminar, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GuestByEquinoxLrn retrieves a row from 'equinox.guest' as a Guest.
 //
 // Generated from index 'guest_pkey'.

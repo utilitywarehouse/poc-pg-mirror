@@ -30,6 +30,37 @@ type Exgth struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllExgth(db XODB, callback func(x Exgth) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`exgthid, exgthname, exgthex0080, exgthex0081, exgthpenergy, exgthptenants, exgthfrstupgd, exgthfrstupmd, exgthfrstupsmd, exgthfrstupnmd, exgthstartdate, exgthtotalgath, exgthtotallive, exgthtotaldead, exgthenddate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exgth `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exgth{}
+
+		// scan
+		err = q.Scan(&e.Exgthid, &e.Exgthname, &e.Exgthex0080, &e.Exgthex0081, &e.Exgthpenergy, &e.Exgthptenants, &e.Exgthfrstupgd, &e.Exgthfrstupmd, &e.Exgthfrstupsmd, &e.Exgthfrstupnmd, &e.Exgthstartdate, &e.Exgthtotalgath, &e.Exgthtotallive, &e.Exgthtotaldead, &e.Exgthenddate, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExgthByEquinoxLrn retrieves a row from 'equinox.exgth' as a Exgth.
 //
 // Generated from index 'exgth_pkey'.

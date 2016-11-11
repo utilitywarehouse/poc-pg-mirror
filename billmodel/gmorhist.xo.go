@@ -20,6 +20,37 @@ type Gmorhist struct {
 	EquinoxSec sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllGmorhist(db XODB, callback func(x Gmorhist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`gmohdate, gmohdtime, gmohaction, gmohnotes, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.gmorhist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Gmorhist{}
+
+		// scan
+		err = q.Scan(&g.Gmohdate, &g.Gmohdtime, &g.Gmohaction, &g.Gmohnotes, &g.EquinoxPrn, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GmorhistByEquinoxLrn retrieves a row from 'equinox.gmorhist' as a Gmorhist.
 //
 // Generated from index 'gmorhist_pkey'.

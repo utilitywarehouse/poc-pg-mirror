@@ -36,6 +36,37 @@ type Content struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllContent(db XODB, callback func(x Content) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cntid, cnttitle, cntbody, cntdestination, cntoriginator, cntcc, cntbc, cntcategory, cntlastchange, cntdateadded, cntparentid, cntversion, cntlastreview, cntdept, cntteam, cntlastused, cntnextreview, cntproposed, cntinuse, cntletterid, cntbounceaction, equinox_lrn, equinox_sec ` +
+		`FROM equinox.content `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Content{}
+
+		// scan
+		err = q.Scan(&c.Cntid, &c.Cnttitle, &c.Cntbody, &c.Cntdestination, &c.Cntoriginator, &c.Cntcc, &c.Cntbc, &c.Cntcategory, &c.Cntlastchange, &c.Cntdateadded, &c.Cntparentid, &c.Cntversion, &c.Cntlastreview, &c.Cntdept, &c.Cntteam, &c.Cntlastused, &c.Cntnextreview, &c.Cntproposed, &c.Cntinuse, &c.Cntletterid, &c.Cntbounceaction, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ContentByEquinoxLrn retrieves a row from 'equinox.content' as a Content.
 //
 // Generated from index 'content_pkey'.

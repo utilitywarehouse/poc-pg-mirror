@@ -37,6 +37,37 @@ type Tmlband struct {
 	EquinoxSec      sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllTmlband(db XODB, callback func(x Tmlband) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tmlbands_code, tmlbands_desc, tmlbands_term, tmlbands_disc, tmlbands_analog, tmlbands_isdn2, tmlbands_isdn30, tmlbands_suspend, tmlbands_notes, tmlbands_grp1, tmlbands_grp2, tmlbands_grp3, tmlbands_grp4, tmlbands_groups, tmlbands_comid, tmlbands_sparec1, tmlbands_sparec2, tmlbands_sparec3, tmlbands_sparen1, tmlbands_sparen2, tmlbands_sparen3, tmlbands_spared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tmlbands `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tmlband{}
+
+		// scan
+		err = q.Scan(&t.TmlbandsCode, &t.TmlbandsDesc, &t.TmlbandsTerm, &t.TmlbandsDisc, &t.TmlbandsAnalog, &t.TmlbandsIsdn2, &t.TmlbandsIsdn30, &t.TmlbandsSuspend, &t.TmlbandsNotes, &t.TmlbandsGrp1, &t.TmlbandsGrp2, &t.TmlbandsGrp3, &t.TmlbandsGrp4, &t.TmlbandsGroups, &t.TmlbandsComid, &t.TmlbandsSparec1, &t.TmlbandsSparec2, &t.TmlbandsSparec3, &t.TmlbandsSparen1, &t.TmlbandsSparen2, &t.TmlbandsSparen3, &t.TmlbandsSpared1, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TmlbandByEquinoxLrn retrieves a row from 'equinox.tmlbands' as a Tmlband.
 //
 // Generated from index 'tmlbands_pkey'.

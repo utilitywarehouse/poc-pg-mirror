@@ -21,6 +21,37 @@ type O2recon struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllO2recon(db XODB, callback func(x O2recon) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`o2_cli, o2_sim, o2_status, o2_lastchgdate, o2_lastchgtype, o2_servoptions, equinox_lrn, equinox_sec ` +
+		`FROM equinox.o2recon `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		o := O2recon{}
+
+		// scan
+		err = q.Scan(&o.O2Cli, &o.O2Sim, &o.O2Status, &o.O2Lastchgdate, &o.O2Lastchgtype, &o.O2Servoptions, &o.EquinoxLrn, &o.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(o) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // O2reconByEquinoxLrn retrieves a row from 'equinox.o2recon' as a O2recon.
 //
 // Generated from index 'o2recon_pkey'.

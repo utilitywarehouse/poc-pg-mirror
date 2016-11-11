@@ -12,6 +12,37 @@ type DeptmntBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllDeptmntBlb(db XODB, callback func(x DeptmntBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.deptmnt_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		dbVal := DeptmntBlb{}
+
+		// scan
+		err = q.Scan(&dbVal.BlbLrn, &dbVal.BlbData, &dbVal.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(dbVal) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // DeptmntBlbByBlbLrn retrieves a row from 'equinox.deptmnt_blb' as a DeptmntBlb.
 //
 // Generated from index 'deptmnt_blb_pkey'.

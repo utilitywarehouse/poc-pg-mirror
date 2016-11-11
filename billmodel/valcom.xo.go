@@ -31,6 +31,37 @@ type Valcom struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllValcom(db XODB, callback func(x Valcom) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`vcomfield, vcomrange, vcomvalue, vcomdatatype, vcomoperation, vcomdatefrom, vcomdateto, vcommandatory, vcomfillblank, vcomdateentered, vcomenteredby, vcommacrouse, vcommacrobf, vcommacroaf, vcomerror, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.valcom `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		v := Valcom{}
+
+		// scan
+		err = q.Scan(&v.Vcomfield, &v.Vcomrange, &v.Vcomvalue, &v.Vcomdatatype, &v.Vcomoperation, &v.Vcomdatefrom, &v.Vcomdateto, &v.Vcommandatory, &v.Vcomfillblank, &v.Vcomdateentered, &v.Vcomenteredby, &v.Vcommacrouse, &v.Vcommacrobf, &v.Vcommacroaf, &v.Vcomerror, &v.EquinoxPrn, &v.EquinoxLrn, &v.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(v) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ValcomByEquinoxLrn retrieves a row from 'equinox.valcom' as a Valcom.
 //
 // Generated from index 'valcom_pkey'.

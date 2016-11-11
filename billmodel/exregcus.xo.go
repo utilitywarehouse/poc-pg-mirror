@@ -19,6 +19,37 @@ type Exregcus struct {
 	EquinoxSec   sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllExregcus(db XODB, callback func(x Exregcus) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`erc_exid, erc_custaccno, erc_regdate, erc_livedate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.exregcus `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		e := Exregcus{}
+
+		// scan
+		err = q.Scan(&e.ErcExid, &e.ErcCustaccno, &e.ErcRegdate, &e.ErcLivedate, &e.EquinoxLrn, &e.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(e) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // ExregcusByEquinoxLrn retrieves a row from 'equinox.exregcus' as a Exregcus.
 //
 // Generated from index 'exregcus_pkey'.

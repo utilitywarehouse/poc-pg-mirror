@@ -25,6 +25,37 @@ type Ctfixed struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCtfixed(db XODB, callback func(x Ctfixed) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ctfixeduser, ctfixedscgd, ctfixedgdrate, ctfixedsce7, ctfixede7r1, ctfixede7r2, ctfixedscgas, ctfixedgasrate, ctfixedannualg, ctfixedannuale, ctfixedannuald, ctfixedannualde7, ctfixedn1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ctfixed `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Ctfixed{}
+
+		// scan
+		err = q.Scan(&c.Ctfixeduser, &c.Ctfixedscgd, &c.Ctfixedgdrate, &c.Ctfixedsce7, &c.Ctfixede7r1, &c.Ctfixede7r2, &c.Ctfixedscgas, &c.Ctfixedgasrate, &c.Ctfixedannualg, &c.Ctfixedannuale, &c.Ctfixedannuald, &c.Ctfixedannualde7, &c.Ctfixedn1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CtfixedByEquinoxLrn retrieves a row from 'equinox.ctfixed' as a Ctfixed.
 //
 // Generated from index 'ctfixed_pkey'.

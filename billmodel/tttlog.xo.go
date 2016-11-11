@@ -29,6 +29,37 @@ type Tttlog struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllTttlog(db XODB, callback func(x Tttlog) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`tttprodtype, tttsearchtype, tttsource, tttsearchdata, tttsearchdate, tttsearchtime, tttoverallresp, tttadvcode, tttadvmsg, tttactcode, tttactmsg, tttforecastdate, tttexchname, tttexchcode, equinox_lrn, equinox_sec ` +
+		`FROM equinox.tttlog `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		t := Tttlog{}
+
+		// scan
+		err = q.Scan(&t.Tttprodtype, &t.Tttsearchtype, &t.Tttsource, &t.Tttsearchdata, &t.Tttsearchdate, &t.Tttsearchtime, &t.Tttoverallresp, &t.Tttadvcode, &t.Tttadvmsg, &t.Tttactcode, &t.Tttactmsg, &t.Tttforecastdate, &t.Tttexchname, &t.Tttexchcode, &t.EquinoxLrn, &t.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(t) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // TttlogByEquinoxLrn retrieves a row from 'equinox.tttlog' as a Tttlog.
 //
 // Generated from index 'tttlog_pkey'.

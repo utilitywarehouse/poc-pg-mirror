@@ -20,6 +20,37 @@ type Cnxwserv struct {
 	EquinoxSec     sql.NullInt64  `json:"equinox_sec"`    // equinox_sec
 }
 
+func AllCnxwserv(db XODB, callback func(x Cnxwserv) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`cnxwsservice, cnxwsstartdate, cnxwsenddate, cnxwsoptid, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.cnxwserv `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Cnxwserv{}
+
+		// scan
+		err = q.Scan(&c.Cnxwsservice, &c.Cnxwsstartdate, &c.Cnxwsenddate, &c.Cnxwsoptid, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CnxwservByEquinoxLrn retrieves a row from 'equinox.cnxwserv' as a Cnxwserv.
 //
 // Generated from index 'cnxwserv_pkey'.

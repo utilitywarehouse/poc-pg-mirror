@@ -36,6 +36,37 @@ type Custopt struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCustopt(db XODB, callback func(x Custopt) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`custrmoptid, custrmsetup, custrmmonthly, custrmfreemins, custrmstartdate, custrmenddate, custrmpaiduntil, custrmpayuntil, custrmprorata, custrmmonthsadv, custrmoneoffbill, custrmspecdeal, custrmpduntilbr, custrmsparec1, custrmspared1, custrmdiscband, custrmdiscpercen, custrmwlrorder, custrmquantity, custrmsparen1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.custopts `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Custopt{}
+
+		// scan
+		err = q.Scan(&c.Custrmoptid, &c.Custrmsetup, &c.Custrmmonthly, &c.Custrmfreemins, &c.Custrmstartdate, &c.Custrmenddate, &c.Custrmpaiduntil, &c.Custrmpayuntil, &c.Custrmprorata, &c.Custrmmonthsadv, &c.Custrmoneoffbill, &c.Custrmspecdeal, &c.Custrmpduntilbr, &c.Custrmsparec1, &c.Custrmspared1, &c.Custrmdiscband, &c.Custrmdiscpercen, &c.Custrmwlrorder, &c.Custrmquantity, &c.Custrmsparen1, &c.EquinoxPrn, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CustoptByEquinoxLrn retrieves a row from 'equinox.custopts' as a Custopt.
 //
 // Generated from index 'custopts_pkey'.

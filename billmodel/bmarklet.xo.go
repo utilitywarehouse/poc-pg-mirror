@@ -16,6 +16,37 @@ type Bmarklet struct {
 	EquinoxSec  sql.NullInt64  `json:"equinox_sec"` // equinox_sec
 }
 
+func AllBmarklet(db XODB, callback func(x Bmarklet) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`bmcode, bmname, bmvalue, bmlongvalue, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.bmarklet `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		b := Bmarklet{}
+
+		// scan
+		err = q.Scan(&b.Bmcode, &b.Bmname, &b.Bmvalue, &b.Bmlongvalue, &b.EquinoxPrn, &b.EquinoxLrn, &b.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(b) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // BmarkletByEquinoxLrn retrieves a row from 'equinox.bmarklet' as a Bmarklet.
 //
 // Generated from index 'bmarklet_pkey'.

@@ -22,6 +22,37 @@ type Pickcode struct {
 	EquinoxSec    sql.NullInt64   `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllPickcode(db XODB, callback func(x Pickcode) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`pickcodecode, pickcodedesc, pickenteredby, pickcodepromo, picksparec1, picksparen1, pickspared1, equinox_lrn, equinox_sec ` +
+		`FROM equinox.pickcode `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		p := Pickcode{}
+
+		// scan
+		err = q.Scan(&p.Pickcodecode, &p.Pickcodedesc, &p.Pickenteredby, &p.Pickcodepromo, &p.Picksparec1, &p.Picksparen1, &p.Pickspared1, &p.EquinoxLrn, &p.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(p) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // PickcodeByEquinoxLrn retrieves a row from 'equinox.pickcode' as a Pickcode.
 //
 // Generated from index 'pickcode_pkey'.

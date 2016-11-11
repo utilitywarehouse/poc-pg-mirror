@@ -22,6 +22,37 @@ type Mobhist struct {
 	EquinoxSec     sql.NullInt64   `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllMobhist(db XODB, callback func(x Mobhist) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mobhist_code, mobhist_date, mobhist_account, mobhist_sparec1, mobhist_sparen1, mobhist_spared1, equinox_prn, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mobhist `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mobhist{}
+
+		// scan
+		err = q.Scan(&m.MobhistCode, &m.MobhistDate, &m.MobhistAccount, &m.MobhistSparec1, &m.MobhistSparen1, &m.MobhistSpared1, &m.EquinoxPrn, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MobhistByEquinoxLrn retrieves a row from 'equinox.mobhist' as a Mobhist.
 //
 // Generated from index 'mobhist_pkey'.

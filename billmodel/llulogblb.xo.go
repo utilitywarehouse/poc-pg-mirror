@@ -12,6 +12,37 @@ type LlulogBlb struct {
 	BlbText sql.NullString `json:"blb_text"` // blb_text
 }
 
+func AllLlulogBlb(db XODB, callback func(x LlulogBlb) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`blb_lrn, blb_data, blb_text ` +
+		`FROM equinox.llulog_blb `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		lb := LlulogBlb{}
+
+		// scan
+		err = q.Scan(&lb.BlbLrn, &lb.BlbData, &lb.BlbText)
+		if err != nil {
+			return err
+		}
+		if !callback(lb) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // LlulogBlbByBlbLrn retrieves a row from 'equinox.llulog_blb' as a LlulogBlb.
 //
 // Generated from index 'llulog_blb_pkey'.

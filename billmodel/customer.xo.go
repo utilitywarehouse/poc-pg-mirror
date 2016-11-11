@@ -154,6 +154,37 @@ type Customer struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCustomer(db XODB, callback func(x Customer) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`custaccountno, custname, custconttitle, custcontinitials, custcontfirstnam, custcontsurname, custcampaign, custdob, custadd1, custadd2, custadd3, custadd4, custcounty, custpostcode, custphone, custfax, custmobile, custemail, custinvtitle, custinvinitials, custinvfirstname, custinvsurname, custbillingmsgs, custrafpaid, custinvadd1, custinvadd2, custinvadd3, custinvadd4, custinvcounty, custinvpostcode, custinvphone, custinvfax, custinvmobile, custinvemail, custbillinggroup, custnextbillno, custlastbilldate, custpaidfirstbil, custbilldelivery, custcardcashbak, custcgacvd, custgoodwillcred, custaffcashbak, custshareholding, custdeposits, custsurcharge, custautobarflag, custautobardate, custautobarend, custrating, custcomments, custitemisecalls, custexecid, custdobccsource, custclublevel, custdateentered, custlivedate, custenddate, custbanksort, custbankaccno, custbankaccname, custbankddref, custpaymethod, custauddisdate, custstatus, cust100poundflag, custoutstanding, custorigbillgrp, custcorporate, custcorppackage, custmemberfee, custcgbpaid, custhighincome, custcgbclaw, custdobccdate, custvexecid, custservices, custconnservices, custdebtdate, custdebtagency, custbillsuppress, cust2cgbpaid, custccnumber, custcctype, custccstartdate, custccenddate, custccissue, custfreecalls, custspecialneeds, custoriginalexec, custpsr, custpassword, custgreendeal, custdeliverto, custenteredby, custc4bcontend, custsentgocd, custnomarketing, custtotps, custservicelvl, custexportflag, custclubjoindate, custprotectfee, custclubdiscount, custishomemover, custcashback, custcorpuser, custcommitment01, custcommitment02, custcommitment03, custdebtservices, custrequiresrmr, custpiggybondpay, custdob2, custclubupgrade, custreferral, custrefreward, custrefdiscount, custrefcount, custownortenant, custtoteligsvs, custescalation, custnewtenant, custiscou, custarchivedate, custrepservices, custemaildate, custeligiblesvs, custmyaccount, custspared1, custgoldsince, custvoucher, custshopperref, custsupportingid, custrafpaidan, custtotalspend, custnewppmonly, custlinkaccount, custvirtexecid, equinox_lrn, equinox_sec ` +
+		`FROM equinox.customer `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Customer{}
+
+		// scan
+		err = q.Scan(&c.Custaccountno, &c.Custname, &c.Custconttitle, &c.Custcontinitials, &c.Custcontfirstnam, &c.Custcontsurname, &c.Custcampaign, &c.Custdob, &c.Custadd1, &c.Custadd2, &c.Custadd3, &c.Custadd4, &c.Custcounty, &c.Custpostcode, &c.Custphone, &c.Custfax, &c.Custmobile, &c.Custemail, &c.Custinvtitle, &c.Custinvinitials, &c.Custinvfirstname, &c.Custinvsurname, &c.Custbillingmsgs, &c.Custrafpaid, &c.Custinvadd1, &c.Custinvadd2, &c.Custinvadd3, &c.Custinvadd4, &c.Custinvcounty, &c.Custinvpostcode, &c.Custinvphone, &c.Custinvfax, &c.Custinvmobile, &c.Custinvemail, &c.Custbillinggroup, &c.Custnextbillno, &c.Custlastbilldate, &c.Custpaidfirstbil, &c.Custbilldelivery, &c.Custcardcashbak, &c.Custcgacvd, &c.Custgoodwillcred, &c.Custaffcashbak, &c.Custshareholding, &c.Custdeposits, &c.Custsurcharge, &c.Custautobarflag, &c.Custautobardate, &c.Custautobarend, &c.Custrating, &c.Custcomments, &c.Custitemisecalls, &c.Custexecid, &c.Custdobccsource, &c.Custclublevel, &c.Custdateentered, &c.Custlivedate, &c.Custenddate, &c.Custbanksort, &c.Custbankaccno, &c.Custbankaccname, &c.Custbankddref, &c.Custpaymethod, &c.Custauddisdate, &c.Custstatus, &c.Cust100poundflag, &c.Custoutstanding, &c.Custorigbillgrp, &c.Custcorporate, &c.Custcorppackage, &c.Custmemberfee, &c.Custcgbpaid, &c.Custhighincome, &c.Custcgbclaw, &c.Custdobccdate, &c.Custvexecid, &c.Custservices, &c.Custconnservices, &c.Custdebtdate, &c.Custdebtagency, &c.Custbillsuppress, &c.Cust2cgbpaid, &c.Custccnumber, &c.Custcctype, &c.Custccstartdate, &c.Custccenddate, &c.Custccissue, &c.Custfreecalls, &c.Custspecialneeds, &c.Custoriginalexec, &c.Custpsr, &c.Custpassword, &c.Custgreendeal, &c.Custdeliverto, &c.Custenteredby, &c.Custc4bcontend, &c.Custsentgocd, &c.Custnomarketing, &c.Custtotps, &c.Custservicelvl, &c.Custexportflag, &c.Custclubjoindate, &c.Custprotectfee, &c.Custclubdiscount, &c.Custishomemover, &c.Custcashback, &c.Custcorpuser, &c.Custcommitment01, &c.Custcommitment02, &c.Custcommitment03, &c.Custdebtservices, &c.Custrequiresrmr, &c.Custpiggybondpay, &c.Custdob2, &c.Custclubupgrade, &c.Custreferral, &c.Custrefreward, &c.Custrefdiscount, &c.Custrefcount, &c.Custownortenant, &c.Custtoteligsvs, &c.Custescalation, &c.Custnewtenant, &c.Custiscou, &c.Custarchivedate, &c.Custrepservices, &c.Custemaildate, &c.Custeligiblesvs, &c.Custmyaccount, &c.Custspared1, &c.Custgoldsince, &c.Custvoucher, &c.Custshopperref, &c.Custsupportingid, &c.Custrafpaidan, &c.Custtotalspend, &c.Custnewppmonly, &c.Custlinkaccount, &c.Custvirtexecid, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CustomersByCustname retrieves a row from 'equinox.customer' as a Customer.
 //
 // Generated from index 'custaccountno'.

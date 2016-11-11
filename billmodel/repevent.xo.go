@@ -26,6 +26,37 @@ type Repevent struct {
 	EquinoxSec   sql.NullInt64   `json:"equinox_sec"`  // equinox_sec
 }
 
+func AllRepevent(db XODB, callback func(x Repevent) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`repname, repowner, repcat, repkey, repnavname, repdescr, repid, repfreq, repfirstused, replastused, repoutpath, equinox_lrn, equinox_sec ` +
+		`FROM equinox.repevent `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		r := Repevent{}
+
+		// scan
+		err = q.Scan(&r.Repname, &r.Repowner, &r.Repcat, &r.Repkey, &r.Repnavname, &r.Repdescr, &r.Repid, &r.Repfreq, &r.Repfirstused, &r.Replastused, &r.Repoutpath, &r.EquinoxLrn, &r.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(r) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // RepeventByEquinoxLrn retrieves a row from 'equinox.repevent' as a Repevent.
 //
 // Generated from index 'repevent_pkey'.

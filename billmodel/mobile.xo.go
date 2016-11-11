@@ -35,6 +35,37 @@ type Mobile struct {
 	EquinoxSec       sql.NullInt64   `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllMobile(db XODB, callback func(x Mobile) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`mobtype, mobiemi, mobaccountnumber, mobsim, mobpackageno, mobstatus, mobsaleprice, moblocation, mobreason, mobcli, mobdateinstock, mobsupplier, mobsparen1, mobdateentered, mobexorder, mobexdate, mobexitemcode, mobexpicked, mobequipment, mobstockstatus, equinox_lrn, equinox_sec ` +
+		`FROM equinox.mobiles `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		m := Mobile{}
+
+		// scan
+		err = q.Scan(&m.Mobtype, &m.Mobiemi, &m.Mobaccountnumber, &m.Mobsim, &m.Mobpackageno, &m.Mobstatus, &m.Mobsaleprice, &m.Moblocation, &m.Mobreason, &m.Mobcli, &m.Mobdateinstock, &m.Mobsupplier, &m.Mobsparen1, &m.Mobdateentered, &m.Mobexorder, &m.Mobexdate, &m.Mobexitemcode, &m.Mobexpicked, &m.Mobequipment, &m.Mobstockstatus, &m.EquinoxLrn, &m.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(m) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // MobileByEquinoxLrn retrieves a row from 'equinox.mobiles' as a Mobile.
 //
 // Generated from index 'mobiles_pkey'.

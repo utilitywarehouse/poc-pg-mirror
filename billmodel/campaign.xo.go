@@ -32,6 +32,37 @@ type Campaign struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllCampaign(db XODB, callback func(x Campaign) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`camp_code, camp_description, camp_start, camp_close, camp_volume_sent, camp_responses, camp_orders, camp_notes, camp_rmoption, camp_rmduration, camp_type, camp_cliservlvl, camp_spare_c2, camp_spare_n1, camp_spare_n2, camp_spare_d1, camp_spare_d2, equinox_lrn, equinox_sec ` +
+		`FROM equinox.campaign `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := Campaign{}
+
+		// scan
+		err = q.Scan(&c.CampCode, &c.CampDescription, &c.CampStart, &c.CampClose, &c.CampVolumeSent, &c.CampResponses, &c.CampOrders, &c.CampNotes, &c.CampRmoption, &c.CampRmduration, &c.CampType, &c.CampCliservlvl, &c.CampSpareC2, &c.CampSpareN1, &c.CampSpareN2, &c.CampSpareD1, &c.CampSpareD2, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // CampaignByEquinoxLrn retrieves a row from 'equinox.campaign' as a Campaign.
 //
 // Generated from index 'campaign_pkey'.

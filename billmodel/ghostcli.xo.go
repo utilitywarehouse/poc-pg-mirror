@@ -13,6 +13,37 @@ type Ghostcli struct {
 	EquinoxSec      sql.NullInt64  `json:"equinox_sec"`     // equinox_sec
 }
 
+func AllGhostcli(db XODB, callback func(x Ghostcli) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`ghostclinumber, ghostclirealnum, equinox_lrn, equinox_sec ` +
+		`FROM equinox.ghostcli `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		g := Ghostcli{}
+
+		// scan
+		err = q.Scan(&g.Ghostclinumber, &g.Ghostclirealnum, &g.EquinoxLrn, &g.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(g) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GhostcliByEquinoxLrn retrieves a row from 'equinox.ghostcli' as a Ghostcli.
 //
 // Generated from index 'ghostcli_pkey'.

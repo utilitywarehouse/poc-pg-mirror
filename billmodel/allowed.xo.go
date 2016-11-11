@@ -13,6 +13,37 @@ type Allowed struct {
 	EquinoxSec    sql.NullInt64  `json:"equinox_sec"`   // equinox_sec
 }
 
+func AllAllowed(db XODB, callback func(x Allowed) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`allowedmeter, allowedexecid, equinox_lrn, equinox_sec ` +
+		`FROM equinox.allowed `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		a := Allowed{}
+
+		// scan
+		err = q.Scan(&a.Allowedmeter, &a.Allowedexecid, &a.EquinoxLrn, &a.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(a) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // AllowedByEquinoxLrn retrieves a row from 'equinox.allowed' as a Allowed.
 //
 // Generated from index 'allowed_pkey'.

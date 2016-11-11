@@ -21,6 +21,37 @@ type C4bddi struct {
 	EquinoxSec       sql.NullInt64  `json:"equinox_sec"`      // equinox_sec
 }
 
+func AllC4bddi(db XODB, callback func(x C4bddi) bool) error {
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`c4bddiaccountno, c4bddiclifrom, c4bddiclito, c4bddiclibase, c4bnddistartdate, c4bddienddate, equinox_lrn, equinox_sec ` +
+		`FROM equinox.c4bddi `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		c := C4bddi{}
+
+		// scan
+		err = q.Scan(&c.C4bddiaccountno, &c.C4bddiclifrom, &c.C4bddiclito, &c.C4bddiclibase, &c.C4bnddistartdate, &c.C4bddienddate, &c.EquinoxLrn, &c.EquinoxSec)
+		if err != nil {
+			return err
+		}
+		if !callback(c) {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // C4bddiByEquinoxLrn retrieves a row from 'equinox.c4bddi' as a C4bddi.
 //
 // Generated from index 'c4bddi_pkey'.
