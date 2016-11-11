@@ -11,4 +11,33 @@ type {{ .Name }} struct {
 {{- end }}
 }
 
+func All{{ .Name }} (db XODB, callback func(x {{ .Name }}) bool) error {
 
+	// sql query
+	const sqlstr = `SELECT ` +
+		`{{ colnames .Fields }} ` +
+		`FROM {{ $table }} `
+
+	q, err := db.Query(sqlstr)
+
+	if err != nil {
+		return err
+	}
+	defer q.Close()
+
+	// load results
+	for q.Next() {
+		{{ $short }} := {{ .Name }}{}
+
+		// scan
+		err = q.Scan({{ fieldnames .Fields (print "&" $short) }})
+		if err != nil {
+			return err
+		}
+		if !callback({{ $short }}) {
+			return nil
+		}
+	}
+
+	return nil
+}
